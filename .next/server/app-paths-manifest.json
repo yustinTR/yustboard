@@ -1,0 +1,18 @@
+{
+  "/api/timeline/route": "app/api/timeline/route.js",
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
+  "/api/mail/route": "app/api/mail/route.js",
+  "/api/mail/[id]/route": "app/api/mail/[id]/route.js",
+  "/api/banking/transactions/route": "app/api/banking/transactions/route.js",
+  "/api/settings/menu/public/route": "app/api/settings/menu/public/route.js",
+  "/api/settings/widgets/route": "app/api/settings/widgets/route.js",
+  "/api/calendar/route": "app/api/calendar/route.js",
+  "/api/drive/route": "app/api/drive/route.js",
+  "/api/fitness/route": "app/api/fitness/route.js",
+  "/api/gmail/route": "app/api/gmail/route.js",
+  "/api/news/route": "app/api/news/route.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/dashboard/settings/page": "app/dashboard/settings/page.js",
+  "/dashboard/timeline/page": "app/dashboard/timeline/page.js",
+  "/dashboard/mail/page": "app/dashboard/mail/page.js"
+}
