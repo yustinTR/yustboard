@@ -1,9 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from "@/lib/auth";
-import { writeFile } from 'fs/promises';
+import { writeFile, readdir, stat, mkdir } from 'fs/promises';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+
+// GET request to list uploaded files
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const type = searchParams.get('type');
+    
+    if (type === 'list') {
+      const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'blog');
+      
+      try {
+        const files = await readdir(uploadDir);
+        const fileList = await Promise.all(
+          files.map(async (filename) => {
+            const filePath = path.join(uploadDir, filename);
+            const stats = await stat(filePath);
+            return {
+              id: filename,
+              filename,
+              url: `/uploads/blog/${filename}`,
+              size: stats.size,
+              uploadedAt: stats.mtime,
+            };
+          })
+        );
+
+        // Sort by upload date, newest first
+        fileList.sort((a, b) => b.uploadedAt.getTime() - a.uploadedAt.getTime());
+
+        return NextResponse.json({ files: fileList });
+      } catch {
+        // Directory doesn't exist yet
+        return NextResponse.json({ files: [] });
+      }
+    }
+    
+    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+  } catch (error) {
+    console.error('Error listing files:', error);
+    return NextResponse.json(
+      { error: 'Failed to list files' },
+      { status: 500 }
+    );
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,18 +106,17 @@ export async function POST(request: NextRequest) {
     // Create unique filename
     const fileExtension = path.extname(file.name);
     const uniqueFilename = `${uuidv4()}${fileExtension}`;
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'blog');
     const filePath = path.join(uploadDir, uniqueFilename);
 
     // Ensure upload directory exists
-    const { mkdir } = await import('fs/promises');
     await mkdir(uploadDir, { recursive: true });
 
     // Save file
     await writeFile(filePath, buffer);
 
     // Return file info
-    const fileUrl = `/uploads/${uniqueFilename}`;
+    const fileUrl = `/uploads/blog/${uniqueFilename}`;
     const isImage = file.type.startsWith('image/');
 
     return NextResponse.json({

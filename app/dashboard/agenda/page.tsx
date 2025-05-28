@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { FiPlus, FiCalendar, FiClock, FiEdit, FiTrash2, FiLoader, FiX } from 'react-icons/fi';
-import { format, parseISO, addHours, startOfDay, endOfDay, addDays } from 'date-fns';
+import { FiPlus, FiCalendar, FiClock, FiEdit, FiTrash2, FiLoader, FiX, FiList, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { format, parseISO, addHours, startOfDay, endOfDay, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
 import { Task } from '@/utils/google-calendar';
 
 // Helper function to ensure a task has proper Date objects
@@ -15,6 +15,125 @@ function ensureTaskDates(task: { id: string; title: string; description?: string
   };
 }
 
+// Calendar Grid Component
+interface CalendarGridProps {
+  currentMonth: Date;
+  tasks: Task[];
+  onDateClick: (date: Date) => void;
+  onTaskClick: (task: Task) => void;
+}
+
+function CalendarGrid({ currentMonth, tasks, onDateClick, onTaskClick }: CalendarGridProps) {
+  const monthStart = startOfMonth(currentMonth);
+  const monthEnd = endOfMonth(monthStart);
+  const startDate = startOfDay(monthStart);
+  const endDate = endOfDay(monthEnd);
+
+  const dateFormat = "d";
+  const rows: JSX.Element[] = [];
+
+  let days: JSX.Element[] = [];
+
+  // Create array of days in the month
+  const daysInMonth = eachDayOfInterval({ start: startDate, end: endDate });
+  
+  // Add empty cells for days before the month starts
+  const startDayOfWeek = getDay(startDate);
+  for (let i = 0; i < startDayOfWeek; i++) {
+    days.push(
+      <div key={`empty-${i}`} className="p-2 h-32 bg-gray-50"></div>
+    );
+  }
+
+  // Add days of the month
+  daysInMonth.forEach((day) => {
+    const dayTasks = tasks.filter(task => 
+      isSameDay(task.date, day)
+    );
+    
+    const isToday = isSameDay(day, new Date());
+    const isCurrentMonth = isSameMonth(day, monthStart);
+
+    days.push(
+      <div
+        key={day.toString()}
+        className={`p-2 h-32 border border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
+          !isCurrentMonth ? "bg-gray-50 text-gray-400" : ""
+        } ${isToday ? "bg-blue-50" : ""}`}
+        onClick={() => onDateClick(day)}
+      >
+        <div className={`text-sm font-medium ${isToday ? "text-blue-600" : ""}`}>
+          {format(day, dateFormat)}
+        </div>
+        <div className="mt-1 space-y-1 overflow-y-auto max-h-20">
+          {dayTasks.slice(0, 3).map((task) => (
+            <div
+              key={task.id}
+              className="text-xs p-1 bg-blue-100 text-blue-800 rounded truncate hover:bg-blue-200 transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                onTaskClick(task);
+              }}
+            >
+              {task.isAllDay ? (
+                <span>{task.title}</span>
+              ) : (
+                <span>{format(task.date, 'HH:mm')} {task.title}</span>
+              )}
+            </div>
+          ))}
+          {dayTasks.length > 3 && (
+            <div className="text-xs text-gray-500">
+              +{dayTasks.length - 3} more
+            </div>
+          )}
+        </div>
+      </div>
+    );
+
+    // Start new row after Saturday
+    if (getDay(day) === 6) {
+      rows.push(
+        <div className="grid grid-cols-7" key={day.toString()}>
+          {days}
+        </div>
+      );
+      days = [];
+    }
+  });
+
+  // Add empty cells for days after the month ends
+  if (days.length > 0) {
+    for (let i = days.length; i < 7; i++) {
+      days.push(
+        <div key={`empty-end-${i}`} className="p-2 h-32 bg-gray-50"></div>
+      );
+    }
+    rows.push(
+      <div className="grid grid-cols-7" key="last-row">
+        {days}
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {/* Weekday headers */}
+      <div className="grid grid-cols-7 mb-2">
+        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+          <div key={day} className="text-center text-sm font-medium text-gray-700 py-2">
+            {day}
+          </div>
+        ))}
+      </div>
+      {/* Calendar days */}
+      <div className="border-t border-l border-gray-200">
+        {rows}
+      </div>
+    </div>
+  );
+}
+
 export default function AgendaPage() {
   const { status } = useSession();
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -23,6 +142,9 @@ export default function AgendaPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
+  const [viewType, setViewType] = useState<'list' | 'calendar'>('list');
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  // const [selectedDate, setSelectedDate] = useState<Date | null>(null); // Currently not used
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -38,8 +160,8 @@ export default function AgendaPage() {
     try {
       setLoading(true);
       setError(null);
-      const timeMin = startOfDay(new Date()).toISOString();
-      const timeMax = endOfDay(addDays(new Date(), 30)).toISOString();
+      const timeMin = startOfMonth(subMonths(currentMonth, 1)).toISOString();
+      const timeMax = endOfMonth(addMonths(currentMonth, 1)).toISOString();
       
       const res = await fetch(`/api/calendar?timeMin=${timeMin}&timeMax=${timeMax}`);
       
@@ -257,12 +379,12 @@ export default function AgendaPage() {
     }
   };
 
-  // Load tasks on component mount
+  // Load tasks on component mount or when month changes
   useEffect(() => {
     if (status === 'authenticated') {
       fetchTasks();
     }
-  }, [status]);
+  }, [status, currentMonth]);
 
   // Make sure all tasks have Date objects before sorting
   const tasksWithDates = tasks.map(task => ensureTaskDates(task));
@@ -295,25 +417,25 @@ export default function AgendaPage() {
   // If there's a persistent error, show a retry button
   if (error && !loading && tasks.length === 0) {
     return (
-      <div>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Agenda</h1>
           <button
             onClick={openAddModal}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center transition-colors"
           >
             <FiPlus className="mr-2" />
             Add Event
           </button>
         </div>
 
-        <div className="bg-red-50 text-red-700 rounded-md p-8 text-center">
+        <div className="bg-red-50 text-red-700 rounded-lg p-8 text-center">
           <FiX className="mx-auto h-12 w-12 mb-4" />
           <h2 className="text-xl font-semibold mb-2">Failed to load calendar events</h2>
           <p className="mb-4">{error}</p>
           <button
             onClick={() => fetchTasks()}
-            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md"
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
           >
             Try Again
           </button>
@@ -323,12 +445,12 @@ export default function AgendaPage() {
   }
 
   return (
-    <div>
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Agenda</h1>
         <button 
           onClick={openAddModal}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
+          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center transition-colors"
         >
           <FiPlus className="mr-2" />
           Add Event
@@ -336,7 +458,7 @@ export default function AgendaPage() {
       </div>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-md flex items-center">
+        <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-lg flex items-center">
           <FiX className="mr-2 flex-shrink-0" />
           <p>{error}</p>
           <button onClick={() => setError(null)} className="ml-auto">
@@ -345,11 +467,41 @@ export default function AgendaPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="p-4 border-b border-gray-200">
-          <h2 className="text-xl font-semibold">Your Calendar</h2>
+      {/* View Type Tabs */}
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+        <div className="flex border-b border-gray-200">
+          <button
+            onClick={() => setViewType('list')}
+            className={`flex-1 px-4 py-3 text-sm font-medium flex items-center justify-center transition-colors ${
+              viewType === 'list'
+                ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <FiList className="mr-2" />
+            List View
+          </button>
+          <button
+            onClick={() => setViewType('calendar')}
+            className={`flex-1 px-4 py-3 text-sm font-medium flex items-center justify-center transition-colors ${
+              viewType === 'calendar'
+                ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <FiCalendar className="mr-2" />
+            Calendar View
+          </button>
         </div>
-        <div>
+      </div>
+
+      {/* List View */}
+      {viewType === 'list' && (
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-gray-200">
+            <h2 className="text-xl font-semibold">Upcoming Events</h2>
+          </div>
+          <div>
           {loading ? (
             <div className="flex justify-center items-center py-12">
               <FiLoader className="animate-spin h-6 w-6 text-blue-500 mr-2" />
@@ -426,6 +578,64 @@ export default function AgendaPage() {
           )}
         </div>
       </div>
+      )}
+
+      {/* Calendar View */}
+      {viewType === 'calendar' && (
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          {/* Calendar Header */}
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">
+                {format(currentMonth, 'MMMM yyyy')}
+              </h2>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <FiChevronLeft />
+                </button>
+                <button
+                  onClick={() => setCurrentMonth(new Date())}
+                  className="px-3 py-1 text-sm hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  Today
+                </button>
+                <button
+                  onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <FiChevronRight />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Calendar Grid */}
+          <div className="p-4">
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <FiLoader className="animate-spin h-6 w-6 text-blue-500 mr-2" />
+                <span>Loading calendar...</span>
+              </div>
+            ) : (
+              <CalendarGrid
+                currentMonth={currentMonth}
+                tasks={tasks}
+                onDateClick={(date) => {
+                  setFormData({
+                    ...formData,
+                    date: format(date, 'yyyy-MM-dd'),
+                  });
+                  setShowAddModal(true);
+                }}
+                onTaskClick={editTask}
+              />
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Add Event Modal */}
       {showAddModal && (

@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FiHome, FiCalendar, FiDollarSign, FiCloud, FiUsers, FiLogOut, FiMail, FiMessageSquare, FiSettings, FiShield, FiGlobe, FiX } from 'react-icons/fi';
-import { signOut, useSession } from 'next-auth/react';
+import { FiHome, FiCalendar, FiDollarSign, FiCloud, FiUsers, FiMail, FiMessageSquare, FiSettings, FiGlobe, FiX, FiFileText, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+// import { useSession } from 'next-auth/react'; // Currently not used
 import { useEffect, useState } from 'react';
+import { useSidebar } from '@/contexts/SidebarContext';
 
 interface MenuItem {
   id: string;
@@ -24,8 +25,8 @@ const iconMap: { [key: string]: React.ComponentType<{ className?: string }> } = 
   'Cloud': FiCloud,
   'Users': FiUsers,
   'Settings': FiSettings,
-  'Shield': FiShield,
-  'Globe': FiGlobe
+  'Globe': FiGlobe,
+  'FileText': FiFileText
 };
 
 const defaultNavItems = [
@@ -34,10 +35,11 @@ const defaultNavItems = [
   { id: 'mail', label: 'Mail', path: '/dashboard/mail', icon: 'Mail', enabled: true, position: 2 },
   { id: 'agenda', label: 'Agenda', path: '/dashboard/agenda', icon: 'Calendar', enabled: true, position: 3 },
   { id: 'banking', label: 'Banking', path: '/dashboard/banking', icon: 'DollarSign', enabled: true, position: 4 },
-  { id: 'news', label: 'Nieuws', path: '/dashboard/news', icon: 'Globe', enabled: true, position: 5 },
-  { id: 'social', label: 'Social', path: '/dashboard/social', icon: 'Users', enabled: true, position: 6 },
-  { id: 'weather', label: 'Weather', path: '/dashboard/weather', icon: 'Cloud', enabled: true, position: 7 },
-  { id: 'settings', label: 'Instellingen', path: '/dashboard/settings', icon: 'Settings', enabled: true, position: 8 }
+  { id: 'blog', label: 'Blog', path: '/dashboard/blog', icon: 'FileText', enabled: true, position: 5 },
+  { id: 'news', label: 'Nieuws', path: '/dashboard/news', icon: 'Globe', enabled: true, position: 6 },
+  { id: 'social', label: 'Social', path: '/dashboard/social', icon: 'Users', enabled: true, position: 7 },
+  { id: 'weather', label: 'Weather', path: '/dashboard/weather', icon: 'Cloud', enabled: true, position: 8 },
+  { id: 'settings', label: 'Instellingen', path: '/dashboard/settings', icon: 'Settings', enabled: true, position: 9 }
 ];
 
 interface SidebarProps {
@@ -46,10 +48,11 @@ interface SidebarProps {
 
 export default function Sidebar({ onClose }: SidebarProps) {
   const pathname = usePathname();
-  const { data: session } = useSession();
+  // const { data: session } = useSession(); // Currently not used
+  const { isCollapsed, toggleSidebar } = useSidebar();
   const [menuItems, setMenuItems] = useState<MenuItem[]>(defaultNavItems);
   // const [loading, setLoading] = useState(true); // Currently not used
-  const isAdmin = session?.user?.role === 'ADMIN';
+  // const isAdmin = session?.user?.role === 'ADMIN'; // Currently not used
 
   useEffect(() => {
     fetchMenuSettings();
@@ -69,35 +72,39 @@ export default function Sidebar({ onClose }: SidebarProps) {
     }
   };
 
-  let enabledItems = menuItems.filter(item => item.enabled).sort((a, b) => a.position - b.position);
-  
-  // Add admin menu item for admin users
-  if (isAdmin && !enabledItems.find(item => item.id === 'admin')) {
-    enabledItems = [...enabledItems, {
-      id: 'admin',
-      label: 'Admin',
-      path: '/dashboard/admin',
-      icon: 'Shield',
-      enabled: true,
-      position: 100
-    }];
-  }
+  const enabledItems = menuItems.filter(item => item.enabled).sort((a, b) => a.position - b.position);
 
   return (
-    <div className="bg-white dark:bg-card h-screen w-72 flex flex-col border-r border-border">
-      <div className="h-16 flex items-center justify-between px-6 border-b border-border">
-        <h1 className="text-xl font-medium text-foreground">YustBoard</h1>
-        {/* Close button - visible only on mobile */}
-        <button
-          onClick={onClose}
-          className="lg:hidden p-2 rounded-md hover:bg-secondary transition-colors"
-          aria-label="Close menu"
-        >
-          <FiX className="h-5 w-5 text-secondary-foreground" />
-        </button>
+    <div className={`bg-white dark:bg-card h-screen ${isCollapsed ? 'w-16' : 'w-72'} flex flex-col border-r border-border transition-all duration-300`}>
+      <div className="h-16 flex items-center justify-between px-4 border-b border-border">
+        {!isCollapsed && (
+          <h1 className="text-xl font-medium text-foreground">YustBoard</h1>
+        )}
+        <div className="flex items-center gap-2">
+          {/* Collapse/Expand button - hidden on mobile */}
+          <button
+            onClick={toggleSidebar}
+            className="hidden lg:block p-2 rounded-md hover:bg-secondary transition-colors"
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {isCollapsed ? (
+              <FiChevronRight className="h-4 w-4 text-secondary-foreground" />
+            ) : (
+              <FiChevronLeft className="h-4 w-4 text-secondary-foreground" />
+            )}
+          </button>
+          {/* Close button - visible only on mobile */}
+          <button
+            onClick={onClose}
+            className="lg:hidden p-2 rounded-md hover:bg-secondary transition-colors"
+            aria-label="Close menu"
+          >
+            <FiX className="h-5 w-5 text-secondary-foreground" />
+          </button>
+        </div>
       </div>
       <nav className="flex-1 overflow-y-auto py-2">
-        <ul className="px-3">
+        <ul className={isCollapsed ? "px-1" : "px-3"}>
           {enabledItems.map((item) => {
             const isActive = pathname === item.path || (item.path !== '/dashboard' && pathname.startsWith(`${item.path}/`));
             const Icon = iconMap[item.icon] || FiHome;
@@ -106,16 +113,24 @@ export default function Sidebar({ onClose }: SidebarProps) {
                 <Link
                   href={item.path}
                   onClick={onClose}
-                  className={`relative flex items-center h-12 px-3 rounded-full transition-all hover-overlay ${
+                  className={`relative flex items-center h-12 ${
+                    isCollapsed ? 'px-3 justify-center' : 'px-3'
+                  } rounded-full transition-all hover-overlay ${
                     isActive 
                       ? 'bg-accent text-accent-foreground font-medium' 
                       : 'text-secondary-foreground hover:bg-secondary'
                   }`}
+                  title={isCollapsed ? item.label : undefined}
                 >
-                  <Icon className="mr-3 h-5 w-5" />
-                  <span className="text-sm">{item.label}</span>
-                  {isActive && (
+                  <Icon className={`h-5 w-5 ${!isCollapsed ? 'mr-3' : ''}`} />
+                  {!isCollapsed && (
+                    <span className="text-sm">{item.label}</span>
+                  )}
+                  {isActive && !isCollapsed && (
                     <div className="absolute inset-y-0 left-0 w-1 bg-primary rounded-r-full" />
+                  )}
+                  {isActive && isCollapsed && (
+                    <div className="absolute inset-y-0 right-0 w-1 bg-primary rounded-l-full" />
                   )}
                 </Link>
               </li>
@@ -123,15 +138,6 @@ export default function Sidebar({ onClose }: SidebarProps) {
           })}
         </ul>
       </nav>
-      <div className="p-3 border-t border-border">
-        <button
-          onClick={() => signOut({ callbackUrl: '/' })}
-          className="relative flex items-center w-full h-12 px-3 rounded-full text-secondary-foreground hover:bg-secondary transition-all hover-overlay"
-        >
-          <FiLogOut className="mr-3 h-5 w-5" />
-          <span className="text-sm">Uitloggen</span>
-        </button>
-      </div>
     </div>
   );
 }
