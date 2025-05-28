@@ -94,8 +94,9 @@ export default function Dashboard() {
     default: 2,
     1536: 2,
     1280: 2,
-    768: 1,
-    640: 1
+    1024: 1,  // Tablet landscape
+    768: 1,   // Tablet portrait
+    640: 1    // Mobile
   };
 
   return (
