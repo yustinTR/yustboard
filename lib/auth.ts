@@ -4,6 +4,48 @@ import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import prisma from "@/lib/prisma";
 
+// Helper function to refresh Google access token
+async function refreshAccessToken(token: any) {
+  try {
+    const url = "https://oauth2.googleapis.com/token?" +
+      new URLSearchParams({
+        client_id: process.env.GOOGLE_CLIENT_ID || "",
+        client_secret: process.env.GOOGLE_CLIENT_SECRET || "",
+        grant_type: "refresh_token",
+        refresh_token: token.refreshToken,
+      });
+
+    const response = await fetch(url, {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      method: "POST",
+    });
+
+    const refreshedTokens = await response.json();
+
+    if (!response.ok) {
+      throw refreshedTokens;
+    }
+
+    console.log("Token refresh successful");
+
+    return {
+      ...token,
+      accessToken: refreshedTokens.access_token,
+      accessTokenExpires: Date.now() + refreshedTokens.expires_in * 1000,
+      refreshToken: refreshedTokens.refresh_token ?? token.refreshToken, // Fall back to old refresh token
+    };
+  } catch (error) {
+    console.error("Error refreshing access token", error);
+
+    return {
+      ...token,
+      error: "RefreshAccessTokenError",
+    };
+  }
+}
+
 // For debugging purposes
 console.log("NextAuth Config:", {
   googleId: process.env.GOOGLE_CLIENT_ID ? "Set" : "Not set",
@@ -78,8 +120,9 @@ export const authOptions = {
         return token;
       }
 
-      console.log("JWT callback: Token may be expired or missing expires time");
-      return token;
+      // Token is expired, try to refresh it
+      console.log("JWT callback: Token expired, attempting refresh");
+      return await refreshAccessToken(token);
     },
     async session({ session, token }: { session: any; token: any }) {
       // This is now always called with a token, not a user
@@ -87,7 +130,15 @@ export const authOptions = {
         console.log("Session callback with token:", { 
           userId: token.userId,
           accessToken: token.accessToken ? "Provided" : "Missing",
+          error: token.error,
         });
+
+        // Check if token refresh failed
+        if (token.error === "RefreshAccessTokenError") {
+          // Return session with error flag
+          session.error = "RefreshAccessTokenError";
+          return session;
+        }
 
         // Add the access token and user ID to the session
         session.accessToken = token.accessToken;
@@ -114,7 +165,8 @@ export const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: "jwt" as const, // Important: use JWT strategy to make the token available
-    maxAge: 24 * 60 * 60, // 24 hours
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+    updateAge: 24 * 60 * 60, // 24 hours
   },
   logger: {
     error(code: any, metadata: any) {

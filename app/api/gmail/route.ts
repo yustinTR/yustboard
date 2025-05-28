@@ -1,18 +1,14 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from "@/lib/auth";
+import { getAuthenticatedSession } from '@/lib/auth-utils';
 import { fetchEmails, getEmailCounts } from '@/utils/google-gmail';
 
 export async function GET(request: Request) {
   try {
-    // Get the user's session
-    const session = await getServerSession(authOptions);
+    // Get the user's session with automatic token refresh
+    const { error, session } = await getAuthenticatedSession();
     
-    if (!session?.accessToken) {
-      return NextResponse.json(
-        { error: 'Unauthorized - No access token available' },
-        { status: 401 }
-      );
+    if (error) {
+      return error;
     }
     
     // Parse query parameters

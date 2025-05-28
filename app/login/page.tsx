@@ -36,6 +36,8 @@ function LoginContent() {
         return 'Please sign in to access this page.';
       case 'google':
         return 'Google authentication failed. Please check your credentials or try another method.';
+      case 'RefreshAccessTokenError':
+        return 'Je sessie is verlopen. Log opnieuw in om door te gaan.';
       default:
         return 'An error occurred during authentication. Please try again.';
     }

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { FiLayout, FiCalendar, FiDollarSign, FiMap, FiCloud, FiUsers } from 'react-icons/fi';
 import { useSession } from 'next-auth/react';
+import PublicNavigation from '@/components/PublicNavigation';
 
 const features = [
   {
@@ -66,18 +67,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <header className="bg-white border-b">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">YustBoard</h1>
-          <Link
-            href="/login"
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition-colors"
-          >
-            Login
-          </Link>
-        </div>
-      </header>
+      <PublicNavigation />
 
       <main>
         {/* Hero */}

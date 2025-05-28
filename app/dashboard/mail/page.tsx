@@ -200,7 +200,8 @@ function MailPageContent() {
   };
   
   return (
-    <div className="flex flex-col h-full">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl">
+      <div className="flex flex-col h-full">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Mail</h1>
         <div className="flex space-x-3">
@@ -208,7 +209,7 @@ function MailPageContent() {
             <input
               type="text"
               placeholder="Search emails..."
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -217,7 +218,7 @@ function MailPageContent() {
           <button 
             onClick={() => fetchEmails(selectedLabel, searchQuery)}
             disabled={isLoading}
-            className="bg-green-500 text-white hover:bg-green-600 px-4 py-2 rounded-md flex items-center disabled:opacity-50"
+            className="bg-green-500 text-white hover:bg-green-600 px-4 py-2 rounded-lg flex items-center disabled:opacity-50 transition-colors"
           >
             <FiRefreshCw className={`mr-2 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
@@ -233,7 +234,7 @@ function MailPageContent() {
       
       <div className="flex flex-1 space-x-6 overflow-hidden">
         {/* Sidebar */}
-        <div className="w-64 bg-white rounded-lg shadow-md overflow-hidden flex-shrink-0">
+        <div className="w-64 bg-white rounded-lg shadow-sm overflow-hidden flex-shrink-0">
           <div className="divide-y divide-gray-200">
             {LABELS.map((label) => (
               <button
@@ -260,7 +261,7 @@ function MailPageContent() {
         {/* Main content area */}
         <div className="flex-1 flex overflow-hidden">
           {/* Email list */}
-          <div className={`bg-white rounded-lg shadow-md overflow-hidden ${
+          <div className={`bg-white rounded-lg shadow-sm overflow-hidden ${
             selectedEmail ? 'w-1/3 flex-shrink-0' : 'flex-1'
           }`}>
             <EmailList 
@@ -286,7 +287,7 @@ function MailPageContent() {
           
           {/* Email viewer */}
           {selectedEmail && (
-            <div className="flex-1 bg-white rounded-lg shadow-md overflow-hidden ml-4">
+            <div className="flex-1 bg-white rounded-lg shadow-sm overflow-hidden ml-4">
               <EmailViewer 
                 email={selectedEmail}
                 onClose={() => setSelectedEmail(null)}
@@ -305,6 +306,7 @@ function MailPageContent() {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

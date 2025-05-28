@@ -102,23 +102,23 @@ export default function SocialPage() {
   };
 
   return (
-    <div>
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Social Feed</h1>
-        <button className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center">
+        <button className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center transition-colors">
           <FiRefreshCw className="mr-2" />
           Refresh
         </button>
       </div>
 
       {/* Platform Filter */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
         <div className="p-4 flex space-x-4">
-          <button className="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-md flex items-center">
+          <button className="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg flex items-center transition-colors">
             <FiTwitter className="text-blue-400 mr-2" />
             Twitter
           </button>
-          <button className="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-md flex items-center">
+          <button className="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg flex items-center transition-colors">
             <FiInstagram className="text-pink-500 mr-2" />
             Instagram
           </button>
@@ -128,7 +128,7 @@ export default function SocialPage() {
       {/* Social Feed */}
       <div className="space-y-4">
         {socialPosts.map((post) => (
-          <div key={post.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div key={post.id} className="bg-white rounded-lg shadow-sm overflow-hidden">
             <div className="p-4">
               <div className="flex items-start">
                 <img 
@@ -150,15 +150,15 @@ export default function SocialPage() {
                     </div>
                   )}
                   <div className="mt-4 flex items-center text-gray-500">
-                    <button className="flex items-center mr-6 hover:text-blue-500">
+                    <button className="flex items-center mr-6 hover:text-blue-500 transition-colors">
                       <FiMessageCircle className="mr-1" />
                       <span>{post.comments}</span>
                     </button>
-                    <button className="flex items-center mr-6 hover:text-red-500">
+                    <button className="flex items-center mr-6 hover:text-red-500 transition-colors">
                       <FiHeart className="mr-1" />
                       <span>{post.likes}</span>
                     </button>
-                    <button className="flex items-center hover:text-green-500">
+                    <button className="flex items-center hover:text-green-500 transition-colors">
                       <FiShare2 className="mr-1" />
                       <span>{post.shares}</span>
                     </button>

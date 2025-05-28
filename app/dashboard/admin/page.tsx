@@ -65,7 +65,8 @@ export default function AdminPage() {
       const data = await response.json()
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u))
       
-      toast.success(`Gebruiker ${data.user.email} is nu ${newRole === 'ADMIN' ? 'admin' : 'gebruiker'}`)
+      const roleText = newRole === 'ADMIN' ? 'admin' : newRole === 'AUTHOR' ? 'redacteur' : 'gebruiker'
+      toast.success(`Gebruiker ${data.user.email} is nu ${roleText}`)
     } catch (error) {
       console.error('Error updating user role:', error)
       toast.error('Fout bij het updaten van gebruikersrol')
@@ -87,7 +88,8 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 p-6">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl">
+      <div className="max-w-6xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -142,23 +144,57 @@ export default function AdminPage() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <Badge variant={user.role === 'ADMIN' ? 'default' : 'secondary'}>
-                    {user.role === 'ADMIN' ? 'Admin' : 'Gebruiker'}
+                  <Badge variant={user.role === 'ADMIN' ? 'default' : user.role === 'AUTHOR' ? 'outline' : 'secondary'}>
+                    {user.role === 'ADMIN' ? 'Admin' : user.role === 'AUTHOR' ? 'Redacteur' : 'Gebruiker'}
                   </Badge>
                   
                   {user.id !== session.user.id && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => updateUserRole(user.id, user.role === 'ADMIN' ? 'USER' : 'ADMIN')}
-                      disabled={updating === user.id}
-                    >
-                      {updating === user.id ? (
-                        <RefreshCw className="h-3 w-3 animate-spin" />
-                      ) : (
-                        user.role === 'ADMIN' ? 'Verwijder admin' : 'Maak admin'
+                    <div className="flex gap-2">
+                      {user.role !== 'ADMIN' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => updateUserRole(user.id, 'ADMIN')}
+                          disabled={updating === user.id}
+                        >
+                          {updating === user.id ? (
+                            <RefreshCw className="h-3 w-3 animate-spin" />
+                          ) : (
+                            'Maak admin'
+                          )}
+                        </Button>
                       )}
-                    </Button>
+                      
+                      {user.role !== 'AUTHOR' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => updateUserRole(user.id, 'AUTHOR')}
+                          disabled={updating === user.id}
+                        >
+                          {updating === user.id ? (
+                            <RefreshCw className="h-3 w-3 animate-spin" />
+                          ) : (
+                            'Maak redacteur'
+                          )}
+                        </Button>
+                      )}
+                      
+                      {user.role !== 'USER' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => updateUserRole(user.id, 'USER')}
+                          disabled={updating === user.id}
+                        >
+                          {updating === user.id ? (
+                            <RefreshCw className="h-3 w-3 animate-spin" />
+                          ) : (
+                            'Maak gebruiker'
+                          )}
+                        </Button>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
@@ -166,6 +202,7 @@ export default function AdminPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }
