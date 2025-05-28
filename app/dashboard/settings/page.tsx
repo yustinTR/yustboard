@@ -38,17 +38,18 @@ interface UserData {
   createdAt: string
 }
 
-const availableWidgets: Omit<Widget, 'enabled' | 'position'>[] = [
-  { id: 'timeline', name: 'Timeline', description: 'Sociale tijdlijn met posts' },
-  { id: 'tasks', name: 'Taken', description: 'Google Calendar evenementen' },
-  { id: 'banking', name: 'Banking', description: 'Financiële transacties' },
-  { id: 'gmail', name: 'Gmail', description: 'Recente emails' },
-  { id: 'files', name: 'Bestanden', description: 'Google Drive bestanden' },
-  { id: 'weather', name: 'Weer', description: 'Weersvoorspelling' },
-  { id: 'social', name: 'Sociaal', description: 'Social media feeds' },
-  { id: 'news', name: 'Nieuws', description: 'Laatste nieuws' },
-  { id: 'fitness', name: 'Fitness', description: 'Google Fit data' }
-]
+// Currently not used
+// const availableWidgets: Omit<Widget, 'enabled' | 'position'>[] = [
+  // { id: 'timeline', name: 'Timeline', description: 'Sociale tijdlijn met posts' },
+  // { id: 'tasks', name: 'Taken', description: 'Google Calendar evenementen' },
+  // { id: 'banking', name: 'Banking', description: 'Financiële transacties' },
+  // { id: 'gmail', name: 'Gmail', description: 'Recente emails' },
+  // { id: 'files', name: 'Bestanden', description: 'Google Drive bestanden' },
+  // { id: 'weather', name: 'Weer', description: 'Weersvoorspelling' },
+  // { id: 'social', name: 'Sociaal', description: 'Social media feeds' },
+  // { id: 'news', name: 'Nieuws', description: 'Laatste nieuws' },
+  // { id: 'fitness', name: 'Fitness', description: 'Google Fit data' }
+// ]
 
 const defaultMenuItems: MenuItem[] = [
   { id: 'dashboard', label: 'Dashboard', path: '/dashboard', icon: 'Home', enabled: true, position: 0 },
@@ -56,9 +57,10 @@ const defaultMenuItems: MenuItem[] = [
   { id: 'mail', label: 'Mail', path: '/dashboard/mail', icon: 'Mail', enabled: true, position: 2 },
   { id: 'agenda', label: 'Agenda', path: '/dashboard/agenda', icon: 'Calendar', enabled: true, position: 3 },
   { id: 'banking', label: 'Banking', path: '/dashboard/banking', icon: 'DollarSign', enabled: true, position: 4 },
-  { id: 'social', label: 'Social', path: '/dashboard/social', icon: 'Users', enabled: true, position: 5 },
-  { id: 'weather', label: 'Weather', path: '/dashboard/weather', icon: 'Cloud', enabled: true, position: 6 },
-  { id: 'settings', label: 'Instellingen', path: '/dashboard/settings', icon: 'Settings', enabled: true, position: 7 }
+  { id: 'news', label: 'Nieuws', path: '/dashboard/news', icon: 'Globe', enabled: true, position: 5 },
+  { id: 'social', label: 'Social', path: '/dashboard/social', icon: 'Users', enabled: true, position: 6 },
+  { id: 'weather', label: 'Weather', path: '/dashboard/weather', icon: 'Cloud', enabled: true, position: 7 },
+  { id: 'settings', label: 'Instellingen', path: '/dashboard/settings', icon: 'Settings', enabled: true, position: 8 }
 ]
 
 export default function SettingsPage() {
@@ -121,6 +123,7 @@ export default function SettingsPage() {
     )
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleWidgetDragEnd = (result: any) => {
     if (!result.destination) return
 
@@ -136,6 +139,7 @@ export default function SettingsPage() {
     setWidgets(updatedItems)
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleMenuDragEnd = (result: any) => {
     if (!result.destination) return
 

@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { FiPlus, FiCalendar, FiClock, FiCheck, FiEdit, FiTrash2, FiLoader, FiX } from 'react-icons/fi';
-import { format, parseISO, isAfter, addHours, startOfDay, endOfDay, addDays } from 'date-fns';
+import { FiPlus, FiCalendar, FiClock, FiEdit, FiTrash2, FiLoader, FiX } from 'react-icons/fi';
+import { format, parseISO, addHours, startOfDay, endOfDay, addDays } from 'date-fns';
 import { Task } from '@/utils/google-calendar';
 
 // Helper function to ensure a task has proper Date objects
-function ensureTaskDates(task: any): Task {
+function ensureTaskDates(task: { id: string; title: string; description?: string; date: Date | string; endDate?: Date | string; completed: boolean }): Task {
   return {
     ...task,
     date: task.date instanceof Date ? task.date : new Date(task.date),
@@ -16,7 +16,7 @@ function ensureTaskDates(task: any): Task {
 }
 
 export default function AgendaPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

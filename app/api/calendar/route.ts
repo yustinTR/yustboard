@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { parseISO } from 'date-fns';
-import { authOptions } from '../auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import { 
   fetchGoogleCalendarEvents, 
   createGoogleCalendarEvent, 
@@ -20,7 +20,7 @@ const mockTasks = [
 ];
 
 // Check if the user is using the test account
-function isTestUser(session: any) {
+function isTestUser(session: { accessToken?: string; user?: { email?: string } } | null) {
   return session?.accessToken === 'test-access-token' || session?.user?.email === 'test@example.com';
 }
 

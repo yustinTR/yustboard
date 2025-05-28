@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { format, isToday, isYesterday } from 'date-fns';
-import { FiStar, FiMail, FiCheckCircle, FiRefreshCw } from 'react-icons/fi';
+import { FiStar, FiRefreshCw, FiMail } from 'react-icons/fi';
 import { EmailMessage } from '@/utils/google-gmail';
 
 interface EmailListProps {

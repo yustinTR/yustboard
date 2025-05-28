@@ -8,11 +8,11 @@ export interface DriveFile {
   modifiedTime: string;
   webViewLink: string;
   iconLink: string;
-  thumbnailLink?: string;
+  thumbnailLink?: string | null;
   owners: Array<{
-    displayName?: string;
+    displayName?: string | null;
     emailAddress: string;
-    photoLink?: string;
+    photoLink?: string | null;
   }>;
   shared: boolean;
   size?: string;

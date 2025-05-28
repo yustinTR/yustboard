@@ -18,7 +18,8 @@ const NewsWidget = dynamic(() => import('@/components/dashboard/widgets/NewsWidg
 const FitnessWidget = dynamic(() => import('@/components/dashboard/widgets/FitnessWidget'));
 
 // Widget component map
-const widgetComponents: { [key: string]: any } = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const widgetComponents: { [key: string]: React.ComponentType<any> } = {
   timeline: TimelineWidget,
   tasks: TaskWidget,
   banking: BankingWidget,

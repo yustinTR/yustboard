@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FiHome, FiCalendar, FiDollarSign, FiCloud, FiUsers, FiLogOut, FiMail, FiMessageSquare, FiSettings, FiShield } from 'react-icons/fi';
+import { FiHome, FiCalendar, FiDollarSign, FiCloud, FiUsers, FiLogOut, FiMail, FiMessageSquare, FiSettings, FiShield, FiGlobe } from 'react-icons/fi';
 import { signOut, useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 
@@ -15,7 +15,7 @@ interface MenuItem {
   position: number;
 }
 
-const iconMap: { [key: string]: any } = {
+const iconMap: { [key: string]: React.ComponentType<{ className?: string }> } = {
   'Home': FiHome,
   'MessageSquare': FiMessageSquare,
   'Mail': FiMail,
@@ -24,7 +24,8 @@ const iconMap: { [key: string]: any } = {
   'Cloud': FiCloud,
   'Users': FiUsers,
   'Settings': FiSettings,
-  'Shield': FiShield
+  'Shield': FiShield,
+  'Globe': FiGlobe
 };
 
 const defaultNavItems = [
@@ -33,16 +34,17 @@ const defaultNavItems = [
   { id: 'mail', label: 'Mail', path: '/dashboard/mail', icon: 'Mail', enabled: true, position: 2 },
   { id: 'agenda', label: 'Agenda', path: '/dashboard/agenda', icon: 'Calendar', enabled: true, position: 3 },
   { id: 'banking', label: 'Banking', path: '/dashboard/banking', icon: 'DollarSign', enabled: true, position: 4 },
-  { id: 'social', label: 'Social', path: '/dashboard/social', icon: 'Users', enabled: true, position: 5 },
-  { id: 'weather', label: 'Weather', path: '/dashboard/weather', icon: 'Cloud', enabled: true, position: 6 },
-  { id: 'settings', label: 'Instellingen', path: '/dashboard/settings', icon: 'Settings', enabled: true, position: 7 }
+  { id: 'news', label: 'Nieuws', path: '/dashboard/news', icon: 'Globe', enabled: true, position: 5 },
+  { id: 'social', label: 'Social', path: '/dashboard/social', icon: 'Users', enabled: true, position: 6 },
+  { id: 'weather', label: 'Weather', path: '/dashboard/weather', icon: 'Cloud', enabled: true, position: 7 },
+  { id: 'settings', label: 'Instellingen', path: '/dashboard/settings', icon: 'Settings', enabled: true, position: 8 }
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const [menuItems, setMenuItems] = useState<MenuItem[]>(defaultNavItems);
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true); // Currently not used
   const isAdmin = session?.user?.role === 'ADMIN';
 
   useEffect(() => {
@@ -59,7 +61,7 @@ export default function Sidebar() {
     } catch (error) {
       console.error('Error fetching menu settings:', error);
     } finally {
-      setLoading(false);
+      // setLoading(false); // Currently not used
     }
   };
 
@@ -67,14 +69,14 @@ export default function Sidebar() {
   
   // Add admin menu item for admin users
   if (isAdmin && !enabledItems.find(item => item.id === 'admin')) {
-    enabledItems.push({
+    enabledItems = [...enabledItems, {
       id: 'admin',
       label: 'Admin',
       path: '/dashboard/admin',
       icon: 'Shield',
       enabled: true,
       position: 100
-    });
+    }];
   }
 
   return (
@@ -85,7 +87,7 @@ export default function Sidebar() {
       <nav className="flex-1 overflow-y-auto py-2">
         <ul className="px-3">
           {enabledItems.map((item) => {
-            const isActive = pathname === item.path || pathname.startsWith(`${item.path}/`);
+            const isActive = pathname === item.path || (item.path !== '/dashboard' && pathname.startsWith(`${item.path}/`));
             const Icon = iconMap[item.icon] || FiHome;
             return (
               <li key={item.id} className="mb-1">

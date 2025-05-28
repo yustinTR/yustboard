@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from "@/lib/auth";
 import { fetchTransactionsFromGmail, getTransactionStats } from '@/utils/gmail-transactions';
 
 export async function GET(request: Request) {

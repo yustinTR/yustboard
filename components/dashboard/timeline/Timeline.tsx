@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useSession } from 'next-auth/react';
+// import { useSession } from 'next-auth/react'; // Currently not used
 import PostWithInteractions from './PostWithInteractions';
 import { FiSend, FiRefreshCw, FiPaperclip, FiX, FiImage, FiFile } from 'react-icons/fi';
 
@@ -31,7 +31,7 @@ interface TimelinePost {
 }
 
 export default function Timeline() {
-  const { data: session } = useSession();
+  // const { data: session } = useSession(); // Currently not used
   const [posts, setPosts] = useState<TimelinePost[]>([]);
   const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -39,7 +39,8 @@ export default function Timeline() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [attachments, setAttachments] = useState<File[]>([]);
-  const [uploadedMedia, setUploadedMedia] = useState<any[]>([]);
+  // const [uploadedMedia, setUploadedMedia] = useState<Array<{ type: string; url: string; filename: string; size: number; mimeType: string }>>([]); // Currently not used
+  // const setUploadedMedia = () => {}; // Currently not used
   const [isUploading, setIsUploading] = useState(false);
 
   const fetchPosts = useCallback(async (showRefreshState = false) => {

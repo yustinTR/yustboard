@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from "@/lib/auth"
 
 // NewsAPI.org - Free tier: 100 requests per day
 const NEWS_API_KEY = process.env.NEWS_API_KEY || ''
@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const category = searchParams.get('category') || 'general'
     const country = searchParams.get('country') || 'us' // Default to US for more content
+    const page = searchParams.get('page') || '1'
     
     if (!NEWS_API_KEY) {
       console.warn('NEWS_API_KEY not found. Please get a free API key from https://newsapi.org')
@@ -31,7 +32,8 @@ export async function GET(request: NextRequest) {
     const url = new URL(NEWS_API_URL)
     url.searchParams.append('country', country)
     url.searchParams.append('category', category)
-    url.searchParams.append('pageSize', '10')
+    url.searchParams.append('pageSize', '12')
+    url.searchParams.append('page', page)
     url.searchParams.append('apiKey', NEWS_API_KEY)
 
     const response = await fetch(url.toString(), {

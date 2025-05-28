@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { FiClock, FiPlus, FiLoader } from 'react-icons/fi';
-import { format, startOfDay, addDays, endOfDay, isAfter } from 'date-fns';
+import { format, startOfDay, addDays, endOfDay } from 'date-fns';
 import { Task } from '@/utils/google-calendar';
 
 export default function TaskWidget() {
@@ -27,7 +27,7 @@ export default function TaskWidget() {
       
       const data = await res.json();
       // parse the date strings into Date objects
-      const tasksWithDates: Task[] = data.map((t: any) => ({
+      const tasksWithDates: Task[] = data.map((t: { id: string; title: string; description?: string; date: string; endDate?: string; completed: boolean }) => ({
         ...t,
         date: new Date(t.date),
         endDate: t.endDate ? new Date(t.endDate) : undefined,

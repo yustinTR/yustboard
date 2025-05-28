@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { format } from 'date-fns';
-import { FiStar, FiChevronLeft, FiUser, FiMail, FiPaperclip } from 'react-icons/fi';
+import { FiStar, FiChevronLeft, FiUser, FiPaperclip } from 'react-icons/fi';
 import { EmailMessage } from '@/utils/google-gmail';
 
 interface EmailViewerProps {
