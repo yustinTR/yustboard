@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FiHome, FiCalendar, FiDollarSign, FiCloud, FiUsers, FiLogOut, FiMail, FiMessageSquare, FiSettings, FiShield, FiGlobe } from 'react-icons/fi';
+import { FiHome, FiCalendar, FiDollarSign, FiCloud, FiUsers, FiLogOut, FiMail, FiMessageSquare, FiSettings, FiShield, FiGlobe, FiX } from 'react-icons/fi';
 import { signOut, useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 
@@ -40,7 +40,11 @@ const defaultNavItems = [
   { id: 'settings', label: 'Instellingen', path: '/dashboard/settings', icon: 'Settings', enabled: true, position: 8 }
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  onClose?: () => void;
+}
+
+export default function Sidebar({ onClose }: SidebarProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const [menuItems, setMenuItems] = useState<MenuItem[]>(defaultNavItems);
@@ -81,8 +85,16 @@ export default function Sidebar() {
 
   return (
     <div className="bg-white dark:bg-card h-screen w-72 flex flex-col border-r border-border">
-      <div className="h-16 flex items-center px-6 border-b border-border">
+      <div className="h-16 flex items-center justify-between px-6 border-b border-border">
         <h1 className="text-xl font-medium text-foreground">YustBoard</h1>
+        {/* Close button - visible only on mobile */}
+        <button
+          onClick={onClose}
+          className="lg:hidden p-2 rounded-md hover:bg-secondary transition-colors"
+          aria-label="Close menu"
+        >
+          <FiX className="h-5 w-5 text-secondary-foreground" />
+        </button>
       </div>
       <nav className="flex-1 overflow-y-auto py-2">
         <ul className="px-3">
@@ -93,6 +105,7 @@ export default function Sidebar() {
               <li key={item.id} className="mb-1">
                 <Link
                   href={item.path}
+                  onClick={onClose}
                   className={`relative flex items-center h-12 px-3 rounded-full transition-all hover-overlay ${
                     isActive 
                       ? 'bg-accent text-accent-foreground font-medium' 

@@ -1,11 +1,15 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { FiBell, FiSettings } from 'react-icons/fi';
+import { FiBell, FiSettings, FiMenu } from 'react-icons/fi';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-export default function Header() {
+interface HeaderProps {
+  onMenuClick?: () => void;
+}
+
+export default function Header({ onMenuClick }: HeaderProps) {
   const { data: session } = useSession();
   const pathname = usePathname();
   
@@ -24,8 +28,16 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-white dark:bg-card h-16 flex items-center justify-between px-6 border-b border-border shadow-1">
-      <div>
+    <header className="bg-white dark:bg-card h-16 flex items-center justify-between px-4 lg:px-6 border-b border-border shadow-1">
+      <div className="flex items-center gap-4">
+        {/* Hamburger menu button - visible only on mobile */}
+        <button
+          onClick={onMenuClick}
+          className="lg:hidden p-2 rounded-md hover:bg-secondary transition-colors"
+          aria-label="Open menu"
+        >
+          <FiMenu className="h-5 w-5 text-secondary-foreground" />
+        </button>
         <h2 className="text-xl font-normal text-foreground">{getPageTitle()}</h2>
       </div>
       <div className="flex items-center gap-2">
