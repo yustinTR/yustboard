@@ -52,3 +52,6 @@ next-env.d.ts
 # OS
 .DS_Store
 Thumbs.db
+
+# Blog uploads
+public/uploads/blog/

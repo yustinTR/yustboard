@@ -49,7 +49,7 @@ export default function WeatherPage() {
   };
 
   return (
-    <div>
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Weather</h1>
         <div className="relative">
@@ -58,14 +58,14 @@ export default function WeatherPage() {
           </div>
           <input
             type="text"
-            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
             placeholder="Search location..."
           />
         </div>
       </div>
 
       {/* Current Weather */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
         <div className="p-6">
           <div className="flex items-center mb-4">
             <FiMapPin className="text-gray-500 mr-2" />
@@ -111,7 +111,7 @@ export default function WeatherPage() {
       </div>
 
       {/* Hourly Forecast */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
         <div className="p-4 border-b border-gray-200">
           <h2 className="text-xl font-semibold">Hourly Forecast</h2>
         </div>
@@ -131,7 +131,7 @@ export default function WeatherPage() {
       </div>
 
       {/* Daily Forecast */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         <div className="p-4 border-b border-gray-200">
           <h2 className="text-xl font-semibold">7-Day Forecast</h2>
         </div>

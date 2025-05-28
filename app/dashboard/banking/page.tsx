@@ -75,13 +75,13 @@ export default function BankingPage() {
     : transactions;
 
   return (
-    <div>
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Banking</h1>
         <div className="flex space-x-3">
           <div className="relative">
             <select
-              className="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-md appearance-none pr-10 pl-8"
+              className="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg appearance-none pr-10 pl-8 transition-colors"
               value={daysBack.toString()}
               onChange={(e) => setDaysBack(Number(e.target.value))}
             >
@@ -96,7 +96,7 @@ export default function BankingPage() {
           <button 
             onClick={fetchTransactions}
             disabled={isLoading}
-            className="bg-green-500 text-white hover:bg-green-600 px-4 py-2 rounded-md flex items-center disabled:opacity-50"
+            className="bg-green-500 text-white hover:bg-green-600 px-4 py-2 rounded-lg flex items-center disabled:opacity-50 transition-colors"
           >
             <FiRefreshCw className={`mr-2 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
@@ -113,7 +113,7 @@ export default function BankingPage() {
 
       {/* Account Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-sm text-gray-500 mb-2">Total Balance</h2>
           {isLoading ? (
             <div className="flex items-center h-10">
@@ -126,7 +126,7 @@ export default function BankingPage() {
             </>
           )}
         </div>
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-sm text-gray-500 mb-2">Income</h2>
           {isLoading ? (
             <div className="flex items-center h-10">
@@ -142,7 +142,7 @@ export default function BankingPage() {
             </>
           )}
         </div>
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-sm text-gray-500 mb-2">Expenses</h2>
           {isLoading ? (
             <div className="flex items-center h-10">
@@ -163,7 +163,7 @@ export default function BankingPage() {
       {/* Categories and Accounts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         {/* Categories List */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <div className="p-4 border-b border-gray-200">
             <h2 className="text-xl font-semibold">Spending by Category</h2>
           </div>
@@ -197,7 +197,7 @@ export default function BankingPage() {
         </div>
 
         {/* Accounts List */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <div className="p-4 border-b border-gray-200">
             <h2 className="text-xl font-semibold">Accounts</h2>
           </div>
@@ -223,7 +223,7 @@ export default function BankingPage() {
       </div>
 
       {/* Transactions */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         <div className="p-4 border-b border-gray-200 flex justify-between items-center">
           <h2 className="text-xl font-semibold">
             {filterCategory ? `Transactions: ${filterCategory}` : 'Recent Transactions'}

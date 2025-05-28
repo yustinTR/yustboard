@@ -9,27 +9,23 @@ datasource db {
 }
 
 model User {
-  id            String        @id @default(cuid())
-  name          String?
-  email         String?       @unique
-  emailVerified DateTime?
-  image         String?
-  role          UserRole      @default(USER)
-  accounts      Account[]
-  posts         Post[]
-  sessions      Session[]
-  tasks         Task[]
-  transactions  Transaction[]
-  likes         PostLike[]
-  comments      PostComment[]
+  id                String                 @id @default(cuid())
+  name              String?
+  email             String?                @unique
+  emailVerified     DateTime?
+  image             String?
+  createdAt         DateTime               @default(now())
+  role              UserRole               @default(USER)
+  updatedAt         DateTime               @default(now()) @updatedAt
+  accounts          Account[]
+  posts             Post[]
+  comments          PostComment[]
+  likes             PostLike[]
+  sessions          Session[]
+  tasks             Task[]
+  transactions      Transaction[]
   widgetPreferences UserWidgetPreference[]
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @default(now()) @updatedAt
-}
-
-enum UserRole {
-  USER
-  ADMIN
+  blogPosts         BlogPost[]
 }
 
 model Account {
@@ -93,13 +89,13 @@ model Transaction {
 
 model Post {
   id        String        @id @default(cuid())
-  content   String        @db.Text
+  content   String
   userId    String
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
   user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  likes     PostLike[]
   comments  PostComment[]
+  likes     PostLike[]
   media     PostMedia[]
 
   @@index([createdAt(sort: Desc)])
@@ -110,39 +106,36 @@ model PostLike {
   postId    String
   userId    String
   createdAt DateTime @default(now())
-  
-  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([postId, userId])
 }
 
 model PostComment {
   id        String   @id @default(cuid())
-  content   String   @db.Text
+  content   String
   postId    String
   userId    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([postId, createdAt])
 }
 
 model PostMedia {
   id        String   @id @default(cuid())
   postId    String
-  type      String   // 'image' or 'file'
+  type      String
   url       String
   filename  String
   size      Int
   mimeType  String
   createdAt DateTime @default(now())
-  
-  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
-  
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
   @@index([postId])
 }
 
@@ -152,12 +145,11 @@ model UserWidgetPreference {
   widgetId  String
   enabled   Boolean  @default(true)
   position  Int      @default(0)
-  settings  Json?    // Widget-specific settings
+  settings  Json?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([userId, widgetId])
   @@index([userId])
 }
@@ -172,4 +164,29 @@ model GlobalMenuSetting {
   label     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model BlogPost {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  excerpt     String
+  content     String   @db.Text
+  coverImage  String?
+  published   Boolean  @default(false)
+  authorId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  publishedAt DateTime?
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([slug])
+  @@index([published, publishedAt])
+  @@index([authorId])
+}
+
+enum UserRole {
+  USER
+  AUTHOR
+  ADMIN
 }

@@ -16,6 +16,7 @@ const GmailWidget = dynamic(() => import('@/components/dashboard/widgets/GmailWi
 const TimelineWidget = dynamic(() => import('@/components/dashboard/widgets/TimelineWidget'));
 const NewsWidget = dynamic(() => import('@/components/dashboard/widgets/NewsWidget'));
 const FitnessWidget = dynamic(() => import('@/components/dashboard/widgets/FitnessWidget'));
+const BlogWidget = dynamic(() => import('@/components/dashboard/widgets/BlogWidget'));
 
 // Widget component map
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -28,7 +29,8 @@ const widgetComponents: { [key: string]: React.ComponentType<any> } = {
   weather: WeatherWidget,
   social: SocialWidget,
   news: NewsWidget,
-  fitness: FitnessWidget
+  fitness: FitnessWidget,
+  blog: BlogWidget
 };
 
 

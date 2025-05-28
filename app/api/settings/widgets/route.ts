@@ -27,7 +27,8 @@ export async function GET() {
       { id: 'weather', name: 'Weer', description: 'Weersvoorspelling' },
       { id: 'social', name: 'Sociaal', description: 'Social media feeds' },
       { id: 'news', name: 'Nieuws', description: 'Laatste nieuws' },
-      { id: 'fitness', name: 'Fitness', description: 'Google Fit data' }
+      { id: 'fitness', name: 'Fitness', description: 'Google Fit data' },
+      { id: 'blog', name: 'Blog', description: 'Laatste blog posts' }
     ]
 
     // Merge preferences with widget definitions

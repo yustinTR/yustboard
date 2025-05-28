@@ -140,7 +140,7 @@ export default function PostWithInteractions({ post }: PostProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-4">
+    <div className="bg-white rounded-lg shadow-sm p-4">
       {/* Post header */}
       <div className="flex space-x-3">
         <div className="flex-shrink-0">
@@ -238,7 +238,7 @@ export default function PostWithInteractions({ post }: PostProps) {
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   placeholder="Write a comment..."
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                   disabled={isSubmittingComment}
                 />
                 <button

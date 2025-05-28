@@ -177,14 +177,14 @@ export default function Timeline() {
   return (
     <div className="max-w-2xl mx-auto">
       {/* Post form */}
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
+      <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="What's on your mind?"
-              className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               rows={3}
               maxLength={280}
               disabled={isPosting}
