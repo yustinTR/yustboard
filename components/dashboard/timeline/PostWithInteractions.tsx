@@ -49,7 +49,7 @@ interface PostProps {
   onUpdate?: () => void;
 }
 
-export default function PostWithInteractions({ post, onUpdate }: PostProps) {
+export default function PostWithInteractions({ post }: PostProps) {
   const { data: session } = useSession();
   const [isLiked, setIsLiked] = useState(
     post.likes.some(like => like.userId === session?.user?.id)

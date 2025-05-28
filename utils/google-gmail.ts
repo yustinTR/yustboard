@@ -256,7 +256,7 @@ export async function fetchEmails(
     
     return {
       emails: emails.filter(Boolean) as EmailMessage[],
-      nextPageToken: messagesResponse.data.nextPageToken,
+      nextPageToken: messagesResponse.data.nextPageToken || undefined,
     };
   } catch (error) {
     console.error('Error fetching emails:', error);

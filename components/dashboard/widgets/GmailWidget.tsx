@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { 
-  FiMail, FiStar, FiRefreshCw, FiChevronRight, 
-  FiClock, FiPaperclip, FiExternalLink, FiSearch
+  FiStar, FiRefreshCw, FiChevronRight, 
+  FiPaperclip, FiSearch
 } from 'react-icons/fi';
 import { useSession } from 'next-auth/react';
-import { EmailMessage, fetchEmails } from '@/utils/google-gmail';
+import { EmailMessage } from '@/utils/google-gmail';
 
 interface GmailWidgetProps {
   initialEmails?: EmailMessage[];
@@ -84,7 +84,7 @@ export default function GmailWidget({ initialEmails = [], maxEmails = 5 }: Gmail
       }
       
       // Process emails to ensure dates are properly handled
-      const processedEmails = (data.emails || []).map(email => ({
+      const processedEmails = (data.emails || []).map((email: EmailMessage) => ({
         ...email,
         // Ensure date is a Date object if it's a string
         date: typeof email.date === 'string' ? new Date(email.date) : email.date

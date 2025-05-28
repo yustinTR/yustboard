@@ -2,11 +2,11 @@
 
 import { useSession, signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect } from 'react';
-import Image from 'next/image';
+import { useEffect, Suspense } from 'react';
+// import Image from 'next/image'; // Currently not used
 
-export default function Login() {
-  const { data: session, status } = useSession();
+function LoginContent() {
+  const { status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
@@ -102,5 +102,20 @@ export default function Login() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Login() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Laden...</p>
+        </div>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }

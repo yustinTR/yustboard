@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Newspaper, ExternalLink, RefreshCw, Calendar } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { nl } from 'date-fns/locale'
+import Link from 'next/link'
 
 interface NewsArticle {
   title: string
@@ -67,8 +68,8 @@ export default function NewsWidget() {
   }, [selectedCategory, selectedCountry])
 
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader className="pb-3">
+    <Card className="h-[600px] flex flex-col">
+      <CardHeader className="pb-3 flex-shrink-0">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg">
             <Newspaper className="h-5 w-5" />
@@ -194,6 +195,16 @@ export default function NewsWidget() {
           </div>
         ))}
       </CardContent>
+      
+      <div className="p-3 bg-secondary/50 text-center border-t flex-shrink-0">
+        <Link 
+          href="/dashboard/news" 
+          className="text-primary hover:text-primary/80 text-sm font-medium flex items-center justify-center"
+        >
+          Alle nieuws bekijken
+          <ExternalLink className="ml-1 h-3 w-3" />
+        </Link>
+      </div>
     </Card>
   )
 }

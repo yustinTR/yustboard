@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { FiFile, FiRefreshCw, FiExternalLink, FiClock } from 'react-icons/fi';
 import { useSession } from 'next-auth/react';
-import { DriveFile, fetchRecentFiles } from '@/utils/google-drive';
+import { DriveFile } from '@/utils/google-drive';
 
 interface FilesWidgetProps {
   initialFiles?: DriveFile[];

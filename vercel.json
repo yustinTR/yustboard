@@ -1,0 +1,14 @@
+{
+  "buildCommand": "npm run build:production",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "installCommand": "npm install",
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_APP_URL": "@NEXTAUTH_URL"
+    }
+  }
+}

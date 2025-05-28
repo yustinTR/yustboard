@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FiDownload, FiFilter, FiArrowUp, FiArrowDown, FiRefreshCw } from 'react-icons/fi';
+import { FiFilter, FiArrowUp, FiArrowDown, FiRefreshCw } from 'react-icons/fi';
 import { format } from 'date-fns';
 import { useSession } from 'next-auth/react';
-import { Transaction, transactionCategories } from '@/utils/gmail-transactions';
+import { Transaction } from '@/utils/gmail-transactions';
 
 // Mock accounts (would come from API in real app)
 const accounts = [
@@ -107,7 +107,7 @@ export default function BankingPage() {
       {error && (
         <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-lg">
           {error}
-          <p className="text-sm mt-1">This feature analyzes your Gmail for transaction data. Make sure you've granted the necessary permissions.</p>
+          <p className="text-sm mt-1">This feature analyzes your Gmail for transaction data. Make sure you&apos;ve granted the necessary permissions.</p>
         </div>
       )}
 

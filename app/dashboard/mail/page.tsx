@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
-import { format } from 'date-fns';
+// import { format } from 'date-fns' // Currently not used;
 import { 
   FiInbox, FiStar, FiSend, FiArchive, FiTrash2, FiRefreshCw, 
-  FiSearch, FiMail, FiAlertCircle, FiEye, FiEyeOff
+  FiSearch
 } from 'react-icons/fi';
 import EmailList from '@/components/dashboard/widgets/EmailList';
 import EmailViewer from '@/components/dashboard/widgets/EmailViewer';
@@ -20,7 +20,7 @@ const LABELS = [
   { id: 'trash', name: 'Trash', icon: <FiTrash2 /> },
 ];
 
-export default function MailPage() {
+function MailPageContent() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const [emails, setEmails] = useState<EmailMessage[]>([]);
@@ -307,5 +307,20 @@ export default function MailPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function MailPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <FiRefreshCw className="h-8 w-8 animate-spin text-green-500 mx-auto" />
+          <p className="mt-4 text-muted-foreground">Loading emails...</p>
+        </div>
+      </div>
+    }>
+      <MailPageContent />
+    </Suspense>
   );
 }

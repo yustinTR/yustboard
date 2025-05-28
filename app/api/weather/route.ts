@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from "@/lib/auth"
 
 // OpenWeatherMap - Free tier: 1000 calls/day
 const WEATHER_API_KEY = process.env.OPENWEATHER_API_KEY || ''
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     const forecastData = await forecastResponse.json()
 
     // Parse forecast data - get daily max temps
-    const dailyForecasts = forecastData.list.map((item: any) => ({
+    const dailyForecasts = forecastData.list.map((item: { dt: number; main: { temp: number }; weather: [{ main: string }] }) => ({
       day: new Date(item.dt * 1000).toLocaleDateString('nl-NL', { weekday: 'short' }),
       temperature: Math.round(item.main.temp),
       condition: item.weather[0].main

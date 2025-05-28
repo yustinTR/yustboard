@@ -1,13 +1,16 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from "@/lib/auth";
 import { fetchEmailById, markAsRead } from '@/utils/google-gmail';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Await params first
+    const { id } = await params;
+    
     // Get the user's session
     const session = await getServerSession(authOptions);
     
@@ -18,7 +21,7 @@ export async function GET(
       );
     }
     
-    const messageId = params.id;
+    const messageId = id;
     if (!messageId) {
       return NextResponse.json(
         { error: 'Email ID is required' },
