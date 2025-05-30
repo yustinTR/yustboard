@@ -51,7 +51,7 @@ export default function EmailList({
   
   return (
     <div className="flex flex-col h-full">
-      <div className="p-4 border-b border-gray-200 bg-gray-50">
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
         <h2 className="font-medium">Emails</h2>
       </div>
       <div 
@@ -59,21 +59,21 @@ export default function EmailList({
         onScroll={handleScroll}
       >
         {isLoading && emails.length === 0 ? (
-          <div className="py-20 flex flex-col items-center justify-center text-gray-500">
+          <div className="py-20 flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
             <FiRefreshCw className="animate-spin text-green-500 mb-3 w-8 h-8" />
             <p>Loading emails...</p>
           </div>
         ) : emails.length === 0 ? (
-          <div className="py-20 flex flex-col items-center justify-center text-gray-500">
+          <div className="py-20 flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
             <FiMail className="mb-3 w-8 h-8" />
             <p>No emails found</p>
           </div>
         ) : (
-          <ul className="divide-y divide-gray-200">
+          <ul className="divide-y divide-gray-200 dark:divide-gray-700">
             {emails.map((email) => (
               <li 
                 key={email.id}
-                className={`relative hover:bg-gray-50 transition-colors ${
+                className={`relative hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
                   selectedEmailId === email.id ? 'bg-green-50' : ''
                 }`}
               >
@@ -87,7 +87,7 @@ export default function EmailList({
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center">
                       <button
-                        className="mr-3 text-gray-400 hover:text-yellow-400 focus:outline-none"
+                        className="mr-3 text-gray-400 dark:text-gray-500 hover:text-yellow-400 focus:outline-none"
                         onClick={(e) => {
                           e.stopPropagation();
                           onStarToggle(email);
@@ -99,14 +99,14 @@ export default function EmailList({
                         {email.from.name || email.from.email}
                       </p>
                     </div>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
                       {formatEmailDate(email.date)}
                     </span>
                   </div>
                   <h3 className={`text-sm truncate ${!email.isRead ? 'font-semibold' : ''}`}>
                     {email.subject}
                   </h3>
-                  <p className="text-xs text-gray-500 truncate mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
                     {email.snippet}
                   </p>
                 </div>
@@ -124,7 +124,7 @@ export default function EmailList({
               <li className="p-4">
                 <button
                   onClick={loadMore}
-                  className="w-full py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm text-gray-600"
+                  className="w-full py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md text-sm text-gray-600 dark:text-gray-400"
                 >
                   Load more
                 </button>

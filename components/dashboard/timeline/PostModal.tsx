@@ -164,23 +164,23 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
               />
             ) : (
               <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
-                <span className="text-gray-600 font-semibold">
+                <span className="text-gray-600 dark:text-gray-400 font-semibold">
                   {(post.user.name || post.user.email || '?')[0].toUpperCase()}
                 </span>
               </div>
             )}
             <div>
-              <p className="font-medium text-gray-900">
+              <p className="font-medium text-gray-900 dark:text-gray-100">
                 {post.user.name || post.user.email?.split('@')[0] || 'Anonymous'}
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
           >
             <FiX className="w-6 h-6" />
           </button>
@@ -188,7 +188,7 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4">
-          <p className="text-gray-800 whitespace-pre-wrap break-words mb-4">
+          <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words mb-4">
             {post.content}
           </p>
 
@@ -209,16 +209,16 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
                       download={media.filename}
                       className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
                     >
-                      <FiFile className="text-gray-600" />
+                      <FiFile className="text-gray-600 dark:text-gray-400" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                           {media.filename}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                           {formatFileSize(media.size)}
                         </p>
                       </div>
-                      <FiDownload className="text-gray-600" />
+                      <FiDownload className="text-gray-600 dark:text-gray-400" />
                     </a>
                   )}
                 </div>
@@ -231,13 +231,13 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
             <button
               onClick={handleLike}
               className={`flex items-center space-x-1 ${
-                isLiked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'
+                isLiked ? 'text-red-500' : 'text-gray-500 dark:text-gray-400 hover:text-red-500'
               }`}
             >
               <FiHeart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
               <span>{likeCount} likes</span>
             </button>
-            <div className="flex items-center space-x-1 text-gray-500">
+            <div className="flex items-center space-x-1 text-gray-500 dark:text-gray-400">
               <FiMessageCircle className="w-5 h-5" />
               <span>{commentCount} comments</span>
             </div>
@@ -245,7 +245,7 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
 
           {/* Comments */}
           <div className="mt-4">
-            <h3 className="font-medium text-gray-900 mb-3">Comments</h3>
+            <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-3">Comments</h3>
             
             {/* Comment form */}
             <form onSubmit={handleSubmitComment} className="flex space-x-2 mb-4">
@@ -268,9 +268,9 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
 
             {/* Comments list */}
             {isLoadingComments ? (
-              <p className="text-gray-500 text-center py-4">Loading comments...</p>
+              <p className="text-gray-500 dark:text-gray-400 text-center py-4">Loading comments...</p>
             ) : comments.length === 0 ? (
-              <p className="text-gray-500 text-center py-4">No comments yet. Be the first!</p>
+              <p className="text-gray-500 dark:text-gray-400 text-center py-4">No comments yet. Be the first!</p>
             ) : (
               <div className="space-y-3">
                 {comments.map((comment) => (
@@ -286,7 +286,7 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
                         />
                       ) : (
                         <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
-                          <span className="text-gray-600 text-xs font-semibold">
+                          <span className="text-gray-600 dark:text-gray-400 text-xs font-semibold">
                             {(comment.user.name || comment.user.email || '?')[0].toUpperCase()}
                           </span>
                         </div>
@@ -294,12 +294,12 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
                     </div>
                     <div className="flex-1">
                       <div className="bg-gray-100 rounded-lg px-3 py-2">
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                           {comment.user.name || comment.user.email?.split('@')[0] || 'Anonymous'}
                         </p>
-                        <p className="text-sm text-gray-700">{comment.content}</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300">{comment.content}</p>
                       </div>
-                      <p className="text-xs text-gray-500 mt-1 ml-3">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-3">
                         {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
                       </p>
                     </div>

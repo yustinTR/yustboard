@@ -101,7 +101,7 @@ export default function CoverImageSelector({ value, onChange }: CoverImageSelect
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
         Cover Image
       </label>
       
@@ -186,7 +186,7 @@ export default function CoverImageSelector({ value, onChange }: CoverImageSelect
                   <FiLoader className="animate-spin h-8 w-8 text-blue-500" />
                 </div>
               ) : mediaItems.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
+                <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                   <FiImage size={48} className="mx-auto mb-4 opacity-50" />
                   <p>No images uploaded yet</p>
                 </div>
@@ -220,7 +220,7 @@ export default function CoverImageSelector({ value, onChange }: CoverImageSelect
                       </div>
                       <div className="p-2 bg-gray-50">
                         <p className="text-xs truncate">{item.filename}</p>
-                        <p className="text-xs text-gray-500">{formatFileSize(item.size)}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{formatFileSize(item.size)}</p>
                       </div>
                     </div>
                   ))}

@@ -11,7 +11,7 @@ import CoverImageSelector from '@/components/dashboard/CoverImageSelector';
 // Dynamically import the editor to avoid SSR issues
 const BlogEditor = dynamic(() => import('@/components/dashboard/BlogEditorCK'), {
   ssr: false,
-  loading: () => <div className="h-96 bg-gray-100 animate-pulse rounded-lg"></div>
+  loading: () => <div className="h-96 bg-gray-100 dark:bg-gray-800 animate-pulse rounded-lg"></div>
 });
 
 export default function NewBlogPostPage() {
@@ -80,7 +80,7 @@ export default function NewBlogPostPage() {
       <div className="mb-6">
         <Link
           href="/dashboard/admin/blog"
-          className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+          className="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
         >
           <FiArrowLeft className="mr-2" />
           Back to Blog Management
@@ -93,7 +93,7 @@ export default function NewBlogPostPage() {
 
           {/* Title */}
           <div className="mb-6">
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Title *
             </label>
             <input
@@ -109,7 +109,7 @@ export default function NewBlogPostPage() {
 
           {/* Excerpt */}
           <div className="mb-6">
-            <label htmlFor="excerpt" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="excerpt" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Excerpt *
             </label>
             <textarea
@@ -133,7 +133,7 @@ export default function NewBlogPostPage() {
 
           {/* Content */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Content *
             </label>
             <BlogEditor
@@ -151,7 +151,7 @@ export default function NewBlogPostPage() {
                 onChange={(e) => setFormData({ ...formData, published: e.target.checked })}
                 className="rounded text-blue-600 focus:ring-blue-500 mr-2"
               />
-              <span className="text-sm text-gray-700 flex items-center">
+              <span className="text-sm text-gray-700 dark:text-gray-300 flex items-center">
                 {formData.published ? (
                   <>
                     <FiEye className="mr-1" />
@@ -169,7 +169,7 @@ export default function NewBlogPostPage() {
             <div className="flex space-x-3">
               <Link
                 href="/dashboard/admin/blog"
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               >
                 Cancel
               </Link>

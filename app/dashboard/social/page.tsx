@@ -139,17 +139,17 @@ export default function SocialPage() {
                 <div className="flex-1">
                   <div className="flex items-center">
                     <span className="font-medium mr-1">{post.author.name}</span>
-                    <span className="text-gray-500 text-sm mr-2">@{post.author.handle}</span>
-                    <span className="text-gray-400 text-xs">{formatTime(post.timestamp)}</span>
+                    <span className="text-gray-500 dark:text-gray-400 text-sm mr-2">@{post.author.handle}</span>
+                    <span className="text-gray-400 dark:text-gray-500 text-xs">{formatTime(post.timestamp)}</span>
                     <div className="ml-auto">{getPlatformIcon(post.platform)}</div>
                   </div>
-                  <p className="mt-2 text-gray-700">{post.content}</p>
+                  <p className="mt-2 text-gray-700 dark:text-gray-300">{post.content}</p>
                   {post.image && (
                     <div className="mt-3 rounded-lg overflow-hidden">
                       <img src={post.image} alt="Post" className="w-full h-auto" />
                     </div>
                   )}
-                  <div className="mt-4 flex items-center text-gray-500">
+                  <div className="mt-4 flex items-center text-gray-500 dark:text-gray-400">
                     <button className="flex items-center mr-6 hover:text-blue-500 transition-colors">
                       <FiMessageCircle className="mr-1" />
                       <span>{post.comments}</span>

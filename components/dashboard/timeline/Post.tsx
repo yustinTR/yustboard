@@ -22,7 +22,7 @@ export default function Post({ post, currentUserId }: PostProps) {
   const isOwnPost = currentUserId === post.user.id;
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow">
+    <div className="bg-white dark:bg-card rounded-lg shadow p-4 hover:shadow-md transition-shadow">
       <div className="flex space-x-3">
         <div className="flex-shrink-0">
           {post.user.image ? (
@@ -34,8 +34,8 @@ export default function Post({ post, currentUserId }: PostProps) {
               className="rounded-full"
             />
           ) : (
-            <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center">
-              <span className="text-gray-600 font-semibold">
+            <div className="w-12 h-12 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center">
+              <span className="text-gray-600 dark:text-gray-400 font-semibold">
                 {(post.user.name || post.user.email || '?')[0].toUpperCase()}
               </span>
             </div>
@@ -43,17 +43,17 @@ export default function Post({ post, currentUserId }: PostProps) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-gray-900">
+            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
               {post.user.name || post.user.email?.split('@')[0] || 'Anonymous'}
               {isOwnPost && (
-                <span className="ml-2 text-xs text-gray-500 font-normal">• You</span>
+                <span className="ml-2 text-xs text-gray-500 dark:text-gray-400 font-normal">• You</span>
               )}
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
             </p>
           </div>
-          <p className="mt-2 text-gray-800 whitespace-pre-wrap break-words">
+          <p className="mt-2 text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words">
             {post.content}
           </p>
         </div>
