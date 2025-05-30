@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { FiPlus, FiCalendar, FiClock, FiEdit, FiTrash2, FiLoader, FiX, FiList, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { format, parseISO, addHours, startOfDay, endOfDay, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
