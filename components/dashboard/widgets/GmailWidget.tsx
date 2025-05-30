@@ -167,7 +167,7 @@ export default function GmailWidget({ initialEmails = [], maxEmails = 5 }: Gmail
         <button 
           onClick={fetchGmailEmails} 
           disabled={isLoading}
-          className="text-white hover:text-gray-200 disabled:opacity-50"
+          className="text-white hover:text-gray-200 dark:hover:text-gray-300 disabled:opacity-50 cursor-pointer"
           aria-label="Refresh emails"
         >
           <FiRefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -184,10 +184,10 @@ export default function GmailWidget({ initialEmails = [], maxEmails = 5 }: Gmail
               placeholder="Search emails..."
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-red-500"
             />
-            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
             <button 
               type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-red-500 hover:text-red-600"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-red-500 hover:text-red-600 cursor-pointer"
               aria-label="Search"
             >
               <FiChevronRight />
@@ -206,29 +206,29 @@ export default function GmailWidget({ initialEmails = [], maxEmails = 5 }: Gmail
             <FiRefreshCw className="animate-spin text-red-500" />
           </div>
         ) : emails.length === 0 ? (
-          <p className="text-gray-500 text-center py-4">No emails to display</p>
+          <p className="text-gray-500 dark:text-gray-400 text-center py-4">No emails to display</p>
         ) : (
           <ul className="divide-y divide-gray-100">
             {emails.map((email) => (
               <li 
                 key={email.id} 
-                className={`py-3 cursor-pointer hover:bg-gray-50 ${!email.isRead ? 'bg-red-50' : ''}`}
+                className={`py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 ${!email.isRead ? 'bg-red-50 dark:bg-red-900/20' : ''}`}
                 onClick={() => openEmail(email.id)}
               >
                 <div className="flex items-center mb-1">
                   <div className={`w-2 h-2 rounded-full mr-2 ${!email.isRead ? 'bg-red-500' : 'bg-transparent'}`}></div>
-                  <span className={`font-medium mr-2 ${!email.isRead ? 'text-gray-900' : 'text-gray-700'}`}>
+                  <span className={`font-medium mr-2 ${!email.isRead ? 'text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300'}`}>
                     {email.from.name || email.from.email}
                   </span>
-                  <span className="text-xs text-gray-500 ml-auto">
+                  <span className="text-xs text-gray-500 dark:text-gray-400 ml-auto">
                     {formatDate(email.date)}
                   </span>
                 </div>
-                <h4 className={`text-sm ${!email.isRead ? 'font-medium text-gray-900' : 'text-gray-700'}`}>
+                <h4 className={`text-sm ${!email.isRead ? 'font-medium text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300'}`}>
                   {truncate(email.subject, 50)}
                 </h4>
-                <p className="text-xs text-gray-500 mt-1">{truncate(email.snippet, 80)}</p>
-                <div className="flex items-center mt-1 text-xs text-gray-400">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{truncate(email.snippet, 80)}</p>
+                <div className="flex items-center mt-1 text-xs text-gray-400 dark:text-gray-500">
                   {email.isStarred && <FiStar className="text-yellow-400 mr-2" />}
                   {email.hasAttachments && <FiPaperclip className="mr-2" />}
                 </div>
@@ -238,7 +238,7 @@ export default function GmailWidget({ initialEmails = [], maxEmails = 5 }: Gmail
         )}
       </div>
       
-      <div className="p-3 bg-gray-50 text-center">
+      <div className="p-3 bg-gray-50 dark:bg-gray-800 text-center">
         <a 
           href="/dashboard/mail" 
           className="text-red-500 hover:text-red-600 text-sm font-medium flex items-center justify-center"

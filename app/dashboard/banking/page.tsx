@@ -114,7 +114,7 @@ export default function BankingPage() {
       {/* Account Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-sm text-gray-500 mb-2">Total Balance</h2>
+          <h2 className="text-sm text-gray-500 dark:text-gray-400 mb-2">Total Balance</h2>
           {isLoading ? (
             <div className="flex items-center h-10">
               <FiRefreshCw className="animate-spin text-green-500" />
@@ -122,12 +122,12 @@ export default function BankingPage() {
           ) : (
             <>
               <p className="text-3xl font-bold">${stats.balance.toFixed(2)}</p>
-              <p className="text-sm text-gray-500 mt-2">Based on Gmail analysis</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Based on Gmail analysis</p>
             </>
           )}
         </div>
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-sm text-gray-500 mb-2">Income</h2>
+          <h2 className="text-sm text-gray-500 dark:text-gray-400 mb-2">Income</h2>
           {isLoading ? (
             <div className="flex items-center h-10">
               <FiRefreshCw className="animate-spin text-green-500" />
@@ -138,12 +138,12 @@ export default function BankingPage() {
                 <FiArrowUp className="text-green-500 mr-2" />
                 <p className="text-3xl font-bold text-green-500">${stats.totalIncome.toFixed(2)}</p>
               </div>
-              <p className="text-sm text-gray-500 mt-2">Last {daysBack} days</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Last {daysBack} days</p>
             </>
           )}
         </div>
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-sm text-gray-500 mb-2">Expenses</h2>
+          <h2 className="text-sm text-gray-500 dark:text-gray-400 mb-2">Expenses</h2>
           {isLoading ? (
             <div className="flex items-center h-10">
               <FiRefreshCw className="animate-spin text-green-500" />
@@ -154,7 +154,7 @@ export default function BankingPage() {
                 <FiArrowDown className="text-red-500 mr-2" />
                 <p className="text-3xl font-bold text-red-500">${stats.totalExpenses.toFixed(2)}</p>
               </div>
-              <p className="text-sm text-gray-500 mt-2">Last {daysBack} days</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Last {daysBack} days</p>
             </>
           )}
         </div>
@@ -173,7 +173,7 @@ export default function BankingPage() {
                 <FiRefreshCw className="animate-spin text-green-500" />
               </div>
             ) : stats.categories.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">No category data available.</p>
+              <p className="text-gray-500 dark:text-gray-400 text-center py-8">No category data available.</p>
             ) : (
               <div className="divide-y divide-gray-200">
                 {stats.categories.slice(0, 6).map((category, index) => (
@@ -206,7 +206,7 @@ export default function BankingPage() {
               <div key={account.id} className="p-4 hover:bg-gray-50 flex justify-between items-center">
                 <div>
                   <p className="font-medium">{account.name}</p>
-                  <p className="text-sm text-gray-500">{account.number}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{account.number}</p>
                 </div>
                 {isLoading ? (
                   <FiRefreshCw className="animate-spin text-green-500" />
@@ -215,7 +215,7 @@ export default function BankingPage() {
                 )}
               </div>
             ))}
-            <div className="p-4 text-center text-sm text-gray-500">
+            <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
               Account data is analyzed from your Gmail
             </div>
           </div>
@@ -243,7 +243,7 @@ export default function BankingPage() {
               <FiRefreshCw className="animate-spin text-green-500 w-8 h-8" />
             </div>
           ) : filteredTransactions.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No transactions found.</p>
+            <p className="text-gray-500 dark:text-gray-400 text-center py-8">No transactions found.</p>
           ) : (
             <ul className="divide-y divide-gray-200">
               {filteredTransactions.map((transaction) => (
@@ -257,7 +257,7 @@ export default function BankingPage() {
                       </div>
                       <div>
                         <p className="font-medium">{transaction.description}</p>
-                        <div className="flex text-sm text-gray-500">
+                        <div className="flex text-sm text-gray-500 dark:text-gray-400">
                           <span>{transaction.merchant}</span>
                           <span className="mx-1">•</span>
                           <span>{transaction.category}</span>
@@ -272,7 +272,7 @@ export default function BankingPage() {
                         {transaction.currency === 'USD' ? '$' : transaction.currency}
                         {Math.abs(transaction.amount).toFixed(2)}
                       </p>
-                      <p className="text-sm text-gray-500">{format(new Date(transaction.date), 'MMM dd, yyyy')}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{format(new Date(transaction.date), 'MMM dd, yyyy')}</p>
                     </div>
                   </div>
                 </li>

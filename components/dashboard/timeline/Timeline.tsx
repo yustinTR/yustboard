@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 // import { useSession } from 'next-auth/react'; // Currently not used
 import PostWithInteractions from './PostWithInteractions';
-import { FiSend, FiRefreshCw, FiPaperclip, FiX, FiImage, FiFile } from 'react-icons/fi';
+import { FiSend, FiRefreshCw, FiPaperclip, FiX, FiImage, FiFile, FiMessageSquare } from 'react-icons/fi';
 
 interface TimelinePost {
   id: string;
@@ -175,52 +175,56 @@ export default function Timeline() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-3xl mx-auto">
       {/* Post form */}
-      <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="What's on your mind?"
-              className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              placeholder="Wat denk je?"
+              className="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-all"
               rows={3}
               maxLength={280}
               disabled={isPosting}
             />
             {/* Attachments preview */}
             {attachments.length > 0 && (
-              <div className="mt-3 space-y-2">
+              <div className="mt-4 space-y-3">
                 {attachments.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                    <div className="flex items-center space-x-2">
-                      {file.type.startsWith('image/') ? (
-                        <FiImage className="text-green-500" />
-                      ) : (
-                        <FiFile className="text-blue-500" />
-                      )}
-                      <span className="text-sm text-gray-700 truncate max-w-xs">
-                        {file.name}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        ({(file.size / 1024).toFixed(1)} KB)
-                      </span>
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center space-x-3">
+                      <div className={`p-2 rounded-lg ${file.type.startsWith('image/') ? 'bg-green-100 dark:bg-green-900' : 'bg-blue-100 dark:bg-blue-900'}`}>
+                        {file.type.startsWith('image/') ? (
+                          <FiImage className="w-4 h-4 text-green-600 dark:text-green-400" />
+                        ) : (
+                          <FiFile className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                        )}
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate max-w-xs block">
+                          {file.name}
+                        </span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          {(file.size / 1024).toFixed(1)} KB
+                        </span>
+                      </div>
                     </div>
                     <button
                       type="button"
                       onClick={() => removeAttachment(index)}
-                      className="text-red-500 hover:text-red-700"
+                      className="p-1 text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                     >
-                      <FiX />
+                      <FiX className="w-4 h-4" />
                     </button>
                   </div>
                 ))}
               </div>
             )}
-            <div className="flex justify-between items-center mt-2">
-              <div className="flex items-center space-x-2">
-                <label className="cursor-pointer text-gray-500 hover:text-gray-700">
+            <div className="flex justify-between items-center mt-4">
+              <div className="flex items-center space-x-4">
+                <label className="p-2 cursor-pointer text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">
                   <FiPaperclip className="w-5 h-5" />
                   <input
                     type="file"
@@ -231,16 +235,16 @@ export default function Timeline() {
                     disabled={isPosting}
                   />
                 </label>
-                <span className={`text-sm ${content.length > 260 ? 'text-orange-500' : 'text-gray-500'}`}>
+                <span className={`text-sm font-medium ${content.length > 260 ? 'text-orange-500 dark:text-orange-400' : 'text-gray-500 dark:text-gray-400'}`}>
                   {content.length}/280
                 </span>
               </div>
               <button
                 type="submit"
                 disabled={!content.trim() || isPosting || isUploading}
-                className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-medium transition-all duration-200 transform hover:scale-105 disabled:transform-none disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
               >
-                <FiSend className="mr-2" />
+                <FiSend className="mr-2 w-4 h-4" />
                 {isUploading ? 'Uploading...' : isPosting ? 'Posting...' : 'Post'}
               </button>
             </div>
@@ -250,29 +254,33 @@ export default function Timeline() {
 
       {/* Error message */}
       {error && (
-        <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-6">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 p-4 rounded-xl mb-6">
           {error}
         </div>
       )}
 
       {/* Posts header with refresh button */}
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Recent Posts</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Posts</h2>
         <button
           onClick={handleRefresh}
           disabled={isRefreshing}
-          className="flex items-center text-gray-600 hover:text-gray-800 transition-colors"
+          className="flex items-center px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-all cursor-pointer"
         >
-          <FiRefreshCw className={`mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
-          Refresh
+          <FiRefreshCw className={`mr-2 w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          <span className="font-medium">Refresh</span>
         </button>
       </div>
 
       {/* Posts list */}
-      <div className="space-y-4">
+      <div className="space-y-6">
         {posts.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
-            <p>No posts yet. Be the first to share something!</p>
+          <div className="text-center py-16">
+            <div className="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6">
+              <FiMessageSquare className="w-12 h-12 text-gray-400 dark:text-gray-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No posts yet</h3>
+            <p className="text-gray-500 dark:text-gray-400">Be the first to share something!</p>
           </div>
         ) : (
           posts.map((post) => (

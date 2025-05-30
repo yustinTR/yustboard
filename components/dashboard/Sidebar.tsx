@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FiHome, FiCalendar, FiDollarSign, FiCloud, FiUsers, FiMail, FiMessageSquare, FiSettings, FiGlobe, FiX, FiFileText, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
-// import { useSession } from 'next-auth/react'; // Currently not used
+import { FiHome, FiCalendar, FiDollarSign, FiCloud, FiUsers, FiMail, FiMessageSquare, FiSettings, FiGlobe, FiX, FiFileText, FiChevronLeft, FiChevronRight, FiShield, FiLayout } from 'react-icons/fi';
+import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { useSidebar } from '@/contexts/SidebarContext';
 
@@ -26,7 +26,9 @@ const iconMap: { [key: string]: React.ComponentType<{ className?: string }> } = 
   'Users': FiUsers,
   'Settings': FiSettings,
   'Globe': FiGlobe,
-  'FileText': FiFileText
+  'FileText': FiFileText,
+  'Shield': FiShield,
+  'Layout': FiLayout
 };
 
 const defaultNavItems = [
@@ -48,11 +50,11 @@ interface SidebarProps {
 
 export default function Sidebar({ onClose }: SidebarProps) {
   const pathname = usePathname();
-  // const { data: session } = useSession(); // Currently not used
+  const { data: session } = useSession();
   const { isCollapsed, toggleSidebar } = useSidebar();
   const [menuItems, setMenuItems] = useState<MenuItem[]>(defaultNavItems);
   // const [loading, setLoading] = useState(true); // Currently not used
-  // const isAdmin = session?.user?.role === 'ADMIN'; // Currently not used
+  const isAdmin = session?.user?.role === 'ADMIN';
 
   useEffect(() => {
     fetchMenuSettings();
@@ -136,6 +138,95 @@ export default function Sidebar({ onClose }: SidebarProps) {
               </li>
             );
           })}
+          
+          {/* Admin-only section */}
+          {isAdmin && (
+            <>
+              <li className="mb-1 mt-4">
+                {!isCollapsed && (
+                  <div className="px-3 py-2 text-xs font-semibold text-secondary-foreground/60 uppercase tracking-wider">
+                    Admin
+                  </div>
+                )}
+                {isCollapsed && <hr className="my-2 border-border" />}
+              </li>
+              <li className="mb-1">
+                <Link
+                  href="/dashboard/admin"
+                  onClick={onClose}
+                  className={`relative flex items-center h-12 ${
+                    isCollapsed ? 'px-3 justify-center' : 'px-3'
+                  } rounded-full transition-all hover-overlay ${
+                    pathname === '/dashboard/admin'
+                      ? 'bg-accent text-accent-foreground font-medium' 
+                      : 'text-secondary-foreground hover:bg-secondary'
+                  }`}
+                  title={isCollapsed ? "Admin Panel" : undefined}
+                >
+                  <FiShield className={`h-5 w-5 ${!isCollapsed ? 'mr-3' : ''}`} />
+                  {!isCollapsed && (
+                    <span className="text-sm">Admin Panel</span>
+                  )}
+                  {pathname === '/dashboard/admin' && !isCollapsed && (
+                    <div className="absolute inset-y-0 left-0 w-1 bg-primary rounded-r-full" />
+                  )}
+                  {pathname === '/dashboard/admin' && isCollapsed && (
+                    <div className="absolute inset-y-0 right-0 w-1 bg-primary rounded-l-full" />
+                  )}
+                </Link>
+              </li>
+              <li className="mb-1">
+                <Link
+                  href="/dashboard/admin/landing"
+                  onClick={onClose}
+                  className={`relative flex items-center h-12 ${
+                    isCollapsed ? 'px-3 justify-center' : 'px-3'
+                  } rounded-full transition-all hover-overlay ${
+                    pathname === '/dashboard/admin/landing'
+                      ? 'bg-accent text-accent-foreground font-medium' 
+                      : 'text-secondary-foreground hover:bg-secondary'
+                  }`}
+                  title={isCollapsed ? "Landing Page" : undefined}
+                >
+                  <FiLayout className={`h-5 w-5 ${!isCollapsed ? 'mr-3' : ''}`} />
+                  {!isCollapsed && (
+                    <span className="text-sm">Landing Page</span>
+                  )}
+                  {pathname === '/dashboard/admin/landing' && !isCollapsed && (
+                    <div className="absolute inset-y-0 left-0 w-1 bg-primary rounded-r-full" />
+                  )}
+                  {pathname === '/dashboard/admin/landing' && isCollapsed && (
+                    <div className="absolute inset-y-0 right-0 w-1 bg-primary rounded-l-full" />
+                  )}
+                </Link>
+              </li>
+              <li className="mb-1">
+                <Link
+                  href="/dashboard/admin/blog"
+                  onClick={onClose}
+                  className={`relative flex items-center h-12 ${
+                    isCollapsed ? 'px-3 justify-center' : 'px-3'
+                  } rounded-full transition-all hover-overlay ${
+                    pathname.startsWith('/dashboard/admin/blog')
+                      ? 'bg-accent text-accent-foreground font-medium' 
+                      : 'text-secondary-foreground hover:bg-secondary'
+                  }`}
+                  title={isCollapsed ? "Blog Management" : undefined}
+                >
+                  <FiFileText className={`h-5 w-5 ${!isCollapsed ? 'mr-3' : ''}`} />
+                  {!isCollapsed && (
+                    <span className="text-sm">Blog Management</span>
+                  )}
+                  {pathname.startsWith('/dashboard/admin/blog') && !isCollapsed && (
+                    <div className="absolute inset-y-0 left-0 w-1 bg-primary rounded-r-full" />
+                  )}
+                  {pathname.startsWith('/dashboard/admin/blog') && isCollapsed && (
+                    <div className="absolute inset-y-0 right-0 w-1 bg-primary rounded-l-full" />
+                  )}
+                </Link>
+              </li>
+            </>
+          )}
         </ul>
       </nav>
     </div>

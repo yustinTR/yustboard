@@ -213,7 +213,7 @@ function MailPageContent() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
           </form>
           <button 
             onClick={() => fetchEmails(selectedLabel, searchQuery)}
@@ -239,7 +239,7 @@ function MailPageContent() {
             {LABELS.map((label) => (
               <button
                 key={label.id}
-                className={`w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors ${
+                className={`w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer ${
                   selectedLabel === label.id ? 'bg-green-50 text-green-600' : ''
                 }`}
                 onClick={() => handleLabelSelect(label.id)}

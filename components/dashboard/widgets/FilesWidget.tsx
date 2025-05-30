@@ -44,7 +44,7 @@ export default function FilesWidget({ initialFiles = [], maxFiles = 5 }: FilesWi
     if (mimeType.includes('presentation')) return 'bg-yellow-100 text-yellow-600';
     if (mimeType.includes('pdf')) return 'bg-red-100 text-red-600';
     if (mimeType.includes('image')) return 'bg-purple-100 text-purple-600';
-    return 'bg-gray-100 text-gray-600';
+    return 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400';
   };
 
   // Get a simplified file type name from MIME type
@@ -145,7 +145,7 @@ export default function FilesWidget({ initialFiles = [], maxFiles = 5 }: FilesWi
         <button 
           onClick={fetchFiles} 
           disabled={isLoading}
-          className="text-white hover:text-gray-200 disabled:opacity-50"
+          className="text-white hover:text-gray-200 dark:hover:text-gray-300 disabled:opacity-50 cursor-pointer"
           aria-label="Refresh files"
         >
           <FiRefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -158,7 +158,7 @@ export default function FilesWidget({ initialFiles = [], maxFiles = 5 }: FilesWi
             <p className="text-red-600 text-sm text-center mb-2">{error}</p>
             <button
               onClick={fetchFiles}
-              className="w-full text-blue-500 hover:text-blue-600 text-sm underline"
+              className="w-full text-blue-500 hover:text-blue-600 text-sm underline cursor-pointer"
             >
               Try again
             </button>
@@ -168,7 +168,7 @@ export default function FilesWidget({ initialFiles = [], maxFiles = 5 }: FilesWi
             <FiRefreshCw className="animate-spin text-blue-500" />
           </div>
         ) : files.length === 0 ? (
-          <p className="text-gray-500 text-center py-4">No recent files</p>
+          <p className="text-gray-500 dark:text-gray-400 text-center py-4">No recent files</p>
         ) : (
           <ul className="divide-y divide-gray-100">
             {files.map((file) => (
@@ -183,15 +183,15 @@ export default function FilesWidget({ initialFiles = [], maxFiles = 5 }: FilesWi
                         href={file.webViewLink} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="font-medium text-gray-800 hover:text-blue-600 truncate max-w-[200px]"
+                        className="font-medium text-gray-800 dark:text-gray-200 hover:text-blue-600 truncate max-w-[200px]"
                       >
                         {file.name}
                       </a>
-                      <span className="text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-1 ml-2">
+                      <span className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-full px-2 py-1 ml-2">
                         {getFileTypeName(file.mimeType)}
                       </span>
                     </div>
-                    <div className="flex items-center text-xs text-gray-500 mt-1">
+                    <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
                       <FiClock className="mr-1" />
                       <span>{formatDate(file.modifiedTime)}</span>
                       {file.shared && (
@@ -208,7 +208,7 @@ export default function FilesWidget({ initialFiles = [], maxFiles = 5 }: FilesWi
         )}
       </div>
       
-      <div className="p-3 bg-gray-50 text-center">
+      <div className="p-3 bg-gray-50 dark:bg-gray-800 text-center">
         <a 
           href="https://drive.google.com" 
           target="_blank" 

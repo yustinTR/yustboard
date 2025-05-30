@@ -140,7 +140,7 @@ export default function BlogOverviewPage() {
 
       {posts.length === 0 ? (
         <div className="bg-gray-50 rounded-lg p-12 text-center">
-          <p className="text-gray-500 text-lg">No blog posts published yet.</p>
+          <p className="text-gray-500 dark:text-gray-400 text-lg">No blog posts published yet.</p>
           {isAuthorOrAdmin && (
             <Link
               href="/dashboard/admin/blog/new"
@@ -172,10 +172,10 @@ export default function BlogOverviewPage() {
                     <h2 className="text-xl font-semibold mb-2 line-clamp-2 hover:text-blue-600 transition-colors">
                       {post.title}
                     </h2>
-                    <p className="text-gray-600 mb-4 line-clamp-3">
+                    <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
                       {post.excerpt}
                     </p>
-                    <div className="flex items-center justify-between text-sm text-gray-500">
+                    <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                       <div className="flex items-center space-x-4">
                         {post.author.image && (
                           <Image

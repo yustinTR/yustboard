@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { format } from 'date-fns';
 import { FiCalendar, FiUser, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
-import PublicNavigation from '@/components/PublicNavigation';
+import ModernNavigation from '@/components/ModernNavigation';
 
 interface BlogPost {
   id: string;
@@ -65,9 +65,9 @@ export default function BlogPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <PublicNavigation />
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 max-w-7xl">
+      <div className="min-h-screen bg-white dark:bg-gray-900">
+        <ModernNavigation />
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-24 max-w-7xl">
           <h1 className="text-4xl font-bold mb-8">Blog</h1>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
@@ -88,9 +88,9 @@ export default function BlogPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <PublicNavigation />
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 max-w-7xl">
+      <div className="min-h-screen bg-white dark:bg-gray-900">
+        <ModernNavigation />
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-24 max-w-7xl">
           <h1 className="text-4xl font-bold mb-8">Blog</h1>
           <div className="bg-red-50 text-red-700 rounded-lg p-8 text-center">
             <p className="text-lg">{error}</p>
@@ -107,12 +107,12 @@ export default function BlogPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <PublicNavigation />
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 max-w-7xl">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Blog</h1>
-          <p className="text-gray-600 text-lg">Thoughts, stories and ideas</p>
+    <div className="min-h-screen bg-white dark:bg-gray-900">
+      <ModernNavigation />
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-24 max-w-7xl">
+        <div className="mb-12 text-center">
+          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-4">Blog</h1>
+          <p className="text-xl text-gray-600 dark:text-gray-400">Thoughts, stories and ideas</p>
         </div>
 
       {posts.length === 0 ? (
@@ -123,7 +123,7 @@ export default function BlogPage() {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
             {posts.map((post) => (
-              <article key={post.id} className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+              <article key={post.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer">
                 <Link href={`/blog/${post.slug}`}>
                   {post.coverImage ? (
                     <div className="relative h-48 w-full">
@@ -138,10 +138,10 @@ export default function BlogPage() {
                     <div className="h-48 bg-gradient-to-br from-blue-500 to-purple-600"></div>
                   )}
                   <div className="p-6">
-                    <h2 className="text-xl font-semibold mb-2 line-clamp-2 hover:text-blue-600 transition-colors">
+                    <h2 className="text-xl font-semibold mb-2 line-clamp-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-gray-900 dark:text-white">
                       {post.title}
                     </h2>
-                    <p className="text-gray-600 mb-4 line-clamp-3">
+                    <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-3">
                       {post.excerpt}
                     </p>
                     <div className="flex items-center justify-between text-sm text-gray-500">

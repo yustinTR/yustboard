@@ -78,7 +78,7 @@ export default function WeatherWidget() {
     } else if (conditionLower.includes('snow')) {
       return <CloudSnow className="h-8 w-8 text-blue-300" />
     } else {
-      return <Cloud className="h-8 w-8 text-gray-500" />
+      return <Cloud className="h-8 w-8 text-gray-500 dark:text-gray-400" />
     }
   }
 

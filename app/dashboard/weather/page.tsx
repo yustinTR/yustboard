@@ -44,7 +44,7 @@ export default function WeatherPage() {
     } else if (conditionLower.includes('snow')) {
       return <FiCloudSnow className="text-blue-200" size={size} />;
     } else {
-      return <FiCloud className="text-gray-400" size={size} />;
+      return <FiCloud className="text-gray-400 dark:text-gray-500" size={size} />;
     }
   };
 
@@ -54,7 +54,7 @@ export default function WeatherPage() {
         <h1 className="text-3xl font-bold">Weather</h1>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <FiSearch className="text-gray-400" />
+            <FiSearch className="text-gray-400 dark:text-gray-500" />
           </div>
           <input
             type="text"
@@ -68,7 +68,7 @@ export default function WeatherPage() {
       <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
         <div className="p-6">
           <div className="flex items-center mb-4">
-            <FiMapPin className="text-gray-500 mr-2" />
+            <FiMapPin className="text-gray-500 dark:text-gray-400 mr-2" />
             <h2 className="text-xl font-semibold">{weatherData.location}</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -78,31 +78,31 @@ export default function WeatherPage() {
               </div>
               <div>
                 <p className="text-5xl font-bold">{weatherData.current.temperature}°C</p>
-                <p className="text-gray-500">{weatherData.current.condition}</p>
-                <p className="text-gray-500">Feels like {weatherData.current.feelsLike}°C</p>
+                <p className="text-gray-500 dark:text-gray-400">{weatherData.current.condition}</p>
+                <p className="text-gray-500 dark:text-gray-400">Feels like {weatherData.current.feelsLike}°C</p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-gray-500">Humidity</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Humidity</p>
                 <div className="flex items-center mt-1">
                   <FiDroplet className="text-blue-400 mr-2" />
                   <span>{weatherData.current.humidity}%</span>
                 </div>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Wind</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Wind</p>
                 <div className="flex items-center mt-1">
                   <FiWind className="text-blue-400 mr-2" />
                   <span>{weatherData.current.wind} km/h</span>
                 </div>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Pressure</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Pressure</p>
                 <span>{weatherData.current.pressure} hPa</span>
               </div>
               <div>
-                <p className="text-sm text-gray-500">UV Index</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">UV Index</p>
                 <span>{weatherData.current.uvIndex}</span>
               </div>
             </div>
@@ -119,7 +119,7 @@ export default function WeatherPage() {
           <div className="flex space-x-8 min-w-max">
             {weatherData.hourly.map((hour, index) => (
               <div key={index} className="text-center">
-                <p className="text-gray-500">{hour.time}</p>
+                <p className="text-gray-500 dark:text-gray-400">{hour.time}</p>
                 <div className="my-2">
                   {getWeatherIcon(hour.condition)}
                 </div>
@@ -149,7 +149,7 @@ export default function WeatherPage() {
               </div>
               <div className="w-20 text-right">
                 <span className="font-medium">{day.high}°</span>
-                <span className="text-gray-500 ml-2">{day.low}°</span>
+                <span className="text-gray-500 dark:text-gray-400 ml-2">{day.low}°</span>
               </div>
             </div>
           ))}

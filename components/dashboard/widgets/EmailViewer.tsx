@@ -49,10 +49,10 @@ export default function EmailViewer({
   
   return (
     <div className="flex flex-col h-full">
-      <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-gray-50 dark:bg-gray-800">
         <button
           onClick={onClose}
-          className="flex items-center text-gray-600 hover:text-gray-900"
+          className="flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 cursor-pointer"
         >
           <FiChevronLeft className="mr-1" />
           <span>Back</span>
@@ -60,7 +60,7 @@ export default function EmailViewer({
         <div className="flex items-center space-x-2">
           <button
             onClick={onStarToggle}
-            className="p-2 text-gray-400 hover:text-yellow-400 focus:outline-none"
+            className="p-2 text-gray-400 dark:text-gray-500 hover:text-yellow-400 focus:outline-none cursor-pointer"
           >
             <FiStar className={email.isStarred ? 'text-yellow-400 fill-yellow-400' : ''} />
           </button>
@@ -70,15 +70,15 @@ export default function EmailViewer({
         <div className="mb-6">
           <h1 className="text-2xl font-bold mb-4">{email.subject}</h1>
           <div className="flex items-start mb-4">
-            <div className="bg-gray-200 rounded-full p-3 text-gray-600 mr-3">
+            <div className="bg-gray-200 dark:bg-gray-700 rounded-full p-3 text-gray-600 dark:text-gray-400 mr-3">
               <FiUser />
             </div>
             <div>
-              <p className="font-medium">{email.from.name || 'Unknown'} <span className="text-gray-500 font-normal">&lt;{email.from.email}&gt;</span></p>
-              <p className="text-sm text-gray-500">
+              <p className="font-medium">{email.from.name || 'Unknown'} <span className="text-gray-500 dark:text-gray-400 font-normal">&lt;{email.from.email}&gt;</span></p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 To: {email.to.join(', ')}
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 {format(new Date(email.date), 'MMM d, yyyy h:mm a')}
               </p>
             </div>
@@ -91,7 +91,7 @@ export default function EmailViewer({
           className="prose max-w-none"
         >
           {!email.body && (
-            <div className="py-8 text-center text-gray-500">
+            <div className="py-8 text-center text-gray-500 dark:text-gray-400">
               <p>No content available</p>
             </div>
           )}
@@ -100,11 +100,11 @@ export default function EmailViewer({
         {/* Attachments (if any) */}
         {email.hasAttachments && (
           <div className="mt-6 pt-6 border-t border-gray-200">
-            <h3 className="text-sm font-medium text-gray-500 mb-3 flex items-center">
+            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 flex items-center">
               <FiPaperclip className="mr-2" />
               Attachments
             </h3>
-            <div className="text-gray-400 italic text-sm">
+            <div className="text-gray-400 dark:text-gray-500 italic text-sm">
               Attachment viewing is not yet implemented
             </div>
           </div>

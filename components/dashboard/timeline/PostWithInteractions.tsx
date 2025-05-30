@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
-import { FiHeart, FiMessageCircle, FiFile, FiDownload, FiSend, FiX } from 'react-icons/fi';
+import { FiHeart, FiMessageCircle, FiFile, FiDownload, FiSend, FiX, FiMoreHorizontal, FiEdit3, FiTrash2 } from 'react-icons/fi';
 import { useSession } from 'next-auth/react';
 
 interface PostUser {
@@ -49,7 +49,7 @@ interface PostProps {
   onUpdate?: () => void;
 }
 
-export default function PostWithInteractions({ post }: PostProps) {
+export default function PostWithInteractions({ post, onUpdate }: PostProps) {
   const { data: session } = useSession();
   const [isLiked, setIsLiked] = useState(
     post.likes.some(like => like.userId === session?.user?.id)
@@ -62,6 +62,11 @@ export default function PostWithInteractions({ post }: PostProps) {
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [isLoadingComments, setIsLoadingComments] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [showActions, setShowActions] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(post.content);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleLike = async () => {
     try {
@@ -126,6 +131,71 @@ export default function PostWithInteractions({ post }: PostProps) {
     }
   };
 
+  const handleUpdatePost = async () => {
+    if (!editContent.trim() || isUpdating) return;
+
+    setIsUpdating(true);
+    try {
+      const response = await fetch(`/api/timeline/${post.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: editContent }),
+      });
+
+      if (response.ok) {
+        post.content = editContent;
+        setIsEditing(false);
+        onUpdate?.();
+      }
+    } catch (error) {
+      console.error('Error updating post:', error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleDeletePost = async () => {
+    if (isDeleting) return;
+    
+    if (!confirm('Weet je zeker dat je deze post wilt verwijderen?')) return;
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/timeline/${post.id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        onUpdate?.();
+      }
+    } catch (error) {
+      console.error('Error deleting post:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const canEdit = session?.user && (
+    session.user.role === 'ADMIN' || session.user.id === post.user.id
+  );
+
+  // Close actions menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (showActions && !target.closest('[data-actions-menu]') && !target.closest('[data-actions-button]')) {
+        setShowActions(false);
+      }
+    };
+
+    if (showActions) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showActions]);
+
   const formatFileSize = (bytes: number) => {
     const units = ['B', 'KB', 'MB', 'GB'];
     let size = bytes;
@@ -140,9 +210,9 @@ export default function PostWithInteractions({ post }: PostProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-4">
+    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-all duration-200">
       {/* Post header */}
-      <div className="flex space-x-3">
+      <div className="flex space-x-4">
         <div className="flex-shrink-0">
           {post.user.image ? (
             <Image
@@ -150,11 +220,11 @@ export default function PostWithInteractions({ post }: PostProps) {
               alt={post.user.name || 'User'}
               width={48}
               height={48}
-              className="rounded-full"
+              className="rounded-full ring-2 ring-gray-200 dark:ring-gray-700"
             />
           ) : (
-            <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center">
-              <span className="text-gray-600 font-semibold">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center ring-2 ring-gray-200 dark:ring-gray-700">
+              <span className="text-white font-bold text-lg">
                 {(post.user.name || post.user.email || '?')[0].toUpperCase()}
               </span>
             </div>
@@ -162,45 +232,122 @@ export default function PostWithInteractions({ post }: PostProps) {
         </div>
         <div className="flex-1">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-gray-900">
-              {post.user.name || post.user.email?.split('@')[0] || 'Anonymous'}
-            </p>
-            <p className="text-xs text-gray-500">
-              {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
-            </p>
+            <div className="flex items-center space-x-2">
+              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                {post.user.name || post.user.email?.split('@')[0] || 'Anonymous'}
+              </p>
+              {session?.user?.id === post.user.id && (
+                <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 px-2 py-1 rounded-full">You</span>
+              )}
+            </div>
+            <div className="flex items-center space-x-2">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
+              </p>
+              {canEdit && (
+                <div className="relative">
+                  <button
+                    data-actions-button
+                    onClick={() => setShowActions(!showActions)}
+                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                  >
+                    <FiMoreHorizontal className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                  </button>
+                  {showActions && (
+                    <div data-actions-menu className="absolute right-0 top-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 py-2 min-w-[120px] z-10">
+                      <button
+                        onClick={() => {
+                          setIsEditing(true);
+                          setShowActions(false);
+                          setEditContent(post.content);
+                        }}
+                        className="flex items-center space-x-2 w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        <FiEdit3 className="w-4 h-4" />
+                        <span>Bewerk</span>
+                      </button>
+                      <button
+                        onClick={handleDeletePost}
+                        disabled={isDeleting}
+                        className="flex items-center space-x-2 w-full px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
+                      >
+                        <FiTrash2 className="w-4 h-4" />
+                        <span>{isDeleting ? 'Verwijderen...' : 'Verwijder'}</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-          <p className="mt-2 text-gray-800 whitespace-pre-wrap break-words">
-            {post.content}
-          </p>
+          
+          {/* Post content */}
+          {isEditing ? (
+            <div className="mt-3">
+              <textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className="w-full min-h-[100px] px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-none"
+                disabled={isUpdating}
+              />
+              <div className="flex items-center justify-end space-x-2 mt-2">
+                <button
+                  onClick={() => {
+                    setIsEditing(false);
+                    setEditContent(post.content);
+                  }}
+                  className="px-3 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+                  disabled={isUpdating}
+                >
+                  Annuleren
+                </button>
+                <button
+                  onClick={handleUpdatePost}
+                  disabled={!editContent.trim() || isUpdating}
+                  className="px-4 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isUpdating ? 'Opslaan...' : 'Opslaan'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p className="mt-3 text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words leading-relaxed">
+              {post.content}
+            </p>
+          )}
 
           {/* Media attachments */}
           {post.media.length > 0 && (
-            <div className="mt-3 space-y-2">
+            <div className="mt-4 space-y-3">
               {post.media.map((media) => (
                 <div key={media.id}>
                   {media.type === 'image' ? (
                     <img
                       src={media.url}
                       alt={media.filename}
-                      className="rounded-lg max-w-full cursor-pointer hover:opacity-90 transition-opacity"
+                      className="rounded-xl max-w-full cursor-pointer hover:opacity-90 transition-opacity shadow-sm"
                       onClick={() => setSelectedImage(media.url)}
                     />
                   ) : (
                     <a
                       href={media.url}
                       download={media.filename}
-                      className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                      className="flex items-center space-x-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer border border-gray-200 dark:border-gray-700 group"
                     >
-                      <FiFile className="text-gray-600" />
+                      <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors">
+                        <FiFile className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
+                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
                           {media.filename}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                           {formatFileSize(media.size)}
                         </p>
                       </div>
-                      <FiDownload className="text-gray-600" />
+                      <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-colors">
+                        <FiDownload className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                      </div>
                     </a>
                   )}
                 </div>
@@ -209,81 +356,96 @@ export default function PostWithInteractions({ post }: PostProps) {
           )}
 
           {/* Interaction buttons */}
-          <div className="mt-4 flex items-center space-x-4">
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex items-center space-x-6">
             <button
               onClick={handleLike}
-              className={`flex items-center space-x-1 ${
-                isLiked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'
-              } transition-colors`}
+              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all transform hover:scale-105 ${
+                isLiked 
+                  ? 'text-red-500 bg-red-50 dark:bg-red-900/20' 
+                  : 'text-gray-500 dark:text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20'
+              }`}
             >
-              <FiHeart className={isLiked ? 'fill-current' : ''} />
-              <span className="text-sm">{likeCount}</span>
+              <FiHeart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
+              <span className="font-medium">{likeCount} likes</span>
             </button>
             <button
               onClick={handleToggleComments}
-              className="flex items-center space-x-1 text-gray-500 hover:text-blue-500 transition-colors"
+              className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all transform hover:scale-105"
             >
-              <FiMessageCircle />
-              <span className="text-sm">{commentCount}</span>
+              <FiMessageCircle className="w-5 h-5" />
+              <span className="font-medium">{commentCount} comments</span>
             </button>
           </div>
 
           {/* Comments section */}
           {showComments && (
-            <div className="mt-4 space-y-3">
+            <div className="mt-6 space-y-4">
               {/* Comment form */}
-              <form onSubmit={handleSubmitComment} className="flex space-x-2">
+              <form onSubmit={handleSubmitComment} className="flex space-x-3">
                 <input
                   type="text"
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   placeholder="Write a comment..."
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-all"
                   disabled={isSubmittingComment}
                 />
                 <button
                   type="submit"
                   disabled={!newComment.trim() || isSubmittingComment}
-                  className="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-medium transition-all duration-200 transform hover:scale-105 disabled:transform-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center shadow-lg"
                 >
-                  <FiSend className="w-4 h-4" />
+                  <FiSend className={`w-4 h-4 ${isSubmittingComment ? 'animate-pulse' : ''}`} />
                 </button>
               </form>
 
               {/* Comments list */}
               {isLoadingComments ? (
-                <p className="text-sm text-gray-500 text-center">Loading comments...</p>
+                <div className="flex items-center justify-center py-4">
+                  <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                    <FiMessageCircle className="animate-pulse w-3 h-3 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">Loading comments...</span>
+                </div>
               ) : comments.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center">No comments yet</p>
+                <div className="text-center py-6">
+                  <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <FiMessageCircle className="w-6 h-6 text-gray-400 dark:text-gray-600" />
+                  </div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">No comments yet</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500">Be the first to share your thoughts!</p>
+                </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {comments.map((comment) => (
-                    <div key={comment.id} className="flex space-x-2">
+                    <div key={comment.id} className="flex space-x-3 group">
                       <div className="flex-shrink-0">
                         {comment.user.image ? (
                           <Image
                             src={comment.user.image}
                             alt={comment.user.name || 'User'}
-                            width={32}
-                            height={32}
-                            className="rounded-full"
+                            width={36}
+                            height={36}
+                            className="rounded-full ring-2 ring-gray-200 dark:ring-gray-700"
                           />
                         ) : (
-                          <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
-                            <span className="text-gray-600 text-xs font-semibold">
+                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center ring-2 ring-gray-200 dark:ring-gray-700">
+                            <span className="text-white text-xs font-bold">
                               {(comment.user.name || comment.user.email || '?')[0].toUpperCase()}
                             </span>
                           </div>
                         )}
                       </div>
-                      <div className="flex-1 bg-gray-50 rounded-lg px-3 py-2">
-                        <p className="text-sm font-medium text-gray-900">
-                          {comment.user.name || comment.user.email?.split('@')[0] || 'Anonymous'}
-                          <span className="text-xs text-gray-500 ml-2">
-                            {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
-                          </span>
+                      <div className="flex-1">
+                        <div className="bg-gray-50 dark:bg-gray-800 rounded-xl px-4 py-3 group-hover:bg-gray-100 dark:group-hover:bg-gray-700 transition-colors">
+                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                            {comment.user.name || comment.user.email?.split('@')[0] || 'Anonymous'}
+                          </p>
+                          <p className="text-sm text-gray-700 dark:text-gray-300">{comment.content}</p>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 ml-4">
+                          {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
                         </p>
-                        <p className="text-sm text-gray-700 mt-1">{comment.content}</p>
                       </div>
                     </div>
                   ))}
@@ -302,7 +464,7 @@ export default function PostWithInteractions({ post }: PostProps) {
         >
           <div className="relative max-w-4xl max-h-full">
             <button
-              className="absolute top-4 right-4 text-white hover:text-gray-300"
+              className="absolute top-4 right-4 text-white hover:text-gray-300 cursor-pointer"
               onClick={() => setSelectedImage(null)}
             >
               <FiX className="w-6 h-6" />

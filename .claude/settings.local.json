@@ -15,8 +15,14 @@
       "Bash(git push:*)",
       "Bash(git add:*)",
       "Bash(npm run dev:*)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(git checkout:*)",
+      "Bash(sed:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(find:*)"
     ],
     "deny": []
-  }
+  },
+  "enableAllProjectMcpServers": false
 }

@@ -71,7 +71,7 @@ export default function BankingWidget({ initialTransactions = [], initialBalance
         <button 
           onClick={fetchTransactions} 
           disabled={isLoading}
-          className="text-white hover:text-gray-200 disabled:opacity-50"
+          className="text-white hover:text-gray-200 dark:hover:text-gray-300 disabled:opacity-50 cursor-pointer"
           aria-label="Refresh transactions"
         >
           <FiRefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -79,9 +79,9 @@ export default function BankingWidget({ initialTransactions = [], initialBalance
       </div>
       <div className="p-4">
         <div className="mb-4">
-          <p className="text-sm text-gray-500">Current Balance</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Current Balance</p>
           <p className="text-2xl font-bold">${balance.toFixed(2)}</p>
-          <p className="text-xs text-gray-500 mt-1">Based on Gmail transaction analysis</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Based on Gmail transaction analysis</p>
         </div>
         
         {error && (
@@ -91,20 +91,20 @@ export default function BankingWidget({ initialTransactions = [], initialBalance
         )}
         
         <div>
-          <h4 className="text-sm font-medium text-gray-500 mb-2">Recent Transactions</h4>
+          <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Recent Transactions</h4>
           {isLoading ? (
             <div className="py-4 flex justify-center">
               <FiRefreshCw className="animate-spin text-green-500" />
             </div>
           ) : recentTransactions.length === 0 ? (
-            <p className="text-gray-500 text-center py-2">No recent transactions found</p>
+            <p className="text-gray-500 dark:text-gray-400 text-center py-2">No recent transactions found</p>
           ) : (
             <ul className="divide-y divide-gray-100">
               {recentTransactions.map((transaction) => (
                 <li key={transaction.id} className="py-2 flex justify-between items-center">
                   <div className="min-w-0 flex-1 pr-2">
                     <p className="font-medium truncate">{transaction.description}</p>
-                    <div className="flex items-center text-xs text-gray-500">
+                    <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
                       <span className="truncate">{transaction.merchant}</span>
                       <span className="mx-1">•</span>
                       <span>{format(new Date(transaction.date), 'MMM d, yyyy')}</span>
@@ -120,7 +120,7 @@ export default function BankingWidget({ initialTransactions = [], initialBalance
           )}
         </div>
       </div>
-      <div className="p-3 bg-gray-50 text-center">
+      <div className="p-3 bg-gray-50 dark:bg-gray-800 text-center">
         <a href="/dashboard/banking" className="text-green-500 hover:text-green-600 text-sm font-medium">
           View all transactions
         </a>

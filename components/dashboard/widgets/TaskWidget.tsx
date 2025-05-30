@@ -63,7 +63,7 @@ export default function TaskWidget() {
     .slice(0, 5);
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="bg-white dark:bg-card rounded-lg shadow-md overflow-hidden">
       <div className="p-4 bg-blue-500 text-white flex justify-between items-center">
         <h3 className="font-medium">Upcoming Events</h3>
         <a href="/dashboard/agenda" className="p-1 rounded-full hover:bg-blue-400">
@@ -74,26 +74,26 @@ export default function TaskWidget() {
         {loading ? (
           <div className="flex justify-center items-center py-4">
             <FiLoader className="animate-spin h-5 w-5 text-blue-500 mr-2" />
-            <span className="text-gray-500">Loading events...</span>
+            <span className="text-gray-500 dark:text-gray-400">Loading events...</span>
           </div>
         ) : error ? (
           <p className="text-red-500 text-center py-4">{error}</p>
         ) : upcomingTasks.length === 0 ? (
-          <p className="text-gray-500 text-center py-4">No upcoming events</p>
+          <p className="text-gray-500 dark:text-gray-400 text-center py-4">No upcoming events</p>
         ) : (
-          <ul className="divide-y divide-gray-100">
+          <ul className="divide-y divide-gray-100 dark:divide-gray-700">
             {upcomingTasks.map((task) => (
               <li key={task.id} className="py-3">
                 <div>
                   <p className="font-medium">{task.title}</p>
-                  <div className="flex items-center text-sm text-gray-500 mt-1">
+                  <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1">
                     <FiClock className="mr-1" />
                     <span>
                       {format(task.date, 'MMM d')} at {format(task.date, 'h:mm a')}
                     </span>
                   </div>
                   {task.location && (
-                    <p className="text-sm text-gray-500 mt-1">📍 {task.location}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">📍 {task.location}</p>
                   )}
                 </div>
               </li>
@@ -101,7 +101,7 @@ export default function TaskWidget() {
           </ul>
         )}
       </div>
-      <div className="p-3 bg-gray-50 text-center">
+      <div className="p-3 bg-gray-50 dark:bg-gray-800 text-center">
         <a href="/dashboard/agenda" className="text-blue-500 hover:text-blue-600 text-sm font-medium">
           View all events
         </a>

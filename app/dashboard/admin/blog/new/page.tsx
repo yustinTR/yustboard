@@ -11,7 +11,7 @@ import CoverImageSelector from '@/components/dashboard/CoverImageSelector';
 // Dynamically import the editor to avoid SSR issues
 const BlogEditor = dynamic(() => import('@/components/dashboard/BlogEditorCK'), {
   ssr: false,
-  loading: () => <div className="h-96 bg-gray-100 animate-pulse rounded-lg"></div>
+  loading: () => <div className="h-96 bg-gray-100 dark:bg-gray-800 animate-pulse rounded-lg"></div>
 });
 
 export default function NewBlogPostPage() {
@@ -76,24 +76,57 @@ export default function NewBlogPostPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-4xl">
-      <div className="mb-6">
-        <Link
-          href="/dashboard/admin/blog"
-          className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-        >
-          <FiArrowLeft className="mr-2" />
-          Back to Blog Management
-        </Link>
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-6xl">
+      <div className="mb-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <Link
+              href="/dashboard/admin/blog"
+              className="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors cursor-pointer"
+            >
+              <FiArrowLeft className="mr-2" />
+              Back to Blog Management
+            </Link>
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mt-2">Create New Blog Post</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">Write and publish your next blog post</p>
+          </div>
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Draft</span>
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, published: !formData.published })}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  formData.published ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    formData.published ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+              <span className="text-sm text-gray-600 dark:text-gray-400">Published</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h1 className="text-2xl font-bold mb-6">Create New Blog Post</h1>
+      <form onSubmit={handleSubmit} className="space-y-8">
+        <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-xl shadow-lg border-0 p-8">
+          <div className="flex items-center mb-6">
+            <div className="bg-blue-100 dark:bg-blue-900 p-3 rounded-lg mr-4">
+              <FiSave className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Post Details</h2>
+              <p className="text-gray-600 dark:text-gray-400">Fill in the basic information for your blog post</p>
+            </div>
+          </div>
 
           {/* Title */}
           <div className="mb-6">
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Title *
             </label>
             <input
@@ -109,7 +142,7 @@ export default function NewBlogPostPage() {
 
           {/* Excerpt */}
           <div className="mb-6">
-            <label htmlFor="excerpt" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="excerpt" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Excerpt *
             </label>
             <textarea
@@ -133,7 +166,7 @@ export default function NewBlogPostPage() {
 
           {/* Content */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Content *
             </label>
             <BlogEditor
@@ -151,7 +184,7 @@ export default function NewBlogPostPage() {
                 onChange={(e) => setFormData({ ...formData, published: e.target.checked })}
                 className="rounded text-blue-600 focus:ring-blue-500 mr-2"
               />
-              <span className="text-sm text-gray-700 flex items-center">
+              <span className="text-sm text-gray-700 dark:text-gray-300 flex items-center">
                 {formData.published ? (
                   <>
                     <FiEye className="mr-1" />
@@ -169,7 +202,7 @@ export default function NewBlogPostPage() {
             <div className="flex space-x-3">
               <Link
                 href="/dashboard/admin/blog"
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               >
                 Cancel
               </Link>

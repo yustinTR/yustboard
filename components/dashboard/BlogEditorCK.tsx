@@ -243,7 +243,7 @@ export default function BlogEditorCK({ content, onChange, onImageUpload }: BlogE
                   <FiLoader className="animate-spin h-8 w-8 text-blue-500" />
                 </div>
               ) : mediaItems.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
+                <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                   <FiImage size={48} className="mx-auto mb-4 opacity-50" />
                   <p>No images uploaded yet</p>
                 </div>
@@ -268,7 +268,7 @@ export default function BlogEditorCK({ content, onChange, onImageUpload }: BlogE
                       </div>
                       <div className="p-2 bg-gray-50">
                         <p className="text-xs truncate">{item.filename}</p>
-                        <p className="text-xs text-gray-500">{formatFileSize(item.size)}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{formatFileSize(item.size)}</p>
                       </div>
                     </div>
                   ))}
