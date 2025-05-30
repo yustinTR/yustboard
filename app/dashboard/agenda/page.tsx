@@ -30,9 +30,9 @@ function CalendarGrid({ currentMonth, tasks, onDateClick, onTaskClick }: Calenda
   const endDate = endOfDay(monthEnd);
 
   const dateFormat = "d";
-  const rows: JSX.Element[] = [];
+  const rows: React.JSX.Element[] = [];
 
-  let days: JSX.Element[] = [];
+  let days: React.JSX.Element[] = [];
 
   // Create array of days in the month
   const daysInMonth = eachDayOfInterval({ start: startDate, end: endDate });
