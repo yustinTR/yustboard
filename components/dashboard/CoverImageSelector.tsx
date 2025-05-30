@@ -51,9 +51,9 @@ export default function CoverImageSelector({ value, onChange }: CoverImageSelect
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('File size must be less than 5MB');
+    // Validate file size (max 50MB)
+    if (file.size > 50 * 1024 * 1024) {
+      alert('File size must be less than 50MB');
       return;
     }
 
@@ -141,15 +141,23 @@ export default function CoverImageSelector({ value, onChange }: CoverImageSelect
 
       {/* Media Library Modal */}
       {showMediaLibrary && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] flex flex-col">
-            <div className="p-4 border-b flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Select Cover Image</h3>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl max-w-5xl w-full mx-4 max-h-[85vh] flex flex-col shadow-2xl border border-gray-200 dark:border-gray-700 animate-in slide-in-from-bottom-4 duration-300">
+            <div className="relative p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center">
+                <div className="bg-blue-100 dark:bg-blue-900 p-3 rounded-xl mr-4">
+                  <FiImage className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Cover Image Library</h3>
+                  <p className="text-gray-600 dark:text-gray-400">Choose a cover image for your blog post</p>
+                </div>
+              </div>
               <button
                 onClick={() => setShowMediaLibrary(false)}
-                className="p-1 hover:bg-gray-100 rounded"
+                className="absolute top-6 right-6 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors group"
               >
-                <FiX size={20} />
+                <FiX size={24} className="text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300" />
               </button>
             </div>
 

@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { format } from 'date-fns';
 import { FiCalendar, FiArrowLeft, FiEdit } from 'react-icons/fi';
 import { useSession } from 'next-auth/react';
-import PublicNavigation from '@/components/PublicNavigation';
+import ModernNavigation from '@/components/ModernNavigation';
 
 interface BlogPost {
   id: string;
@@ -74,7 +74,7 @@ export default function BlogDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <PublicNavigation />
+        <ModernNavigation />
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 max-w-4xl">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
@@ -93,7 +93,7 @@ export default function BlogDetailPage() {
   if (error || !post) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <PublicNavigation />
+        <ModernNavigation />
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 max-w-4xl">
           <div className="bg-red-50 text-red-700 rounded-lg p-8 text-center">
             <p className="text-lg mb-4">{error || 'Blog post not found'}</p>
@@ -112,7 +112,7 @@ export default function BlogDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <PublicNavigation />
+      <ModernNavigation />
       <article className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 max-w-4xl">
       {/* Navigation */}
       <div className="flex justify-between items-center mb-8">

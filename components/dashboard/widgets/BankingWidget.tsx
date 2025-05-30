@@ -71,7 +71,7 @@ export default function BankingWidget({ initialTransactions = [], initialBalance
         <button 
           onClick={fetchTransactions} 
           disabled={isLoading}
-          className="text-white hover:text-gray-200 dark:hover:text-gray-300 disabled:opacity-50"
+          className="text-white hover:text-gray-200 dark:hover:text-gray-300 disabled:opacity-50 cursor-pointer"
           aria-label="Refresh transactions"
         >
           <FiRefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />

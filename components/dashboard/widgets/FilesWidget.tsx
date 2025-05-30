@@ -145,7 +145,7 @@ export default function FilesWidget({ initialFiles = [], maxFiles = 5 }: FilesWi
         <button 
           onClick={fetchFiles} 
           disabled={isLoading}
-          className="text-white hover:text-gray-200 dark:hover:text-gray-300 disabled:opacity-50"
+          className="text-white hover:text-gray-200 dark:hover:text-gray-300 disabled:opacity-50 cursor-pointer"
           aria-label="Refresh files"
         >
           <FiRefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -158,7 +158,7 @@ export default function FilesWidget({ initialFiles = [], maxFiles = 5 }: FilesWi
             <p className="text-red-600 text-sm text-center mb-2">{error}</p>
             <button
               onClick={fetchFiles}
-              className="w-full text-blue-500 hover:text-blue-600 text-sm underline"
+              className="w-full text-blue-500 hover:text-blue-600 text-sm underline cursor-pointer"
             >
               Try again
             </button>

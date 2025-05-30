@@ -144,6 +144,7 @@ export default function AgendaPage() {
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
   const [viewType, setViewType] = useState<'list' | 'calendar'>('list');
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  // const [selectedDate, setSelectedDate] = useState<Date | null>(null); // Currently not used
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -191,12 +192,18 @@ export default function AgendaPage() {
       let endDateObj: Date | undefined;
       
       if (formData.isAllDay) {
+        // For all-day events, just use the date without time
         dateObj = new Date(formData.date);
+        
+        // If no end time is provided, the event is single-day
         endDateObj = formData.endTime 
           ? new Date(`${formData.date}T${formData.endTime}`)
           : undefined;
       } else {
+        // For regular events, combine date and time
         dateObj = new Date(`${formData.date}T${formData.time || '00:00'}`);
+        
+        // If no end time is provided, default to 1 hour later
         endDateObj = formData.endTime 
           ? new Date(`${formData.date}T${formData.endTime}`) 
           : addHours(dateObj, 1);
@@ -248,12 +255,18 @@ export default function AgendaPage() {
       let endDateObj: Date | undefined;
       
       if (formData.isAllDay) {
+        // For all-day events, just use the date without time
         dateObj = new Date(formData.date);
+        
+        // If no end time is provided, the event is single-day
         endDateObj = formData.endTime 
           ? new Date(`${formData.date}T${formData.endTime}`)
           : undefined;
       } else {
+        // For regular events, combine date and time
         dateObj = new Date(`${formData.date}T${formData.time || '00:00'}`);
+        
+        // If no end time is provided, default to 1 hour later
         endDateObj = formData.endTime 
           ? new Date(`${formData.date}T${formData.endTime}`) 
           : addHours(dateObj, 1);
@@ -356,7 +369,7 @@ export default function AgendaPage() {
 
   // Handle form input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target as HTMLInputElement;
+    const { name, value, type } = e.target as HTMLInputElement; // Cast to HTMLInputElement to access checked
     const checked = (e.target as HTMLInputElement).checked;
     
     if (type === 'checkbox') {
@@ -746,8 +759,8 @@ export default function AgendaPage() {
                     Add Event
                   </button>
                 </div>
-              </form>
-            </div>
+              </div>
+            </form>
           </div>
         </div>
       )}

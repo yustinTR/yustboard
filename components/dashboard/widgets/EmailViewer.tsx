@@ -52,7 +52,7 @@ export default function EmailViewer({
       <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-gray-50 dark:bg-gray-800">
         <button
           onClick={onClose}
-          className="flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+          className="flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 cursor-pointer"
         >
           <FiChevronLeft className="mr-1" />
           <span>Back</span>
@@ -60,7 +60,7 @@ export default function EmailViewer({
         <div className="flex items-center space-x-2">
           <button
             onClick={onStarToggle}
-            className="p-2 text-gray-400 dark:text-gray-500 hover:text-yellow-400 focus:outline-none"
+            className="p-2 text-gray-400 dark:text-gray-500 hover:text-yellow-400 focus:outline-none cursor-pointer"
           >
             <FiStar className={email.isStarred ? 'text-yellow-400 fill-yellow-400' : ''} />
           </button>

@@ -167,7 +167,7 @@ export default function GmailWidget({ initialEmails = [], maxEmails = 5 }: Gmail
         <button 
           onClick={fetchGmailEmails} 
           disabled={isLoading}
-          className="text-white hover:text-gray-200 dark:hover:text-gray-300 disabled:opacity-50"
+          className="text-white hover:text-gray-200 dark:hover:text-gray-300 disabled:opacity-50 cursor-pointer"
           aria-label="Refresh emails"
         >
           <FiRefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -187,7 +187,7 @@ export default function GmailWidget({ initialEmails = [], maxEmails = 5 }: Gmail
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
             <button 
               type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-red-500 hover:text-red-600"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-red-500 hover:text-red-600 cursor-pointer"
               aria-label="Search"
             >
               <FiChevronRight />
