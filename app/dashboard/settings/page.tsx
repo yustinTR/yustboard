@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { FiMenu, FiShield, FiSave, FiRefreshCw, FiCalendar } from 'react-icons/fi'
+import { FiMenu, FiShield, FiSave, FiRefreshCw, FiCalendar, FiSettings, FiLayout, FiGrid, FiUser, FiMail, FiUserPlus } from 'react-icons/fi'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 import { toast } from 'sonner'
 
