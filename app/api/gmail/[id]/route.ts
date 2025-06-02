@@ -52,15 +52,20 @@ export async function GET(
       }
     }
 
-    // Mark as read if requested
+    // Mark as read if requested (only if we have write permissions)
     if (markRead && message.labelIds?.includes('UNREAD')) {
-      await gmail.users.messages.modify({
-        userId: 'me',
-        id: messageId,
-        requestBody: {
-          removeLabelIds: ['UNREAD'],
-        },
-      });
+      try {
+        await gmail.users.messages.modify({
+          userId: 'me',
+          id: messageId,
+          requestBody: {
+            removeLabelIds: ['UNREAD'],
+          },
+        });
+      } catch (modifyError: any) {
+        // If we can't modify, just log it but don't fail the whole request
+        console.warn('Cannot mark email as read - insufficient permissions:', modifyError.message);
+      }
     }
 
     // Check if email has attachments

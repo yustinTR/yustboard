@@ -99,7 +99,7 @@ function MailPageContent() {
     if (!session?.accessToken) return;
     
     try {
-      const response = await fetch(`/api/gmail/${emailId}?markRead=true`);
+      const response = await fetch(`/api/gmail/${emailId}`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch email details: ${response.statusText}`);
