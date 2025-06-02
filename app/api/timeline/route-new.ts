@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withApiMiddleware, ApiContext } from '@/lib/api-middleware';
 import prisma from '@/lib/prisma';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const GET = withApiMiddleware(async (request: NextRequest, context: ApiContext) => {
-  const { user } = context;
-  
   const searchParams = request.nextUrl.searchParams;
   const cursor = searchParams.get('cursor');
   const limit = parseInt(searchParams.get('limit') || '20');

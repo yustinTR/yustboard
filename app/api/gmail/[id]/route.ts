@@ -29,7 +29,10 @@ export async function GET(
     let body = '';
     let htmlBody = '';
     
+    // Type assertion for Google Gmail API message parts - the actual type is very complex
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const parseBody = (parts: any[]): void => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       parts.forEach((part: any) => {
         if (part.mimeType === 'text/plain' && part.body?.data) {
           body = Buffer.from(part.body.data, 'base64').toString('utf-8');
@@ -62,14 +65,16 @@ export async function GET(
             removeLabelIds: ['UNREAD'],
           },
         });
-      } catch (modifyError: any) {
+      } catch (modifyError: unknown) {
         // If we can't modify, just log it but don't fail the whole request
-        console.warn('Cannot mark email as read - insufficient permissions:', modifyError.message);
+        const errorMessage = modifyError instanceof Error ? modifyError.message : 'Unknown error';
+        console.warn('Cannot mark email as read - insufficient permissions:', errorMessage);
       }
     }
 
     // Check if email has attachments
     const hasAttachments = message.payload?.parts?.some(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (part: any) => part.filename && part.body?.attachmentId
     ) || false;
 
@@ -105,18 +110,22 @@ export async function GET(
     };
 
     return NextResponse.json({ email });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching email details:', error);
     
-    if (error.message === 'Unauthorized') {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    
+    if (errorMessage === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    if (error.message === 'No Google account linked') {
+    if (errorMessage === 'No Google account linked') {
       return NextResponse.json({ error: 'Please reconnect your Google account' }, { status: 400 });
     }
     
-    if (error.response?.status === 403) {
+    if (error && typeof error === 'object' && 'response' in error && 
+        typeof error.response === 'object' && error.response && 
+        'status' in error.response && error.response.status === 403) {
       return NextResponse.json({ error: 'Insufficient permissions. Please re-authorize the app.' }, { status: 403 });
     }
     

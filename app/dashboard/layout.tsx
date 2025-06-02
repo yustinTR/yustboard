@@ -75,7 +75,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
         
         <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-          <Header onMenuClick={() => setIsSidebarOpen(true)} />
+          <Header />
           <main className="flex-1 relative overflow-y-auto overflow-x-hidden">
             {children}
           </main>

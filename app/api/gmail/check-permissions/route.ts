@@ -13,7 +13,7 @@ export async function GET() {
     try {
       await gmail.users.labels.list({ userId: 'me' });
       canModify = true;
-    } catch (error) {
+    } catch {
       console.warn('Cannot list labels - limited permissions');
     }
     
@@ -24,14 +24,16 @@ export async function GET() {
       totalMessages: profile.data.messagesTotal,
       threadsTotal: profile.data.threadsTotal,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error checking permissions:', error);
     
-    if (error.message === 'Unauthorized') {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    
+    if (errorMessage === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    if (error.message === 'No Google account linked') {
+    if (errorMessage === 'No Google account linked') {
       return NextResponse.json({ error: 'Please reconnect your Google account' }, { status: 400 });
     }
     

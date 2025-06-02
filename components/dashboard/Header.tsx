@@ -9,11 +9,7 @@ import { useState, useRef, useEffect } from 'react';
 import UniversalSearch from './UniversalSearch';
 import MobileSidebar from './MobileSidebar';
 
-interface HeaderProps {
-  onMenuClick?: () => void;
-}
-
-export default function Header({ onMenuClick }: HeaderProps) {
+export default function Header() {
   const { data: session } = useSession();
   const pathname = usePathname();
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);

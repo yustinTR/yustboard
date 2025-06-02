@@ -1,13 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
+import { Session } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+
+type UserRole = 'USER' | 'AUTHOR' | 'ADMIN';
+
+interface ApiUser {
+  id: string;
+  email: string | null;
+  name: string | null;
+  role: UserRole;
+  image: string | null;
+  accounts: {
+    access_token: string | null;
+    refresh_token: string | null;
+    expires_at: number | null;
+  }[];
+}
 
 export type ApiHandler = (req: NextRequest, context: ApiContext) => Promise<Response>;
 
 export interface ApiContext {
-  session: any;
-  user: any;
+  session: Session | null;
+  user: ApiUser | null;
   params?: Record<string, string>;
 }
 
@@ -128,7 +144,7 @@ export function withApiMiddleware(
 }
 
 // Helper function to get Google tokens
-export function getGoogleTokens(user: any) {
+export function getGoogleTokens(user: ApiUser | null) {
   const googleAccount = user?.accounts?.[0];
   
   if (!googleAccount?.access_token || !googleAccount?.refresh_token) {

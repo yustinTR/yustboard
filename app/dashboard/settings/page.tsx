@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { FiMenu, FiShield, FiSave, FiRefreshCw, FiCalendar, FiSettings, FiLayout, FiGrid, FiUser, FiMail, FiUserPlus } from 'react-icons/fi'
+import { FiMenu, FiShield, FiSave, FiRefreshCw, FiCalendar, FiSettings, FiLayout, FiGrid, FiUser, FiMail } from 'react-icons/fi'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 import { toast } from 'sonner'
 
@@ -170,7 +170,8 @@ export default function SettingsPage() {
       const data = await response.json()
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u))
       
-      toast.success(`Gebruiker ${data.user.email} is nu ${newRole === 'ADMIN' ? 'admin' : 'gebruiker'}`)
+      const roleText = newRole === 'ADMIN' ? 'admin' : newRole === 'AUTHOR' ? 'redacteur' : 'gebruiker'
+      toast.success(`Gebruiker ${data.user.email} is nu ${roleText}`)
     } catch (error) {
       console.error('Error updating user role:', error)
       toast.error('Fout bij het updaten van gebruikersrol')
@@ -380,12 +381,16 @@ export default function SettingsPage() {
                           src={user.image} 
                           alt={user.name || user.email} 
                           className="h-10 w-10 rounded-full"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            target.nextElementSibling?.classList.remove('hidden');
+                          }}
                         />
-                      ) : (
-                        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                          <User className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                      )}
+                      ) : null}
+                      <div className={`h-10 w-10 rounded-full bg-muted flex items-center justify-center ${user.image ? 'hidden' : ''}`}>
+                        <FiUser className="h-5 w-5 text-muted-foreground" />
+                      </div>
                       
                       <div>
                         <div className="font-medium">{user.name || 'Geen naam'}</div>
@@ -405,26 +410,26 @@ export default function SettingsPage() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <Badge variant={user.role === 'ADMIN' ? 'default' : 'secondary'}>
-                        {user.role === 'ADMIN' ? 'Admin' : 'Gebruiker'}
+                      <Badge variant={user.role === 'ADMIN' ? 'default' : user.role === 'AUTHOR' ? 'outline' : 'secondary'}>
+                        {user.role === 'ADMIN' ? 'Admin' : user.role === 'AUTHOR' ? 'Redacteur' : 'Gebruiker'}
                       </Badge>
                       
                       {user.id !== session?.user?.id && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => updateUserRole(user.id, user.role === 'ADMIN' ? 'USER' : 'ADMIN')}
-                          disabled={updatingUser === user.id}
-                        >
-                          {updatingUser === user.id ? (
-                            <FiRefreshCw className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <>
-                              <FiUserPlus className="h-3 w-3 mr-1" />
-                              {user.role === 'ADMIN' ? 'Verwijder admin' : 'Maak admin'}
-                            </>
+                        <div className="flex gap-2">
+                          <select
+                            value={user.role}
+                            onChange={(e) => updateUserRole(user.id, e.target.value)}
+                            disabled={updatingUser === user.id}
+                            className="px-3 py-1 text-sm border border-gray-300 rounded-md bg-white dark:bg-gray-800 dark:border-gray-600"
+                          >
+                            <option value="USER">Gebruiker</option>
+                            <option value="AUTHOR">Redacteur</option>
+                            <option value="ADMIN">Admin</option>
+                          </select>
+                          {updatingUser === user.id && (
+                            <FiRefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
                           )}
-                        </Button>
+                        </div>
                       )}
                     </div>
                   </div>

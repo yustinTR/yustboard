@@ -221,7 +221,7 @@ export default function UniversalSearch() {
               </div>
             ) : query.length >= 2 && !loading ? (
               <div className="p-8 text-center text-muted-foreground">
-                No results found for "{query}"
+                No results found for &quot;{query}&quot;
               </div>
             ) : null}
           </div>

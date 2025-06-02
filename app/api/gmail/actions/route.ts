@@ -81,18 +81,22 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error performing email action:', error);
     
-    if (error.message === 'Unauthorized') {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    
+    if (errorMessage === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    if (error.message === 'No Google account linked') {
+    if (errorMessage === 'No Google account linked') {
       return NextResponse.json({ error: 'Please reconnect your Google account' }, { status: 400 });
     }
     
-    if (error.response?.status === 403) {
+    if (error && typeof error === 'object' && 'response' in error && 
+        typeof error.response === 'object' && error.response && 
+        'status' in error.response && error.response.status === 403) {
       return NextResponse.json({ error: 'Insufficient permissions. Please re-authorize the app.' }, { status: 403 });
     }
     

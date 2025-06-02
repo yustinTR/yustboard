@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FiHome, FiCalendar, FiDollarSign, FiCloud, FiUsers, FiMail, FiMessageSquare, FiSettings, FiGlobe, FiX, FiFileText, FiShield, FiLayout, FiBell, FiLogOut, FiUser, FiSearch } from 'react-icons/fi';
+import { FiHome, FiCalendar, FiDollarSign, FiCloud, FiUsers, FiMail, FiMessageSquare, FiSettings, FiGlobe, FiX, FiFileText, FiShield, FiLayout, FiBell, FiLogOut, FiSearch } from 'react-icons/fi';
 import { useSession, signOut } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
@@ -15,6 +15,15 @@ interface MenuItem {
   icon: string;
   enabled: boolean;
   position: number;
+}
+
+interface SearchResult {
+  id: string;
+  type: 'email' | 'calendar' | 'blog' | 'file';
+  title: string;
+  subtitle?: string;
+  date?: Date;
+  url?: string;
 }
 
 const iconMap: { [key: string]: React.ComponentType<{ className?: string }> } = {
@@ -56,7 +65,7 @@ export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
   const [menuItems, setMenuItems] = useState<MenuItem[]>(defaultNavItems);
   const [imageError, setImageError] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   
   const isAdmin = session?.user?.role === 'ADMIN';
@@ -107,7 +116,7 @@ export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
 
   const enabledItems = menuItems.filter(item => item.enabled).sort((a, b) => a.position - b.position);
 
-  const handleSearchResultClick = (result: any) => {
+  const handleSearchResultClick = (result: SearchResult) => {
     onClose();
     setSearchQuery('');
     setSearchResults([]);
@@ -221,7 +230,7 @@ export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                   </div>
                 ) : searchResults.length > 0 ? (
                   <div className="py-1">
-                    {searchResults.map((result, index) => (
+                    {searchResults.map((result) => (
                       <button
                         key={`${result.type}-${result.id}`}
                         onClick={() => handleSearchResultClick(result)}
