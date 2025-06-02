@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Newspaper, ExternalLink, RefreshCw, Calendar } from 'lucide-react'
+import { FiFileText, FiExternalLink, FiRefreshCw, FiCalendar } from 'react-icons/fi'
 import { formatDistanceToNow } from 'date-fns'
 import { nl } from 'date-fns/locale'
 import Link from 'next/link'
@@ -21,7 +21,7 @@ interface NewsArticle {
   category?: string
 }
 
-export default function NewsWidget() {
+const NewsWidget = React.memo(function NewsWidget() {
   const [articles, setArticles] = useState<NewsArticle[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -72,7 +72,7 @@ export default function NewsWidget() {
       <CardHeader className="pb-3 flex-shrink-0">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg">
-            <Newspaper className="h-5 w-5" />
+            <FiFileText className="h-5 w-5" />
             Nieuws
           </CardTitle>
           <Button
@@ -82,7 +82,7 @@ export default function NewsWidget() {
             disabled={loading}
             className="h-8 w-8"
           >
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            <FiRefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
         
@@ -119,7 +119,7 @@ export default function NewsWidget() {
       <CardContent className="flex-1 overflow-y-auto space-y-3">
         {loading && (
           <div className="flex items-center justify-center h-32">
-            <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+            <FiRefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         )}
         
@@ -174,7 +174,7 @@ export default function NewsWidget() {
                   <span className="font-medium">{article.source.name}</span>
                   <span>•</span>
                   <span className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
+                    <FiCalendar className="h-3 w-3" />
                     {formatDistanceToNow(new Date(article.publishedAt), { 
                       addSuffix: true,
                       locale: nl 
@@ -188,7 +188,7 @@ export default function NewsWidget() {
                   className="h-7 w-7"
                   onClick={() => window.open(article.url, '_blank')}
                 >
-                  <ExternalLink className="h-3 w-3" />
+                  <FiExternalLink className="h-3 w-3" />
                 </Button>
               </div>
             </div>
@@ -202,9 +202,11 @@ export default function NewsWidget() {
           className="text-primary hover:text-primary/80 text-sm font-medium flex items-center justify-center"
         >
           Alle nieuws bekijken
-          <ExternalLink className="ml-1 h-3 w-3" />
+          <FiExternalLink className="ml-1 h-3 w-3" />
         </Link>
       </div>
     </Card>
   )
-}
+});
+
+export default NewsWidget;

@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react';
 import Sidebar from '@/components/dashboard/Sidebar';
 import Header from '@/components/dashboard/Header';
 import { SidebarProvider } from '@/contexts/SidebarContext';
+import { pollingManager } from '@/lib/polling-manager';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -22,6 +23,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       router.push('/login');
     }
   }, [status, router]);
+
+  // Start polling manager when authenticated
+  useEffect(() => {
+    if (status === 'authenticated') {
+      pollingManager.start();
+      return () => {
+        pollingManager.stop();
+      };
+    }
+  }, [status]);
 
   // Show loading state while checking authentication
   if (status === 'loading') {
@@ -64,7 +75,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
         
         <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-          <Header onMenuClick={() => setIsSidebarOpen(true)} />
+          <Header />
           <main className="flex-1 relative overflow-y-auto overflow-x-hidden">
             {children}
           </main>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiFile, FiRefreshCw, FiExternalLink, FiClock } from 'react-icons/fi';
 import { useSession } from 'next-auth/react';
 import { DriveFile } from '@/utils/google-drive';
@@ -10,7 +10,7 @@ interface FilesWidgetProps {
   maxFiles?: number;
 }
 
-export default function FilesWidget({ initialFiles = [], maxFiles = 5 }: FilesWidgetProps) {
+const FilesWidget = React.memo(function FilesWidget({ initialFiles = [], maxFiles = 5 }: FilesWidgetProps) {
   const { data: session } = useSession();
   const [files, setFiles] = useState<DriveFile[]>(initialFiles);
   const [isLoading, setIsLoading] = useState(false);
@@ -221,4 +221,6 @@ export default function FilesWidget({ initialFiles = [], maxFiles = 5 }: FilesWi
       </div>
     </div>
   );
-}
+});
+
+export default FilesWidget;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FiStar, FiRefreshCw, FiChevronRight, 
   FiPaperclip, FiSearch
@@ -13,7 +13,7 @@ interface GmailWidgetProps {
   maxEmails?: number;
 }
 
-export default function GmailWidget({ initialEmails = [], maxEmails = 5 }: GmailWidgetProps) {
+const GmailWidget = React.memo(function GmailWidget({ initialEmails = [], maxEmails = 5 }: GmailWidgetProps) {
   const { data: session } = useSession();
   const [emails, setEmails] = useState<EmailMessage[]>(initialEmails);
   const [isLoading, setIsLoading] = useState(false);
@@ -249,4 +249,6 @@ export default function GmailWidget({ initialEmails = [], maxEmails = 5 }: Gmail
       </div>
     </div>
   );
-}
+});
+
+export default GmailWidget;

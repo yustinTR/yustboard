@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { Activity, Footprints, Flame, Heart, RefreshCw, TrendingUp } from 'lucide-react'
+import { FiActivity, FiZap, FiHeart, FiRefreshCw, FiTrendingUp } from 'react-icons/fi'
 
 interface FitnessData {
   steps: {
@@ -30,7 +30,7 @@ interface FitnessData {
   }[]
 }
 
-export default function FitnessWidget() {
+const FitnessWidget = React.memo(function FitnessWidget() {
   const [fitnessData, setFitnessData] = useState<FitnessData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -73,7 +73,7 @@ export default function FitnessWidget() {
   if (loading) {
     return (
       <Card className="h-full flex items-center justify-center">
-        <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+        <FiRefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
       </Card>
     )
   }
@@ -84,7 +84,7 @@ export default function FitnessWidget() {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Activity className="h-5 w-5" />
+              <FiActivity className="h-5 w-5" />
               Fitness
             </CardTitle>
             <Button
@@ -94,7 +94,7 @@ export default function FitnessWidget() {
               disabled={loading}
               className="h-8 w-8"
             >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              <FiRefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             </Button>
           </div>
         </CardHeader>
@@ -117,7 +117,7 @@ export default function FitnessWidget() {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg">
-            <Activity className="h-5 w-5" />
+            <FiActivity className="h-5 w-5" />
             Fitness
           </CardTitle>
           <Button
@@ -127,7 +127,7 @@ export default function FitnessWidget() {
             disabled={loading}
             className="h-8 w-8"
           >
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            <FiRefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
       </CardHeader>
@@ -137,7 +137,7 @@ export default function FitnessWidget() {
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
-              <Footprints className="h-4 w-4 text-blue-500" />
+              <FiActivity className="h-4 w-4 text-blue-500" />
               <span>Stappen</span>
             </div>
             <span className={getProgressColor((fitnessData.steps.value / fitnessData.steps.goal) * 100)}>
@@ -154,7 +154,7 @@ export default function FitnessWidget() {
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
-              <Flame className="h-4 w-4 text-orange-500" />
+              <FiZap className="h-4 w-4 text-orange-500" />
               <span>Calorieën</span>
             </div>
             <span className={getProgressColor((fitnessData.calories.value / fitnessData.calories.goal) * 100)}>
@@ -171,7 +171,7 @@ export default function FitnessWidget() {
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-green-500" />
+              <FiTrendingUp className="h-4 w-4 text-green-500" />
               <span>Actieve minuten</span>
             </div>
             <span className={getProgressColor((fitnessData.activeMinutes.value / fitnessData.activeMinutes.goal) * 100)}>
@@ -184,11 +184,11 @@ export default function FitnessWidget() {
           />
         </div>
 
-        {/* Heart Rate */}
+        {/* FiHeart Rate */}
         {fitnessData.heartRate.value > 0 ? (
           <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
             <div className="flex items-center gap-2">
-              <Heart className="h-4 w-4 text-red-500" />
+              <FiHeart className="h-4 w-4 text-red-500" />
               <span className="text-sm">Hartslag</span>
             </div>
             <div className="text-right">
@@ -201,7 +201,7 @@ export default function FitnessWidget() {
         ) : (
           <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg opacity-50">
             <div className="flex items-center gap-2">
-              <Heart className="h-4 w-4 text-muted-foreground" />
+              <FiHeart className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">Hartslag niet beschikbaar</span>
             </div>
           </div>
@@ -231,4 +231,6 @@ export default function FitnessWidget() {
       </CardContent>
     </Card>
   )
-}
+});
+
+export default FitnessWidget;

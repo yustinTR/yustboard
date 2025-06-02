@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { FiClock, FiPlus, FiLoader } from 'react-icons/fi';
 import { format, startOfDay, addDays, endOfDay } from 'date-fns';
 import { Task } from '@/utils/google-calendar';
 
-export default function TaskWidget() {
+const TaskWidget = React.memo(function TaskWidget() {
   const { data: session, status } = useSession();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -108,4 +108,6 @@ export default function TaskWidget() {
       </div>
     </div>
   );
-}
+});
+
+export default TaskWidget;

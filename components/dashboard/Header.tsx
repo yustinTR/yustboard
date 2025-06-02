@@ -3,17 +3,18 @@
 import { useSession, signOut } from 'next-auth/react';
 import { FiBell, FiMenu, FiUser, FiLogOut, FiFileText, FiChevronDown, FiSettings } from 'react-icons/fi';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
+import UniversalSearch from './UniversalSearch';
+import MobileSidebar from './MobileSidebar';
 
-interface HeaderProps {
-  onMenuClick?: () => void;
-}
-
-export default function Header({ onMenuClick }: HeaderProps) {
+export default function Header() {
   const { data: session } = useSession();
   const pathname = usePathname();
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   
   const isAdmin = session?.user?.role === 'ADMIN';
@@ -51,10 +52,11 @@ export default function Header({ onMenuClick }: HeaderProps) {
 
   return (
     <header className="bg-white dark:bg-card h-16 flex items-center justify-between px-4 lg:px-6 border-b border-border shadow-1">
-      <div className="flex items-center gap-4">
+      {/* Left section */}
+      <div className="flex items-center gap-4 flex-1">
         {/* Hamburger menu button - visible only on mobile */}
         <button
-          onClick={onMenuClick}
+          onClick={() => setShowMobileSidebar(true)}
           className="lg:hidden p-2 rounded-md hover:bg-secondary transition-colors"
           aria-label="Open menu"
         >
@@ -62,28 +64,44 @@ export default function Header({ onMenuClick }: HeaderProps) {
         </button>
         <h2 className="text-xl font-normal text-foreground">{getPageTitle()}</h2>
       </div>
-      <div className="flex items-center gap-2">
-        <button className="relative w-10 h-10 rounded-full flex items-center justify-center hover:bg-secondary transition-colors hover-overlay">
+      
+      {/* Center section - Universal Search - hide on mobile */}
+      <div className="hidden lg:flex flex-1 justify-center">
+        <UniversalSearch />
+      </div>
+      
+      {/* Empty div for mobile layout balance */}
+      <div className="flex-1 lg:hidden"></div>
+      
+      {/* Right section - only visible on desktop */}
+      <div className="hidden lg:flex items-center gap-2 flex-1 justify-end">
+        {/* Hide these on mobile - they're in the mobile sidebar */}
+        <button className="hidden lg:flex relative w-10 h-10 rounded-full items-center justify-center hover:bg-secondary transition-colors hover-overlay">
           <FiBell className="h-5 w-5 text-secondary-foreground" />
         </button>
         <Link 
           href="/dashboard/settings" 
-          className="relative w-10 h-10 rounded-full flex items-center justify-center hover:bg-secondary transition-colors hover-overlay"
+          className="hidden lg:flex relative w-10 h-10 rounded-full items-center justify-center hover:bg-secondary transition-colors hover-overlay"
         >
           <FiSettings className="h-5 w-5 text-secondary-foreground" />
         </Link>
-        {/* Profile Dropdown */}
-        <div className="relative ml-2" ref={dropdownRef}>
+        {/* Profile Dropdown - hide on mobile */}
+        <div className="relative ml-2 hidden lg:block" ref={dropdownRef}>
           <button
             onClick={() => setShowProfileDropdown(!showProfileDropdown)}
             className="flex items-center gap-2 p-2 rounded-lg hover:bg-secondary transition-colors"
           >
-            {session?.user?.image ? (
-              <img
-                src={session.user.image}
-                alt={session.user.name || 'User'}
-                className="h-8 w-8 rounded-full"
-              />
+            {session?.user?.image && !imageError ? (
+              <div className="relative h-8 w-8">
+                <Image
+                  src={session.user.image}
+                  alt={session.user.name || 'User'}
+                  width={32}
+                  height={32}
+                  className="rounded-full object-cover"
+                  onError={() => setImageError(true)}
+                />
+              </div>
             ) : (
               <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
                 <span className="text-primary-foreground text-sm font-medium">
@@ -142,6 +160,12 @@ export default function Header({ onMenuClick }: HeaderProps) {
           )}
         </div>
       </div>
+      
+      {/* Mobile Sidebar */}
+      <MobileSidebar 
+        isOpen={showMobileSidebar} 
+        onClose={() => setShowMobileSidebar(false)} 
+      />
     </header>
   );
 }

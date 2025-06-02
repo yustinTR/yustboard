@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { FiFileText, FiCalendar, FiUser, FiExternalLink, FiRefreshCw } from 'react-icons/fi';
@@ -24,7 +24,7 @@ interface BlogPost {
   };
 }
 
-export default function BlogWidget() {
+const BlogWidget = React.memo(function BlogWidget() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -178,4 +178,6 @@ export default function BlogWidget() {
       </CardContent>
     </Card>
   );
-}
+});
+
+export default BlogWidget;

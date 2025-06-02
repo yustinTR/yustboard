@@ -1,15 +1,17 @@
 'use client'
 
+import React from 'react'
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Users } from 'lucide-react'
+import { FiUsers } from 'react-icons/fi'
 import Link from 'next/link'
 
-export default function SocialWidget() {
+const SocialWidget = React.memo(function SocialWidget() {
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
-          <Users className="h-5 w-5" />
+          <FiUsers className="h-5 w-5" />
           Social Media
         </CardTitle>
       </CardHeader>
@@ -35,4 +37,6 @@ export default function SocialWidget() {
       </div>
     </Card>
   )
-}
+});
+
+export default SocialWidget;

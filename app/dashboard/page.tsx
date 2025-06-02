@@ -3,7 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { RefreshCw } from 'lucide-react';
+import { FiRefreshCw } from 'react-icons/fi';
 import Masonry from 'react-masonry-css';
 
 // Dynamically import widgets to support lazy loading
@@ -69,7 +69,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+        <FiRefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
   }

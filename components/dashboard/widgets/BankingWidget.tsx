@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FiArrowUp, FiArrowDown, FiRefreshCw } from 'react-icons/fi';
 import { format } from 'date-fns';
 import { useSession } from 'next-auth/react';
@@ -11,7 +11,7 @@ interface BankingWidgetProps {
   initialBalance?: number;
 }
 
-export default function BankingWidget({ initialTransactions = [], initialBalance = 0 }: BankingWidgetProps) {
+const BankingWidget = React.memo(function BankingWidget({ initialTransactions = [], initialBalance = 0 }: BankingWidgetProps) {
   const { data: session } = useSession();
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
   const [balance, setBalance] = useState<number>(initialBalance);
@@ -127,4 +127,6 @@ export default function BankingWidget({ initialTransactions = [], initialBalance
       </div>
     </div>
   );
-}
+});
+
+export default BankingWidget;

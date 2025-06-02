@@ -12,7 +12,7 @@ interface EmailViewerProps {
   onMarkReadToggle: () => void;
 }
 
-export default function EmailViewer({
+const EmailViewer = React.memo(function EmailViewer({
   email,
   onClose,
   onStarToggle,
@@ -76,7 +76,7 @@ export default function EmailViewer({
             <div>
               <p className="font-medium">{email.from.name || 'Unknown'} <span className="text-gray-500 dark:text-gray-400 font-normal">&lt;{email.from.email}&gt;</span></p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                To: {email.to.join(', ')}
+                To: {Array.isArray(email.to) ? email.to.join(', ') : email.to}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {format(new Date(email.date), 'MMM d, yyyy h:mm a')}
@@ -112,4 +112,6 @@ export default function EmailViewer({
       </div>
     </div>
   );
-}
+});
+
+export default EmailViewer;
