@@ -226,7 +226,7 @@ export default function SettingsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Settings className="h-8 w-8" />
+            <FiSettings className="h-8 w-8" />
             Instellingen
           </h1>
           <p className="text-muted-foreground mt-2">
@@ -244,7 +244,7 @@ export default function SettingsPage() {
       <Tabs defaultValue="widgets" className="space-y-4">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="widgets" className="flex items-center gap-2">
-            <Layout className="h-4 w-4" />
+            <FiLayout className="h-4 w-4" />
             Widgets
           </TabsTrigger>
           <TabsTrigger value="menu" disabled={!isAdmin} className="flex items-center gap-2">
@@ -390,7 +390,7 @@ export default function SettingsPage() {
                       <div>
                         <div className="font-medium">{user.name || 'Geen naam'}</div>
                         <div className="text-sm text-muted-foreground flex items-center gap-2">
-                          <Mail className="h-3 w-3" />
+                          <FiMail className="h-3 w-3" />
                           {user.email}
                         </div>
                         <div className="text-xs text-muted-foreground flex items-center gap-2 mt-1">
@@ -420,7 +420,7 @@ export default function SettingsPage() {
                             <FiRefreshCw className="h-3 w-3 animate-spin" />
                           ) : (
                             <>
-                              <UserPlus className="h-3 w-3 mr-1" />
+                              <FiUserPlus className="h-3 w-3 mr-1" />
                               {user.role === 'ADMIN' ? 'Verwijder admin' : 'Maak admin'}
                             </>
                           )}
