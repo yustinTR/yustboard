@@ -65,7 +65,7 @@ function MailPageContent() {
       
       // Fetch emails from API
       const pageTokenParam = (!clear && nextPageToken) ? `&pageToken=${nextPageToken}` : '';
-      const response = await fetch(`/api/mail?query=${encodeURIComponent(query)}${includeCountsParam}${pageTokenParam}`);
+      const response = await fetch(`/api/gmail?query=${encodeURIComponent(query)}${includeCountsParam}${pageTokenParam}`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch emails: ${response.statusText}`);

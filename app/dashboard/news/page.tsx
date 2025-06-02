@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Newspaper, ExternalLink, RefreshCw, Calendar, ChevronLeft } from 'lucide-react'
+import { FiFileText, FiExternalLink, FiRefreshCw, FiCalendar, FiChevronLeft } from 'react-icons/fi'
 import { formatDistanceToNow } from 'date-fns'
 import { nl } from 'date-fns/locale'
 import Link from 'next/link'
@@ -90,11 +90,11 @@ export default function NewsPage() {
           <div className="flex items-center gap-4">
             <Link href="/dashboard">
               <Button variant="ghost" size="icon">
-                <ChevronLeft className="h-5 w-5" />
+                <FiChevronLeft className="h-5 w-5" />
               </Button>
             </Link>
             <h1 className="text-3xl font-bold flex items-center gap-3">
-              <Newspaper className="h-8 w-8" />
+              <FiFileText className="h-8 w-8" />
               Nieuws
             </h1>
           </div>
@@ -106,7 +106,7 @@ export default function NewsPage() {
             }}
             disabled={loading}
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            <FiRefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Vernieuwen
           </Button>
         </div>
@@ -151,7 +151,7 @@ export default function NewsPage() {
 
       {!loading && !error && articles.length === 0 && (
         <div className="text-center py-16 space-y-3">
-          <Newspaper className="h-12 w-12 mx-auto text-muted-foreground" />
+          <FiFileText className="h-12 w-12 mx-auto text-muted-foreground" />
           <p className="text-lg text-muted-foreground">
             Geen nieuws gevonden
           </p>
@@ -186,7 +186,7 @@ export default function NewsPage() {
               <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
                 <span className="font-medium">{article.source.name}</span>
                 <span className="flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
+                  <FiCalendar className="h-3 w-3" />
                   {formatDistanceToNow(new Date(article.publishedAt), { 
                     addSuffix: true,
                     locale: nl 
@@ -201,7 +201,7 @@ export default function NewsPage() {
                 onClick={() => window.open(article.url, '_blank')}
               >
                 Lees meer
-                <ExternalLink className="h-3 w-3 ml-2" />
+                <FiExternalLink className="h-3 w-3 ml-2" />
               </Button>
             </div>
           </article>
@@ -217,7 +217,7 @@ export default function NewsPage() {
           >
             {loading ? (
               <>
-                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                <FiRefreshCw className="h-4 w-4 mr-2 animate-spin" />
                 Laden...
               </>
             ) : (

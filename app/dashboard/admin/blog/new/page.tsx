@@ -11,7 +11,14 @@ import CoverImageSelector from '@/components/dashboard/CoverImageSelector';
 // Dynamically import the editor to avoid SSR issues
 const BlogEditor = dynamic(() => import('@/components/dashboard/BlogEditorCK'), {
   ssr: false,
-  loading: () => <div className="h-96 bg-gray-100 dark:bg-gray-800 animate-pulse rounded-lg"></div>
+  loading: () => (
+    <div className="h-96 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+      <div className="text-center">
+        <FiLoader className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+        <p className="text-muted-foreground">Loading editor...</p>
+      </div>
+    </div>
+  )
 });
 
 export default function NewBlogPostPage() {

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Shield, RefreshCw, User, Mail, Calendar } from 'lucide-react'
+import { FiShield, FiRefreshCw, FiCalendar, FiMail, FiUser } from 'react-icons/fi'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { nl } from 'date-fns/locale'
@@ -82,7 +82,7 @@ export default function AdminPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+        <FiRefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     )
   }
@@ -93,7 +93,7 @@ export default function AdminPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Shield className="h-8 w-8" />
+            <FiShield className="h-8 w-8" />
             Admin Dashboard
           </h1>
           <p className="text-muted-foreground mt-2">
@@ -101,7 +101,7 @@ export default function AdminPage() {
           </p>
         </div>
         <Button onClick={fetchUsers} variant="outline" className="flex items-center gap-2">
-          <RefreshCw className="h-4 w-4" />
+          <FiRefreshCw className="h-4 w-4" />
           Vernieuwen
         </Button>
       </div>
@@ -133,11 +133,11 @@ export default function AdminPage() {
                   <div>
                     <div className="font-medium">{user.name || 'Geen naam'}</div>
                     <div className="text-sm text-muted-foreground flex items-center gap-2">
-                      <Mail className="h-3 w-3" />
+                      <FiMail className="h-3 w-3" />
                       {user.email}
                     </div>
                     <div className="text-xs text-muted-foreground flex items-center gap-2 mt-1">
-                      <Calendar className="h-3 w-3" />
+                      <FiCalendar className="h-3 w-3" />
                       Lid sinds {format(new Date(user.createdAt), 'dd MMMM yyyy', { locale: nl })}
                     </div>
                   </div>
@@ -158,7 +158,7 @@ export default function AdminPage() {
                           disabled={updating === user.id}
                         >
                           {updating === user.id ? (
-                            <RefreshCw className="h-3 w-3 animate-spin" />
+                            <FiRefreshCw className="h-3 w-3 animate-spin" />
                           ) : (
                             'Maak admin'
                           )}
@@ -173,7 +173,7 @@ export default function AdminPage() {
                           disabled={updating === user.id}
                         >
                           {updating === user.id ? (
-                            <RefreshCw className="h-3 w-3 animate-spin" />
+                            <FiRefreshCw className="h-3 w-3 animate-spin" />
                           ) : (
                             'Maak redacteur'
                           )}
@@ -188,7 +188,7 @@ export default function AdminPage() {
                           disabled={updating === user.id}
                         >
                           {updating === user.id ? (
-                            <RefreshCw className="h-3 w-3 animate-spin" />
+                            <FiRefreshCw className="h-3 w-3 animate-spin" />
                           ) : (
                             'Maak gebruiker'
                           )}

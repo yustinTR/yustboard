@@ -16,7 +16,7 @@ interface EmailListProps {
   selectedEmailId?: string;
 }
 
-export default function EmailList({
+const EmailList = React.memo(function EmailList({
   emails,
   isLoading,
   onEmailSelect,
@@ -135,4 +135,6 @@ export default function EmailList({
       </div>
     </div>
   );
-}
+});
+
+export default EmailList;

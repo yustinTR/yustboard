@@ -12,7 +12,7 @@ interface EmailViewerProps {
   onMarkReadToggle: () => void;
 }
 
-export default function EmailViewer({
+const EmailViewer = React.memo(function EmailViewer({
   email,
   onClose,
   onStarToggle,
@@ -112,4 +112,6 @@ export default function EmailViewer({
       </div>
     </div>
   );
-}
+});
+
+export default EmailViewer;

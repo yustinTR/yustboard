@@ -17,6 +17,7 @@ export async function GET(request: Request) {
     const query = searchParams.get('query') || 'in:inbox';
     const pageToken = searchParams.get('pageToken') || undefined;
     const countsOnly = searchParams.get('countsOnly') === 'true';
+    const includeCounts = searchParams.get('counts') === 'true' || searchParams.get('includeCounts') === 'true';
     
     // If countsOnly is true, return only email counts
     if (countsOnly) {
@@ -24,13 +25,22 @@ export async function GET(request: Request) {
       return NextResponse.json({ counts });
     }
     
-    // Otherwise, fetch emails
+    // Fetch emails
     const result = await fetchEmails(
       session.accessToken,
       maxResults,
       query,
       pageToken as string | undefined
     );
+    
+    // If includeCounts is true, also fetch label counts
+    if (includeCounts) {
+      const counts = await getEmailCounts(session.accessToken);
+      return NextResponse.json({ 
+        ...result,
+        counts
+      });
+    }
     
     return NextResponse.json(result);
   } catch (error) {

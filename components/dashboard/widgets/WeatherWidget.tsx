@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Cloud, CloudRain, CloudSnow, Sun, RefreshCw, MapPin, Thermometer, Wind, Droplets } from 'lucide-react'
+import { FiCloud, FiCloudRain, FiCloudSnow, FiSun, FiRefreshCw, FiMapPin, FiThermometer, FiWind, FiDroplet } from 'react-icons/fi'
 import Link from 'next/link'
 
 interface WeatherData {
@@ -21,7 +21,7 @@ interface WeatherData {
   }>
 }
 
-export default function WeatherWidget() {
+const WeatherWidget = React.memo(function WeatherWidget() {
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -72,20 +72,20 @@ export default function WeatherWidget() {
   const getWeatherIcon = (condition: string) => {
     const conditionLower = condition.toLowerCase()
     if (conditionLower.includes('sun') || conditionLower.includes('clear')) {
-      return <Sun className="h-8 w-8 text-yellow-500" />
+      return <FiSun className="h-8 w-8 text-yellow-500" />
     } else if (conditionLower.includes('rain')) {
-      return <CloudRain className="h-8 w-8 text-blue-500" />
+      return <FiCloudRain className="h-8 w-8 text-blue-500" />
     } else if (conditionLower.includes('snow')) {
-      return <CloudSnow className="h-8 w-8 text-blue-300" />
+      return <FiCloudSnow className="h-8 w-8 text-blue-300" />
     } else {
-      return <Cloud className="h-8 w-8 text-gray-500 dark:text-gray-400" />
+      return <FiCloud className="h-8 w-8 text-gray-500 dark:text-gray-400" />
     }
   }
 
   if (loading) {
     return (
       <Card className="h-full flex items-center justify-center">
-        <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+        <FiRefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
       </Card>
     )
   }
@@ -96,7 +96,7 @@ export default function WeatherWidget() {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Cloud className="h-5 w-5" />
+              <FiCloud className="h-5 w-5" />
               Weer
             </CardTitle>
             <Button
@@ -105,7 +105,7 @@ export default function WeatherWidget() {
               onClick={fetchWeatherData}
               className="h-8 w-8"
             >
-              <RefreshCw className="h-4 w-4" />
+              <FiRefreshCw className="h-4 w-4" />
             </Button>
           </div>
         </CardHeader>
@@ -126,7 +126,7 @@ export default function WeatherWidget() {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg">
-            <Cloud className="h-5 w-5" />
+            <FiCloud className="h-5 w-5" />
             Weer
           </CardTitle>
           <Button
@@ -136,7 +136,7 @@ export default function WeatherWidget() {
             disabled={loading}
             className="h-8 w-8"
           >
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            <FiRefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
       </CardHeader>
@@ -145,7 +145,7 @@ export default function WeatherWidget() {
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-              <MapPin className="h-3 w-3" />
+              <FiMapPin className="h-3 w-3" />
               {weatherData.location}
             </div>
             <div className="text-3xl font-bold">{Math.round(weatherData.temperature)}°C</div>
@@ -156,7 +156,7 @@ export default function WeatherWidget() {
 
         <div className="grid grid-cols-3 gap-3 text-sm">
           <div className="flex items-center gap-2">
-            <Thermometer className="h-4 w-4 text-muted-foreground" />
+            <FiThermometer className="h-4 w-4 text-muted-foreground" />
             <div>
               <p className="text-xs text-muted-foreground">Voelt als</p>
               <p className="font-medium">{Math.round(weatherData.feels_like)}°C</p>
@@ -164,7 +164,7 @@ export default function WeatherWidget() {
           </div>
           
           <div className="flex items-center gap-2">
-            <Wind className="h-4 w-4 text-muted-foreground" />
+            <FiWind className="h-4 w-4 text-muted-foreground" />
             <div>
               <p className="text-xs text-muted-foreground">Wind</p>
               <p className="font-medium">{weatherData.wind_speed} km/u</p>
@@ -172,7 +172,7 @@ export default function WeatherWidget() {
           </div>
           
           <div className="flex items-center gap-2">
-            <Droplets className="h-4 w-4 text-muted-foreground" />
+            <FiDroplet className="h-4 w-4 text-muted-foreground" />
             <div>
               <p className="text-xs text-muted-foreground">Vochtigheid</p>
               <p className="font-medium">{weatherData.humidity}%</p>
@@ -206,4 +206,6 @@ export default function WeatherWidget() {
       </div>
     </Card>
   )
-}
+})
+
+export default WeatherWidget

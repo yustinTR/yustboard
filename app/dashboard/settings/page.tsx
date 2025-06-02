@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { Settings, Menu, Layout, Shield, Save, RefreshCw, GripVertical, User, Mail, Calendar, UserPlus } from 'lucide-react'
+import { FiMenu, FiShield, FiSave, FiRefreshCw, FiCalendar } from 'react-icons/fi'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 import { toast } from 'sonner'
 
@@ -41,7 +41,7 @@ interface UserData {
 // Currently not used
 // const availableWidgets: Omit<Widget, 'enabled' | 'position'>[] = [
   // { id: 'timeline', name: 'Timeline', description: 'Sociale tijdlijn met posts' },
-  // { id: 'tasks', name: 'Taken', description: 'Google Calendar evenementen' },
+  // { id: 'tasks', name: 'Taken', description: 'Google FiCalendar evenementen' },
   // { id: 'banking', name: 'Banking', description: 'Financiële transacties' },
   // { id: 'gmail', name: 'Gmail', description: 'Recente emails' },
   // { id: 'files', name: 'Bestanden', description: 'Google Drive bestanden' },
@@ -55,7 +55,7 @@ const defaultMenuItems: MenuItem[] = [
   { id: 'dashboard', label: 'Dashboard', path: '/dashboard', icon: 'Home', enabled: true, position: 0 },
   { id: 'timeline', label: 'Timeline', path: '/dashboard/timeline', icon: 'MessageSquare', enabled: true, position: 1 },
   { id: 'mail', label: 'Mail', path: '/dashboard/mail', icon: 'Mail', enabled: true, position: 2 },
-  { id: 'agenda', label: 'Agenda', path: '/dashboard/agenda', icon: 'Calendar', enabled: true, position: 3 },
+  { id: 'agenda', label: 'Agenda', path: '/dashboard/agenda', icon: 'FiCalendar', enabled: true, position: 3 },
   { id: 'banking', label: 'Banking', path: '/dashboard/banking', icon: 'DollarSign', enabled: true, position: 4 },
   { id: 'news', label: 'Nieuws', path: '/dashboard/news', icon: 'Globe', enabled: true, position: 5 },
   { id: 'social', label: 'Social', path: '/dashboard/social', icon: 'Users', enabled: true, position: 6 },
@@ -183,7 +183,7 @@ export default function SettingsPage() {
     setSaving(true)
     
     try {
-      // Save widget preferences
+      // FiSave widget preferences
       const widgetRes = await fetch('/api/settings/widgets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -192,7 +192,7 @@ export default function SettingsPage() {
 
       if (!widgetRes.ok) throw new Error('Failed to save widget settings')
 
-      // Save menu settings (if admin)
+      // FiSave menu settings (if admin)
       if (isAdmin) {
         const menuRes = await fetch('/api/settings/menu', {
           method: 'POST',
@@ -215,7 +215,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+        <FiRefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     )
   }
@@ -235,7 +235,7 @@ export default function SettingsPage() {
         </div>
         {isAdmin && (
           <Badge variant="default" className="flex items-center gap-1">
-            <Shield className="h-3 w-3" />
+            <FiShield className="h-3 w-3" />
             Admin
           </Badge>
         )}
@@ -248,11 +248,11 @@ export default function SettingsPage() {
             Widgets
           </TabsTrigger>
           <TabsTrigger value="menu" disabled={!isAdmin} className="flex items-center gap-2">
-            <Menu className="h-4 w-4" />
-            Menu {!isAdmin && <Badge variant="secondary" className="ml-2">Admin</Badge>}
+            <FiMenu className="h-4 w-4" />
+            FiMenu {!isAdmin && <Badge variant="secondary" className="ml-2">Admin</Badge>}
           </TabsTrigger>
           <TabsTrigger value="roles" disabled={!isAdmin} className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
+            <FiShield className="h-4 w-4" />
             Rollen {!isAdmin && <Badge variant="secondary" className="ml-2">Admin</Badge>}
           </TabsTrigger>
         </TabsList>
@@ -282,7 +282,7 @@ export default function SettingsPage() {
                             >
                               <div className="flex items-center gap-3">
                                 <div {...provided.dragHandleProps}>
-                                  <GripVertical className="h-4 w-4 text-muted-foreground" />
+                                  <FiGrid className="h-4 w-4 text-muted-foreground" />
                                 </div>
                                 <div>
                                   <Label htmlFor={`widget-${widget.id}`} className="font-medium">
@@ -312,7 +312,7 @@ export default function SettingsPage() {
         <TabsContent value="menu" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Menu Items</CardTitle>
+              <CardTitle>FiMenu Items</CardTitle>
               <CardDescription>
                 Beheer welke items zichtbaar zijn in het menu voor alle gebruikers
               </CardDescription>
@@ -334,7 +334,7 @@ export default function SettingsPage() {
                             >
                               <div className="flex items-center gap-3">
                                 <div {...provided.dragHandleProps}>
-                                  <GripVertical className="h-4 w-4 text-muted-foreground" />
+                                  <FiGrid className="h-4 w-4 text-muted-foreground" />
                                 </div>
                                 <div>
                                   <Label htmlFor={`menu-${item.id}`} className="font-medium">
@@ -394,7 +394,7 @@ export default function SettingsPage() {
                           {user.email}
                         </div>
                         <div className="text-xs text-muted-foreground flex items-center gap-2 mt-1">
-                          <Calendar className="h-3 w-3" />
+                          <FiCalendar className="h-3 w-3" />
                           Lid sinds {new Date(user.createdAt).toLocaleDateString('nl-NL', { 
                             year: 'numeric', 
                             month: 'long', 
@@ -417,7 +417,7 @@ export default function SettingsPage() {
                           disabled={updatingUser === user.id}
                         >
                           {updatingUser === user.id ? (
-                            <RefreshCw className="h-3 w-3 animate-spin" />
+                            <FiRefreshCw className="h-3 w-3 animate-spin" />
                           ) : (
                             <>
                               <UserPlus className="h-3 w-3 mr-1" />
@@ -448,9 +448,9 @@ export default function SettingsPage() {
           className="flex items-center gap-2"
         >
           {saving ? (
-            <RefreshCw className="h-4 w-4 animate-spin" />
+            <FiRefreshCw className="h-4 w-4 animate-spin" />
           ) : (
-            <Save className="h-4 w-4" />
+            <FiSave className="h-4 w-4" />
           )}
           Opslaan
         </Button>

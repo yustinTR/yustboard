@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { FiSend, FiRefreshCw, FiMessageSquare, FiHeart, FiMessageCircle, FiImage } from 'react-icons/fi';
 import { formatDistanceToNow } from 'date-fns';
@@ -34,7 +34,7 @@ interface TimelinePost {
   }[];
 }
 
-export default function TimelineWidget() {
+const TimelineWidget = React.memo(function TimelineWidget() {
   const { data: session } = useSession();
   const [posts, setPosts] = useState<TimelinePost[]>([]);
   const [content, setContent] = useState('');
@@ -297,4 +297,6 @@ export default function TimelineWidget() {
       )}
     </Card>
   );
-}
+});
+
+export default TimelineWidget;
