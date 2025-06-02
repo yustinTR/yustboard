@@ -1,33 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuthenticatedSession } from '@/lib/auth-utils';
-import { google } from 'googleapis';
+import { getGmailClient } from '@/utils/gmail-auth';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const { error, session } = await getAuthenticatedSession();
-    
-    if (error) {
-      return error;
-    }
-
     const messageId = params.id;
     const markRead = request.nextUrl.searchParams.get('markRead') === 'true';
 
-    // Initialize Gmail API
-    const auth = new google.auth.OAuth2(
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.GOOGLE_CLIENT_SECRET,
-      process.env.GOOGLE_REDIRECT_URI
-    );
-
-    auth.setCredentials({
-      access_token: session.accessToken,
-    });
-
-    const gmail = google.gmail({ version: 'v1', auth });
+    const gmail = await getGmailClient();
 
     // Get the email details
     const response = await gmail.users.messages.get({
@@ -103,8 +85,21 @@ export async function GET(
     };
 
     return NextResponse.json({ email });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching email details:', error);
+    
+    if (error.message === 'Unauthorized') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    if (error.message === 'No Google account linked') {
+      return NextResponse.json({ error: 'Please reconnect your Google account' }, { status: 400 });
+    }
+    
+    if (error.response?.status === 403) {
+      return NextResponse.json({ error: 'Insufficient permissions. Please re-authorize the app.' }, { status: 403 });
+    }
+    
     return NextResponse.json(
       { error: 'Failed to fetch email details' },
       { status: 500 }
