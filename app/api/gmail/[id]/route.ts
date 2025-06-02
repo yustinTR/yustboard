@@ -1,0 +1,113 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getAuthenticatedSession } from '@/lib/auth-utils';
+import { google } from 'googleapis';
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { error, session } = await getAuthenticatedSession();
+    
+    if (error) {
+      return error;
+    }
+
+    const messageId = params.id;
+    const markRead = request.nextUrl.searchParams.get('markRead') === 'true';
+
+    // Initialize Gmail API
+    const auth = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      process.env.GOOGLE_REDIRECT_URI
+    );
+
+    auth.setCredentials({
+      access_token: session.accessToken,
+    });
+
+    const gmail = google.gmail({ version: 'v1', auth });
+
+    // Get the email details
+    const response = await gmail.users.messages.get({
+      userId: 'me',
+      id: messageId,
+      format: 'full',
+    });
+
+    const message = response.data;
+    const headers = message.payload?.headers || [];
+    
+    // Extract email data
+    const getHeader = (name: string) => 
+      headers.find(h => h.name?.toLowerCase() === name.toLowerCase())?.value || '';
+
+    // Parse the email body
+    let body = '';
+    let htmlBody = '';
+    
+    const parseBody = (parts: any[]): void => {
+      parts.forEach((part: any) => {
+        if (part.mimeType === 'text/plain' && part.body?.data) {
+          body = Buffer.from(part.body.data, 'base64').toString('utf-8');
+        } else if (part.mimeType === 'text/html' && part.body?.data) {
+          htmlBody = Buffer.from(part.body.data, 'base64').toString('utf-8');
+        } else if (part.parts) {
+          parseBody(part.parts);
+        }
+      });
+    };
+
+    if (message.payload?.parts) {
+      parseBody(message.payload.parts);
+    } else if (message.payload?.body?.data) {
+      const content = Buffer.from(message.payload.body.data, 'base64').toString('utf-8');
+      if (message.payload.mimeType === 'text/html') {
+        htmlBody = content;
+      } else {
+        body = content;
+      }
+    }
+
+    // Mark as read if requested
+    if (markRead && message.labelIds?.includes('UNREAD')) {
+      await gmail.users.messages.modify({
+        userId: 'me',
+        id: messageId,
+        requestBody: {
+          removeLabelIds: ['UNREAD'],
+        },
+      });
+    }
+
+    // Check if email has attachments
+    const hasAttachments = message.payload?.parts?.some(
+      (part: any) => part.filename && part.body?.attachmentId
+    ) || false;
+
+    const email = {
+      id: message.id!,
+      threadId: message.threadId!,
+      snippet: message.snippet || '',
+      from: getHeader('From'),
+      to: getHeader('To'),
+      subject: getHeader('Subject'),
+      date: new Date(parseInt(message.internalDate!) || Date.now()),
+      body: htmlBody || body,
+      isHtml: !!htmlBody,
+      isRead: !message.labelIds?.includes('UNREAD'),
+      isStarred: message.labelIds?.includes('STARRED') || false,
+      hasAttachments,
+      labels: message.labelIds || [],
+    };
+
+    return NextResponse.json({ email });
+  } catch (error) {
+    console.error('Error fetching email details:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch email details' },
+      { status: 500 }
+    );
+  }
+}

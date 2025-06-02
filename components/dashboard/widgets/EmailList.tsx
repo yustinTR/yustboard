@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { format, isToday, isYesterday } from 'date-fns';
 import { FiStar, FiRefreshCw, FiMail } from 'react-icons/fi';
 import { EmailMessage } from '@/utils/google-gmail';
+import { formatEmailDate } from '@/utils/date-utils';
 
 interface EmailListProps {
   emails: EmailMessage[];
@@ -26,18 +26,6 @@ const EmailList = React.memo(function EmailList({
   hasMore,
   selectedEmailId
 }: EmailListProps) {
-  // Format date for display (Today, Yesterday, or date)
-  const formatEmailDate = (date: Date | string) => {
-    const emailDate = new Date(date);
-    
-    if (isToday(emailDate)) {
-      return format(emailDate, 'h:mm a');
-    } else if (isYesterday(emailDate)) {
-      return 'Yesterday';
-    } else {
-      return format(emailDate, 'MMM d');
-    }
-  };
   
   // Handle scroll to implement infinite scrolling
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {

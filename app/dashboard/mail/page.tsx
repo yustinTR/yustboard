@@ -99,7 +99,7 @@ function MailPageContent() {
     if (!session?.accessToken) return;
     
     try {
-      const response = await fetch(`/api/mail/${emailId}?markRead=true`);
+      const response = await fetch(`/api/gmail/${emailId}?markRead=true`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch email details: ${response.statusText}`);
@@ -137,7 +137,7 @@ function MailPageContent() {
     if (!session?.accessToken) return;
     
     try {
-      const response = await fetch('/api/mail/actions', {
+      const response = await fetch('/api/gmail/actions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -185,7 +185,7 @@ function MailPageContent() {
   
   // Handle email parameter from URL
   useEffect(() => {
-    const emailId = searchParams.get('email');
+    const emailId = searchParams.get('id');
     if (emailId && session?.accessToken) {
       // Fetch the email details directly
       fetchEmailDetails(emailId);
