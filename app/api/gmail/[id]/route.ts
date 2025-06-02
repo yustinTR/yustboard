@@ -73,12 +73,27 @@ export async function GET(
       (part: any) => part.filename && part.body?.attachmentId
     ) || false;
 
+    // Parse From header
+    const fromHeader = getHeader('From');
+    const fromMatch = fromHeader.match(/^(.+?)\s*<(.+?)>$/) || fromHeader.match(/^(.+)$/);
+    const from = fromMatch ? {
+      name: fromMatch[2] ? fromMatch[1].trim().replace(/^"|"$/g, '') : '',
+      email: fromMatch[2] ? fromMatch[2].trim() : fromMatch[1].trim()
+    } : {
+      name: '',
+      email: fromHeader
+    };
+
+    // Parse To header
+    const toHeader = getHeader('To');
+    const to = toHeader.split(',').map(addr => addr.trim());
+
     const email = {
       id: message.id!,
       threadId: message.threadId!,
       snippet: message.snippet || '',
-      from: getHeader('From'),
-      to: getHeader('To'),
+      from,
+      to,
       subject: getHeader('Subject'),
       date: new Date(parseInt(message.internalDate!) || Date.now()),
       body: htmlBody || body,
