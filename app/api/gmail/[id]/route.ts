@@ -3,10 +3,10 @@ import { getGmailClient } from '@/utils/gmail-auth';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const messageId = params.id;
+    const { id: messageId } = await params;
     const markRead = request.nextUrl.searchParams.get('markRead') === 'true';
 
     const gmail = await getGmailClient();
