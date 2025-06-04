@@ -1,0 +1,10 @@
+{
+  "projectId": "chpt_1e600286588360b",
+  "onlyChanged": true,
+  "externals": ["public/**"],
+  "skip": "dependabot/**",
+  "exitZeroOnChanges": true,
+  "exitOnceUploaded": false,
+  "autoAcceptChanges": "main",
+  "buildScriptName": "build-storybook"
+}

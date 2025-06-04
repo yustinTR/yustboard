@@ -209,3 +209,4 @@ const WeatherWidget = React.memo(function WeatherWidget() {
 })
 
 export default WeatherWidget
+export { WeatherWidget }
