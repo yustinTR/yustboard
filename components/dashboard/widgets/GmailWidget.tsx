@@ -7,6 +7,9 @@ import {
 } from 'react-icons/fi';
 import { useSession } from 'next-auth/react';
 import { EmailMessage } from '@/utils/google-gmail';
+import dynamic from 'next/dynamic';
+
+const EmailModal = dynamic(() => import('./EmailModal'), { ssr: false });
 
 interface GmailWidgetProps {
   initialEmails?: EmailMessage[];
@@ -19,6 +22,12 @@ const GmailWidget = React.memo(function GmailWidget({ initialEmails = [], maxEma
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Format the email date
   const formatDate = (date: Date | string) => {
@@ -53,9 +62,9 @@ const GmailWidget = React.memo(function GmailWidget({ initialEmails = [], maxEma
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
   };
 
-  // Open email in internal mail page
+  // Open email in modal
   const openEmail = (emailId: string) => {
-    window.location.href = `/dashboard/mail?email=${emailId}`;
+    setSelectedEmailId(emailId);
   };
 
   // Fetch emails from Gmail
@@ -161,20 +170,20 @@ const GmailWidget = React.memo(function GmailWidget({ initialEmails = [], maxEma
   }, [session, emails.length, maxEmails]);
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <div className="p-4 bg-red-500 text-white flex justify-between items-center">
+    <div className="backdrop-blur-md bg-white/10 dark:bg-gray-900/10 border border-white/20 dark:border-gray-700/30 rounded-xl shadow-xl shadow-black/10 overflow-hidden">
+      <div className="p-4 bg-gradient-to-r from-red-500/80 to-red-600/80 backdrop-blur-sm text-white flex justify-between items-center">
         <h3 className="font-medium">Gmail</h3>
         <button 
           onClick={fetchGmailEmails} 
           disabled={isLoading}
-          className="text-white hover:text-gray-200 dark:hover:text-gray-300 disabled:opacity-50 cursor-pointer"
+          className="text-white/90 hover:text-white hover:bg-white/10 p-1.5 rounded-lg transition-all duration-200 disabled:opacity-50 cursor-pointer"
           aria-label="Refresh emails"
         >
           <FiRefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
         </button>
       </div>
       
-      <div className="p-4">
+      <div className="p-4 bg-white/5 backdrop-blur-sm">
         <form onSubmit={handleSearch} className="mb-4">
           <div className="relative">
             <input
@@ -182,12 +191,12 @@ const GmailWidget = React.memo(function GmailWidget({ initialEmails = [], maxEma
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search emails..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-red-500"
+              className="w-full pl-10 pr-4 py-2 bg-white/20 dark:bg-gray-800/20 border border-white/30 dark:border-gray-600/30 rounded-lg backdrop-blur-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all duration-200"
             />
-            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400" />
             <button 
               type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-red-500 hover:text-red-600 cursor-pointer"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-red-500 hover:text-red-600 hover:bg-white/10 p-1 rounded transition-all duration-200 cursor-pointer"
               aria-label="Search"
             >
               <FiChevronRight />
@@ -196,23 +205,23 @@ const GmailWidget = React.memo(function GmailWidget({ initialEmails = [], maxEma
         </form>
         
         {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-md mb-4">
+          <div className="bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 p-3 rounded-lg mb-4 backdrop-blur-sm">
             {error}
           </div>
         )}
         
         {isLoading ? (
           <div className="py-8 flex justify-center">
-            <FiRefreshCw className="animate-spin text-red-500" />
+            <FiRefreshCw className="animate-spin text-red-500 w-6 h-6" />
           </div>
         ) : emails.length === 0 ? (
           <p className="text-gray-500 dark:text-gray-400 text-center py-4">No emails to display</p>
         ) : (
-          <ul className="divide-y divide-gray-100">
+          <ul className="divide-y divide-white/10 dark:divide-gray-700/30">
             {emails.map((email) => (
               <li 
                 key={email.id} 
-                className={`py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 ${!email.isRead ? 'bg-red-50 dark:bg-red-900/20' : ''}`}
+                className={`py-3 cursor-pointer hover:bg-white/10 dark:hover:bg-gray-800/20 rounded-lg transition-all duration-200 ${!email.isRead ? 'bg-red-500/5 border-l-4 border-red-500/50 pl-4' : 'px-2'}`}
                 onClick={() => openEmail(email.id)}
               >
                 <div className="flex items-center mb-1">
@@ -238,15 +247,24 @@ const GmailWidget = React.memo(function GmailWidget({ initialEmails = [], maxEma
         )}
       </div>
       
-      <div className="p-3 bg-gray-50 dark:bg-gray-800 text-center">
+      <div className="p-3 bg-white/5 dark:bg-gray-800/20 backdrop-blur-sm border-t border-white/10 dark:border-gray-700/30 text-center">
         <a 
           href="/dashboard/mail" 
-          className="text-red-500 hover:text-red-600 text-sm font-medium flex items-center justify-center"
+          className="text-red-500 hover:text-red-400 text-sm font-medium flex items-center justify-center hover:bg-white/10 dark:hover:bg-gray-800/20 px-3 py-1 rounded-lg transition-all duration-200"
         >
           Alle e-mails bekijken
           <FiChevronRight className="ml-1" />
         </a>
       </div>
+
+      {/* Email Modal - only render after client-side hydration */}
+      {isMounted && (
+        <EmailModal
+          emailId={selectedEmailId}
+          isOpen={!!selectedEmailId}
+          onClose={() => setSelectedEmailId(null)}
+        />
+      )}
     </div>
   );
 });

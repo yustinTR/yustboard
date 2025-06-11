@@ -113,8 +113,8 @@ const FitnessWidget = React.memo(function FitnessWidget() {
   if (!fitnessData) return null
 
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader className="pb-3">
+    <Card className="h-full flex flex-col backdrop-blur-md bg-white/10 dark:bg-gray-900/10 border border-white/20 dark:border-gray-700/30 shadow-xl shadow-black/10 rounded-xl overflow-hidden">
+      <CardHeader className="p-4 pb-3 bg-gradient-to-r from-orange-500/80 to-orange-600/80 backdrop-blur-sm text-white border-b border-white/20 dark:border-gray-700/30">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg">
             <FiActivity className="h-5 w-5" />
@@ -132,7 +132,7 @@ const FitnessWidget = React.memo(function FitnessWidget() {
         </div>
       </CardHeader>
       
-      <CardContent className="flex-1 space-y-4">
+      <CardContent className="flex-1 space-y-4 bg-white/5 backdrop-blur-sm p-4">
         {/* Steps */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">

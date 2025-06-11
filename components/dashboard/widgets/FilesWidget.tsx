@@ -139,8 +139,8 @@ const FilesWidget = React.memo(function FilesWidget({ initialFiles = [], maxFile
   }, [session, files.length, maxFiles]);
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <div className="p-4 bg-blue-500 text-white flex justify-between items-center">
+    <div className="backdrop-blur-md bg-white/10 dark:bg-gray-900/10 border border-white/20 dark:border-gray-700/30 rounded-xl shadow-xl shadow-black/10 overflow-hidden">
+      <div className="p-4 bg-gradient-to-r from-blue-500/80 to-blue-600/80 backdrop-blur-sm text-white flex justify-between items-center">
         <h3 className="font-medium">Recent Files</h3>
         <button 
           onClick={fetchFiles} 
@@ -152,7 +152,7 @@ const FilesWidget = React.memo(function FilesWidget({ initialFiles = [], maxFile
         </button>
       </div>
       
-      <div className="p-4">
+      <div className="p-4 bg-white/5 backdrop-blur-sm">
         {error ? (
           <div className="py-4">
             <p className="text-red-600 text-sm text-center mb-2">{error}</p>
@@ -170,7 +170,7 @@ const FilesWidget = React.memo(function FilesWidget({ initialFiles = [], maxFile
         ) : files.length === 0 ? (
           <p className="text-gray-500 dark:text-gray-400 text-center py-4">No recent files</p>
         ) : (
-          <ul className="divide-y divide-gray-100">
+          <ul className="divide-y divide-white/10 dark:divide-gray-700/30">
             {files.map((file) => (
               <li key={file.id} className="py-3">
                 <div className="flex items-start">
@@ -208,12 +208,12 @@ const FilesWidget = React.memo(function FilesWidget({ initialFiles = [], maxFile
         )}
       </div>
       
-      <div className="p-3 bg-gray-50 dark:bg-gray-800 text-center">
+      <div className="p-3 bg-white/5 dark:bg-gray-800/20 backdrop-blur-sm border-t border-white/10 dark:border-gray-700/30 text-center">
         <a 
           href="https://drive.google.com" 
           target="_blank" 
           rel="noopener noreferrer"
-          className="text-blue-500 hover:text-blue-600 text-sm font-medium flex items-center justify-center"
+          className="text-blue-500 hover:text-blue-400 text-sm font-medium flex items-center justify-center hover:bg-white/10 dark:hover:bg-gray-800/20 px-3 py-1 rounded-lg transition-all duration-200"
         >
           View in Google Drive
           <FiExternalLink className="ml-1" />

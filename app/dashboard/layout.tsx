@@ -117,7 +117,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen bg-secondary overflow-hidden">
+      <div className="flex h-screen bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-pink-50/50 dark:from-gray-900/50 dark:via-gray-800/30 dark:to-gray-900/50 backdrop-blur-3xl overflow-hidden">
         {/* Mobile sidebar backdrop */}
         {isSidebarOpen && (
           <div 
@@ -133,7 +133,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         
         <div className="flex-1 flex flex-col overflow-hidden min-w-0">
           <Header />
-          <main className="flex-1 relative overflow-y-auto overflow-x-hidden">
+          <main className="flex-1 relative overflow-y-auto overflow-x-hidden bg-gradient-to-br from-transparent via-white/5 to-transparent backdrop-blur-sm">
             {children}
           </main>
         </div>

@@ -62,18 +62,25 @@ export async function getGmailClient() {
     console.log('Gmail client received new tokens, updating database');
     if (tokens.access_token && googleAccount) {
       try {
-        await prisma.account.update({
+        // Find the account first
+        const account = await prisma.account.findFirst({
           where: {
-            userId_provider: {
-              userId: user.id,
-              provider: 'google',
-            },
+            userId: user.id,
+            provider: 'google',
           },
+        });
+
+        if (account) {
+          await prisma.account.update({
+            where: {
+              id: account.id,
+            },
           data: {
             access_token: tokens.access_token,
             expires_at: tokens.expiry_date ? Math.floor(tokens.expiry_date / 1000) : null,
           },
         });
+        }
       } catch (error) {
         console.error('Failed to update access token in database:', error);
       }

@@ -65,8 +65,8 @@ const BankingWidget = React.memo(function BankingWidget({ initialTransactions = 
     .slice(0, 5);
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <div className="p-4 bg-green-500 text-white flex justify-between items-center">
+    <div className="backdrop-blur-md bg-white/10 dark:bg-gray-900/10 border border-white/20 dark:border-gray-700/30 rounded-xl shadow-xl shadow-black/10 overflow-hidden">
+      <div className="p-4 bg-gradient-to-r from-green-500/80 to-green-600/80 backdrop-blur-sm text-white flex justify-between items-center">
         <h3 className="font-medium">Banking</h3>
         <button 
           onClick={fetchTransactions} 
@@ -77,7 +77,7 @@ const BankingWidget = React.memo(function BankingWidget({ initialTransactions = 
           <FiRefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
         </button>
       </div>
-      <div className="p-4">
+      <div className="p-4 bg-white/5 backdrop-blur-sm">
         <div className="mb-4">
           <p className="text-sm text-gray-500 dark:text-gray-400">Current Balance</p>
           <p className="text-2xl font-bold">${balance.toFixed(2)}</p>
@@ -99,7 +99,7 @@ const BankingWidget = React.memo(function BankingWidget({ initialTransactions = 
           ) : recentTransactions.length === 0 ? (
             <p className="text-gray-500 dark:text-gray-400 text-center py-2">No recent transactions found</p>
           ) : (
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-white/10 dark:divide-gray-700/30">
               {recentTransactions.map((transaction) => (
                 <li key={transaction.id} className="py-2 flex justify-between items-center">
                   <div className="min-w-0 flex-1 pr-2">
@@ -120,8 +120,8 @@ const BankingWidget = React.memo(function BankingWidget({ initialTransactions = 
           )}
         </div>
       </div>
-      <div className="p-3 bg-gray-50 dark:bg-gray-800 text-center">
-        <a href="/dashboard/banking" className="text-green-500 hover:text-green-600 text-sm font-medium">
+      <div className="p-3 bg-white/5 dark:bg-gray-800/20 backdrop-blur-sm border-t border-white/10 dark:border-gray-700/30 text-center">
+        <a href="/dashboard/banking" className="text-green-500 hover:text-green-400 text-sm font-medium flex items-center justify-center hover:bg-white/10 dark:hover:bg-gray-800/20 px-3 py-1 rounded-lg transition-all duration-200">
           View all transactions
         </a>
       </div>

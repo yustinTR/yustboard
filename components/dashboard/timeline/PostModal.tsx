@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
 import { FiHeart, FiMessageCircle, FiX, FiSend, FiFile, FiDownload, FiEdit3, FiTrash2, FiMoreHorizontal } from 'react-icons/fi';
@@ -53,6 +54,7 @@ interface PostModalProps {
 
 export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModalProps) {
   const { data: session } = useSession();
+  const [mounted, setMounted] = useState(false);
   const [isLiked, setIsLiked] = useState(
     post.likes.some(like => like.userId === session?.user?.id)
   );
@@ -67,6 +69,10 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showActions, setShowActions] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -218,10 +224,10 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
     return `${size.toFixed(1)} ${units[unitIndex]}`;
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 pt-20 animate-in fade-in duration-200">
+  const modalContent = (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 pt-20 animate-in fade-in duration-200">
       <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl border border-gray-200 dark:border-gray-700 animate-in slide-in-from-bottom-4 duration-300">
         {/* Header */}
         <div className="relative p-6 border-b border-gray-200 dark:border-gray-700">
@@ -472,4 +478,6 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }

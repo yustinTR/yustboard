@@ -51,16 +51,16 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-white dark:bg-card h-16 flex items-center justify-between px-4 lg:px-6 border-b border-border shadow-1">
+    <header className="backdrop-blur-md bg-white/80 dark:bg-gray-900/80 h-16 flex items-center justify-between px-4 lg:px-6 border-b border-white/20 dark:border-gray-700/30 shadow-xl shadow-black/5">
       {/* Left section */}
       <div className="flex items-center gap-4 flex-1">
         {/* Hamburger menu button - visible only on mobile */}
         <button
           onClick={() => setShowMobileSidebar(true)}
-          className="lg:hidden p-2 rounded-md hover:bg-secondary transition-colors"
+          className="lg:hidden p-2 rounded-lg hover:bg-white/20 dark:hover:bg-gray-800/20 transition-colors backdrop-blur-sm"
           aria-label="Open menu"
         >
-          <FiMenu className="h-5 w-5 text-secondary-foreground" />
+          <FiMenu className="h-5 w-5 text-gray-700 dark:text-gray-300" />
         </button>
         <h2 className="text-xl font-normal text-foreground">{getPageTitle()}</h2>
       </div>
@@ -76,20 +76,20 @@ export default function Header() {
       {/* Right section - only visible on desktop */}
       <div className="hidden lg:flex items-center gap-2 flex-1 justify-end">
         {/* Hide these on mobile - they're in the mobile sidebar */}
-        <button className="hidden lg:flex relative w-10 h-10 rounded-full items-center justify-center hover:bg-secondary transition-colors hover-overlay">
-          <FiBell className="h-5 w-5 text-secondary-foreground" />
+        <button className="hidden lg:flex relative w-10 h-10 rounded-full items-center justify-center hover:bg-white/20 dark:hover:bg-gray-800/20 transition-colors backdrop-blur-sm">
+          <FiBell className="h-5 w-5 text-gray-700 dark:text-gray-300" />
         </button>
         <Link 
           href="/dashboard/settings" 
-          className="hidden lg:flex relative w-10 h-10 rounded-full items-center justify-center hover:bg-secondary transition-colors hover-overlay"
+          className="hidden lg:flex relative w-10 h-10 rounded-full items-center justify-center hover:bg-white/20 dark:hover:bg-gray-800/20 transition-colors backdrop-blur-sm"
         >
-          <FiSettings className="h-5 w-5 text-secondary-foreground" />
+          <FiSettings className="h-5 w-5 text-gray-700 dark:text-gray-300" />
         </Link>
         {/* Profile Dropdown - hide on mobile */}
         <div className="relative ml-2 hidden lg:block" ref={dropdownRef}>
           <button
             onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-            className="flex items-center gap-2 p-2 rounded-lg hover:bg-secondary transition-colors"
+            className="flex items-center gap-2 p-2 rounded-lg hover:bg-white/20 dark:hover:bg-gray-800/20 transition-colors backdrop-blur-sm"
           >
             {session?.user?.image && !imageError ? (
               <div className="relative h-8 w-8">
@@ -109,22 +109,22 @@ export default function Header() {
                 </span>
               </div>
             )}
-            <FiChevronDown className={`h-4 w-4 text-secondary-foreground transition-transform ${showProfileDropdown ? 'rotate-180' : ''}`} />
+            <FiChevronDown className={`h-4 w-4 text-gray-700 dark:text-gray-300 transition-transform ${showProfileDropdown ? 'rotate-180' : ''}`} />
           </button>
           
           {showProfileDropdown && (
-            <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-card border border-border rounded-lg shadow-lg py-2 z-50">
+            <div className="absolute right-0 mt-2 w-56 backdrop-blur-md bg-white/90 dark:bg-gray-900/90 border border-white/20 dark:border-gray-700/30 rounded-xl shadow-xl shadow-black/10 py-2 z-50">
               {/* User Info */}
-              <div className="px-4 py-3 border-b border-border">
-                <p className="text-sm font-medium text-foreground">{session?.user?.name}</p>
-                <p className="text-sm text-muted-foreground">{session?.user?.email}</p>
+              <div className="px-4 py-3 border-b border-white/10 dark:border-gray-700/30">
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{session?.user?.name}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{session?.user?.email}</p>
               </div>
               
               {/* Admin Links */}
               {(isAuthor || isAdmin) && (
                 <Link
                   href="/dashboard/blog"
-                  className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
+                  className="flex items-center gap-3 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 hover:bg-white/20 dark:hover:bg-gray-800/20 transition-colors"
                   onClick={() => setShowProfileDropdown(false)}
                 >
                   <FiFileText className="h-4 w-4" />
@@ -135,7 +135,7 @@ export default function Header() {
               {isAdmin && (
                 <Link
                   href="/dashboard/admin"
-                  className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
+                  className="flex items-center gap-3 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 hover:bg-white/20 dark:hover:bg-gray-800/20 transition-colors"
                   onClick={() => setShowProfileDropdown(false)}
                 >
                   <FiUser className="h-4 w-4" />
@@ -144,13 +144,13 @@ export default function Header() {
               )}
               
               {/* Logout */}
-              <div className="border-t border-border mt-2 pt-2">
+              <div className="border-t border-white/10 dark:border-gray-700/30 mt-2 pt-2">
                 <button
                   onClick={() => {
                     setShowProfileDropdown(false);
                     signOut();
                   }}
-                  className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors w-full text-left"
+                  className="flex items-center gap-3 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 hover:bg-white/20 dark:hover:bg-gray-800/20 transition-colors w-full text-left"
                 >
                   <FiLogOut className="h-4 w-4" />
                   Uitloggen

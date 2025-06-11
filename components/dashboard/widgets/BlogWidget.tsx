@@ -54,14 +54,14 @@ const BlogWidget = React.memo(function BlogWidget() {
 
   if (loading) {
     return (
-      <Card className="h-full flex flex-col shadow-1">
-        <CardHeader className="pb-3 border-b border-border">
+      <Card className="h-full flex flex-col backdrop-blur-md bg-white/10 dark:bg-gray-900/10 border border-white/20 dark:border-gray-700/30 shadow-xl shadow-black/10 rounded-xl overflow-hidden">
+        <CardHeader className="p-4 pb-3 border-b border-white/20 dark:border-gray-700/30 bg-gradient-to-r from-indigo-500/80 to-indigo-600/80 backdrop-blur-sm text-white">
           <CardTitle className="flex items-center gap-2 text-lg">
             <FiFileText className="h-5 w-5" />
             Blog Posts
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4 flex-1">
+        <CardContent className="p-4 flex-1 bg-white/5 backdrop-blur-sm">
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="animate-pulse">
@@ -78,14 +78,14 @@ const BlogWidget = React.memo(function BlogWidget() {
 
   if (error) {
     return (
-      <Card className="h-full flex flex-col shadow-1">
-        <CardHeader className="pb-3 border-b border-border">
+      <Card className="h-full flex flex-col backdrop-blur-md bg-white/10 dark:bg-gray-900/10 border border-white/20 dark:border-gray-700/30 shadow-xl shadow-black/10 rounded-xl overflow-hidden">
+        <CardHeader className="p-4 pb-3 border-b border-white/20 dark:border-gray-700/30 bg-gradient-to-r from-indigo-500/80 to-indigo-600/80 backdrop-blur-sm text-white">
           <CardTitle className="flex items-center gap-2 text-lg">
             <FiFileText className="h-5 w-5" />
             Blog Posts
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4 flex-1">
+        <CardContent className="p-4 flex-1 bg-white/5 backdrop-blur-sm">
           <div className="flex items-center justify-center h-32">
             <p className="text-destructive text-sm">{error}</p>
           </div>
@@ -95,8 +95,8 @@ const BlogWidget = React.memo(function BlogWidget() {
   }
 
   return (
-    <Card className="h-full flex flex-col shadow-1">
-      <CardHeader className="pb-3 border-b border-border">
+    <Card className="h-full flex flex-col backdrop-blur-md bg-white/10 dark:bg-gray-900/10 border border-white/20 dark:border-gray-700/30 shadow-xl shadow-black/10 rounded-xl overflow-hidden">
+      <CardHeader className="p-4 pb-3 border-b border-white/20 dark:border-gray-700/30 bg-gradient-to-r from-indigo-500/80 to-indigo-600/80 backdrop-blur-sm text-white">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg">
             <FiFileText className="h-5 w-5" />
@@ -114,7 +114,7 @@ const BlogWidget = React.memo(function BlogWidget() {
         </div>
       </CardHeader>
 
-      <CardContent className="p-0 flex-1 flex flex-col overflow-hidden">
+      <CardContent className="p-0 flex-1 flex flex-col overflow-hidden bg-white/5 backdrop-blur-sm">
         {posts.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground flex-1 flex flex-col items-center justify-center">
             <FiFileText className="mx-auto mb-2 h-8 w-8" />
@@ -123,9 +123,9 @@ const BlogWidget = React.memo(function BlogWidget() {
           </div>
         ) : (
           <>
-            <div className="flex-1 overflow-y-auto divide-y divide-border">
+            <div className="flex-1 overflow-y-auto divide-y divide-white/10 dark:divide-gray-700/30">
               {posts.map((post) => (
-                <article key={post.id} className="p-4 hover:bg-secondary cursor-pointer transition-colors group">
+                <article key={post.id} className="p-4 hover:bg-white/10 dark:hover:bg-gray-800/20 cursor-pointer transition-all duration-200 group">
                   <Link href={`/blog/${post.slug}`} className="block">
                     <div className="flex gap-3">
                       {post.coverImage && (
@@ -164,10 +164,10 @@ const BlogWidget = React.memo(function BlogWidget() {
             </div>
             
             {/* View all link */}
-            <div className="p-3 text-center border-t border-border">
+            <div className="p-3 text-center border-t border-white/10 dark:border-gray-700/30 bg-white/5 backdrop-blur-sm">
               <Link
                 href="/blog"
-                className="text-sm text-primary hover:underline flex items-center justify-center gap-1"
+                className="text-indigo-500 hover:text-indigo-400 text-sm font-medium flex items-center justify-center gap-1 hover:bg-white/10 dark:hover:bg-gray-800/20 px-3 py-1 rounded-lg transition-all duration-200"
               >
                 Bekijk alle posts
                 <FiExternalLink className="h-3 w-3" />

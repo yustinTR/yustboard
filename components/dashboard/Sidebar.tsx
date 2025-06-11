@@ -78,8 +78,8 @@ export default function Sidebar({ onClose }: SidebarProps) {
   const enabledItems = menuItems.filter(item => item.enabled).sort((a, b) => a.position - b.position);
 
   return (
-    <div className={`bg-white dark:bg-card h-screen ${isCollapsed ? 'w-16' : 'w-72'} flex flex-col border-r border-border transition-all duration-300`}>
-      <div className="h-16 flex items-center justify-between px-4 border-b border-border">
+    <div className={`backdrop-blur-md bg-white/80 dark:bg-gray-900/80 h-screen ${isCollapsed ? 'w-16' : 'w-72'} flex flex-col border-r border-white/20 dark:border-gray-700/30 transition-all duration-300`}>
+      <div className="h-16 flex items-center justify-between px-4 border-b border-white/20 dark:border-gray-700/30">
         {!isCollapsed && (
           <h1 className="text-xl font-medium text-foreground">YustBoard</h1>
         )}
@@ -87,7 +87,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
           {/* Collapse/Expand button - hidden on mobile */}
           <button
             onClick={toggleSidebar}
-            className="hidden lg:block p-2 rounded-md hover:bg-secondary transition-colors"
+            className="hidden lg:block p-2 rounded-md hover:bg-white/10 dark:hover:bg-gray-800/10 hover:backdrop-blur-sm transition-all duration-200"
             aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {isCollapsed ? (
@@ -99,7 +99,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
           {/* Close button - visible only on mobile */}
           <button
             onClick={onClose}
-            className="lg:hidden p-2 rounded-md hover:bg-secondary transition-colors"
+            className="lg:hidden p-2 rounded-md hover:bg-white/10 dark:hover:bg-gray-800/10 hover:backdrop-blur-sm transition-all duration-200"
             aria-label="Close menu"
           >
             <FiX className="h-5 w-5 text-secondary-foreground" />
@@ -118,10 +118,10 @@ export default function Sidebar({ onClose }: SidebarProps) {
                   onClick={onClose}
                   className={`relative flex items-center h-12 ${
                     isCollapsed ? 'px-3 justify-center' : 'px-3'
-                  } rounded-full transition-all hover-overlay ${
+                  } rounded-full transition-all duration-200 ${
                     isActive 
-                      ? 'bg-accent text-accent-foreground font-medium' 
-                      : 'text-secondary-foreground hover:bg-secondary'
+                      ? 'bg-white/20 dark:bg-gray-800/20 text-primary backdrop-blur-sm border border-white/10 dark:border-gray-700/20 font-medium shadow-lg shadow-black/5' 
+                      : 'text-secondary-foreground hover:bg-white/10 dark:hover:bg-gray-800/10 hover:backdrop-blur-sm'
                   }`}
                   title={isCollapsed ? item.label : undefined}
                 >
@@ -159,10 +159,10 @@ export default function Sidebar({ onClose }: SidebarProps) {
                     onClick={onClose}
                     className={`relative flex items-center h-12 ${
                       isCollapsed ? 'px-3 justify-center' : 'px-3'
-                    } rounded-full transition-all hover-overlay ${
+                    } rounded-full transition-all duration-200 ${
                       pathname === '/dashboard/admin/landing'
-                        ? 'bg-accent text-accent-foreground font-medium' 
-                        : 'text-secondary-foreground hover:bg-secondary'
+                        ? 'bg-white/20 dark:bg-gray-800/20 text-primary backdrop-blur-sm border border-white/10 dark:border-gray-700/20 font-medium shadow-lg shadow-black/5' 
+                        : 'text-secondary-foreground hover:bg-white/10 dark:hover:bg-gray-800/10 hover:backdrop-blur-sm'
                     }`}
                     title={isCollapsed ? "Landing Page" : undefined}
                   >
@@ -187,10 +187,10 @@ export default function Sidebar({ onClose }: SidebarProps) {
                     onClick={onClose}
                     className={`relative flex items-center h-12 ${
                       isCollapsed ? 'px-3 justify-center' : 'px-3'
-                    } rounded-full transition-all hover-overlay ${
+                    } rounded-full transition-all duration-200 ${
                       pathname.startsWith('/dashboard/admin/blog')
-                        ? 'bg-accent text-accent-foreground font-medium' 
-                        : 'text-secondary-foreground hover:bg-secondary'
+                        ? 'bg-white/20 dark:bg-gray-800/20 text-primary backdrop-blur-sm border border-white/10 dark:border-gray-700/20 font-medium shadow-lg shadow-black/5' 
+                        : 'text-secondary-foreground hover:bg-white/10 dark:hover:bg-gray-800/10 hover:backdrop-blur-sm'
                     }`}
                     title={isCollapsed ? "Blog Management" : undefined}
                   >

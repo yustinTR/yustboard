@@ -130,7 +130,7 @@ export async function GET(
     // Handle Google API errors
     if (error && typeof error === 'object' && 'response' in error && 
         typeof error.response === 'object' && error.response) {
-      const response = error.response as any;
+      const response = error.response as { status: number; data?: { error?: string | { message?: string } } };
       
       if (response.status === 403) {
         return NextResponse.json({ error: 'Insufficient permissions. Please re-authorize the app.' }, { status: 403 });
@@ -138,7 +138,8 @@ export async function GET(
       
       if (response.status === 401 || response.status === 400) {
         // Check for invalid_grant error specifically
-        if (response.data && response.data.error === 'invalid_grant') {
+        if (response.data && (response.data.error === 'invalid_grant' || 
+            (typeof response.data.error === 'object' && response.data.error?.message === 'invalid_grant'))) {
           console.log('invalid_grant error detected, token refresh failed');
           return NextResponse.json({ error: 'Authentication expired. Please sign out and sign in again.' }, { status: 401 });
         }
