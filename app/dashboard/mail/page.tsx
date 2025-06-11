@@ -68,7 +68,21 @@ function MailPageContent() {
       const response = await fetch(`/api/gmail?query=${encodeURIComponent(query)}${includeCountsParam}${pageTokenParam}`);
       
       if (!response.ok) {
-        throw new Error(`Failed to fetch emails: ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        
+        // Handle specific authentication errors
+        if (response.status === 401) {
+          if (errorData.error?.includes('Authentication expired') || 
+              errorData.error?.includes('invalid_grant')) {
+            setError('Je sessie is verlopen. Log opnieuw in om je emails te bekijken.');
+            setTimeout(() => {
+              window.location.href = '/login?error=TokenExpired';
+            }, 3000);
+            return;
+          }
+        }
+        
+        throw new Error(errorData.error || `Failed to fetch emails: ${response.statusText}`);
       }
       
       const data = await response.json();
@@ -102,7 +116,29 @@ function MailPageContent() {
       const response = await fetch(`/api/gmail/${emailId}`);
       
       if (!response.ok) {
-        throw new Error(`Failed to fetch email details: ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        
+        // Handle specific authentication errors
+        if (response.status === 401) {
+          if (errorData.error?.includes('Authentication expired') || 
+              errorData.error?.includes('invalid_grant')) {
+            setError('Je sessie is verlopen. Log opnieuw in om je emails te bekijken.');
+            // Optionally trigger logout
+            setTimeout(() => {
+              window.location.href = '/login?error=TokenExpired';
+            }, 3000);
+            return;
+          }
+          setError('Niet geautoriseerd. Log opnieuw in.');
+          return;
+        }
+        
+        if (response.status === 403) {
+          setError('Onvoldoende rechten. Herverbind je Google account.');
+          return;
+        }
+        
+        throw new Error(errorData.error || `Failed to fetch email details: ${response.statusText}`);
       }
       
       const data = await response.json();
@@ -116,6 +152,8 @@ function MailPageContent() {
       ));
     } catch (error) {
       console.error('Error fetching email details:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setError(`Kon email niet laden: ${errorMessage}`);
     }
   };
   

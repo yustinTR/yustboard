@@ -43,8 +43,38 @@ export async function GET(request: Request) {
     }
     
     return NextResponse.json(result);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error in Gmail API route:', error);
+    
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    
+    // Handle Google API errors
+    if (error && typeof error === 'object' && 'response' in error && 
+        typeof error.response === 'object' && error.response) {
+      const response = error.response as any;
+      
+      if (response.status === 403) {
+        return NextResponse.json({ error: 'Insufficient permissions. Please re-authorize the app.' }, { status: 403 });
+      }
+      
+      if (response.status === 401 || response.status === 400) {
+        // Check for invalid_grant error specifically
+        if (response.data && response.data.error === 'invalid_grant') {
+          console.log('invalid_grant error detected in Gmail list, token refresh failed');
+          return NextResponse.json({ error: 'Authentication expired. Please sign out and sign in again.' }, { status: 401 });
+        }
+        return NextResponse.json({ error: 'Authentication failed. Please sign in again.' }, { status: 401 });
+      }
+    }
+    
+    // Check for specific Google API error messages
+    if (errorMessage.includes('invalid_grant')) {
+      return NextResponse.json({ error: 'Authentication expired. Please sign out and sign in again.' }, { status: 401 });
+    }
+    
+    if (errorMessage.includes('insufficient_scope') || errorMessage.includes('access_denied')) {
+      return NextResponse.json({ error: 'Insufficient permissions. Please re-authorize the app.' }, { status: 403 });
+    }
     
     return NextResponse.json(
       { error: 'Failed to fetch emails' },
