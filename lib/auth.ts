@@ -25,6 +25,11 @@ async function refreshAccessToken(token: any) {
     const refreshedTokens = await response.json();
 
     if (!response.ok) {
+      console.error("Token refresh failed:", {
+        status: response.status,
+        statusText: response.statusText,
+        error: refreshedTokens
+      });
       throw refreshedTokens;
     }
 
@@ -135,8 +140,11 @@ export const authOptions = {
 
         // Check if token refresh failed
         if (token.error === "RefreshAccessTokenError") {
-          // Return session with error flag
+          // Return session with error flag - this will trigger logout in the frontend
           session.error = "RefreshAccessTokenError";
+          // Clear the session user to prevent any further usage
+          session.user = undefined;
+          session.accessToken = undefined;
           return session;
         }
 

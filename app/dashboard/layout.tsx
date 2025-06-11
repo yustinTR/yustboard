@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import Sidebar from '@/components/dashboard/Sidebar';
 import Header from '@/components/dashboard/Header';
 import { SidebarProvider } from '@/contexts/SidebarContext';
@@ -13,7 +13,7 @@ interface DashboardLayoutProps {
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -22,17 +22,28 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     if (status === 'unauthenticated') {
       router.push('/login');
     }
-  }, [status, router]);
+    // Also redirect if there's a refresh token error
+    if (status === 'authenticated' && session?.error === 'RefreshAccessTokenError') {
+      console.log('Session has RefreshAccessTokenError, signing out and redirecting to login');
+      signOut({ 
+        callbackUrl: '/login?error=RefreshAccessTokenError',
+        redirect: true 
+      });
+    }
+  }, [status, session, router]);
 
   // Start polling manager when authenticated
   useEffect(() => {
-    if (status === 'authenticated') {
+    if (status === 'authenticated' && !session?.error) {
       pollingManager.start();
       return () => {
         pollingManager.stop();
       };
+    } else {
+      // Stop polling if not authenticated or if there's a session error
+      pollingManager.stop();
     }
-  }, [status]);
+  }, [status, session?.error]);
 
   // Show loading state while checking authentication
   if (status === 'loading') {
