@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import Header from './Header';
 import { SessionProvider } from 'next-auth/react';
 
@@ -18,6 +18,7 @@ const meta = {
     (Story) => (
       <SessionProvider session={{
         user: {
+          id: '1',
           name: 'John Doe',
           email: 'john@example.com',
           image: 'https://avatars.githubusercontent.com/u/1?v=4',
@@ -47,6 +48,7 @@ export const AdminUser: Story = {
     (Story) => (
       <SessionProvider session={{
         user: {
+          id: '4',
           name: 'Admin User',
           email: 'admin@example.com',
           image: 'https://avatars.githubusercontent.com/u/2?v=4',
@@ -67,6 +69,7 @@ export const AuthorUser: Story = {
     (Story) => (
       <SessionProvider session={{
         user: {
+          id: '2',
           name: 'Author User',
           email: 'author@example.com',
           image: 'https://avatars.githubusercontent.com/u/3?v=4',
@@ -87,6 +90,7 @@ export const NoProfileImage: Story = {
     (Story) => (
       <SessionProvider session={{
         user: {
+          id: '3',
           name: 'No Image User',
           email: 'noimage@example.com',
           role: 'USER',

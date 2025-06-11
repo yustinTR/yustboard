@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import GmailWidget from './GmailWidget';
 import { SessionProvider } from 'next-auth/react';
 
@@ -6,67 +6,87 @@ const mockEmails = [
   {
     id: '1',
     threadId: 'thread1',
-    from: 'john@example.com',
-    fromName: 'John Doe',
+    from: {
+      name: 'John Doe',
+      email: 'john@example.com',
+    },
+    to: ['me@example.com'],
     subject: 'Project Update - Q4 Review',
     snippet: 'Hi team, I wanted to share the latest updates on our Q4 project. We have made significant progress...',
     date: new Date(),
-    unread: true,
-    starred: false,
+    isRead: false,
+    isStarred: false,
     hasAttachments: true,
-    important: true,
+    labels: ['INBOX', 'IMPORTANT'],
+    sizeEstimate: 2048,
   },
   {
     id: '2',
     threadId: 'thread2',
-    from: 'sarah@company.com',
-    fromName: 'Sarah Johnson',
+    from: {
+      name: 'Sarah Johnson',
+      email: 'sarah@company.com',
+    },
+    to: ['me@example.com'],
     subject: 'Meeting Tomorrow at 2 PM',
     snippet: 'Just a reminder about our meeting tomorrow to discuss the new feature implementation...',
     date: new Date(Date.now() - 3600000), // 1 hour ago
-    unread: true,
-    starred: true,
+    isRead: false,
+    isStarred: true,
     hasAttachments: false,
-    important: false,
+    labels: ['INBOX'],
+    sizeEstimate: 1024,
   },
   {
     id: '3',
     threadId: 'thread3',
-    from: 'notifications@github.com',
-    fromName: 'GitHub',
+    from: {
+      name: 'GitHub',
+      email: 'notifications@github.com',
+    },
+    to: ['me@example.com'],
     subject: '[PR] New pull request in yustboard',
     snippet: 'A new pull request has been opened by user123: "Add dark mode support"...',
     date: new Date(Date.now() - 86400000), // Yesterday
-    unread: false,
-    starred: false,
+    isRead: true,
+    isStarred: false,
     hasAttachments: false,
-    important: false,
+    labels: ['INBOX'],
+    sizeEstimate: 1536,
   },
   {
     id: '4',
     threadId: 'thread4',
-    from: 'team@slack.com',
-    fromName: 'Slack',
+    from: {
+      name: 'Slack',
+      email: 'team@slack.com',
+    },
+    to: ['me@example.com'],
     subject: 'Your weekly team summary',
     snippet: 'Here\'s what happened in your workspace this week: 42 messages, 8 files shared...',
     date: new Date(Date.now() - 172800000), // 2 days ago
-    unread: false,
-    starred: false,
+    isRead: true,
+    isStarred: false,
     hasAttachments: true,
-    important: false,
+    labels: ['INBOX'],
+    sizeEstimate: 2560,
   },
   {
     id: '5',
     threadId: 'thread5',
-    from: 'billing@service.com',
-    fromName: 'Service Team',
+    from: {
+      name: 'Service Team',
+      email: 'billing@service.com',
+    },
+    to: ['me@example.com'],
     subject: 'Invoice for December 2024',
     snippet: 'Your invoice for December 2024 is now available. Total amount: $99.00...',
     date: new Date(Date.now() - 604800000), // 1 week ago
-    unread: false,
-    starred: false,
+    isRead: true,
+    isStarred: false,
     hasAttachments: true,
-    important: true,
+    labels: ['INBOX', 'IMPORTANT'],
+    sizeEstimate: 1792,
   },
 ];
 
@@ -80,6 +100,7 @@ const meta = {
     (Story) => (
       <SessionProvider session={{
         user: {
+          id: '1',
           name: 'Test User',
           email: 'test@example.com',
         },
@@ -119,7 +140,7 @@ export const LimitedEmails: Story = {
 export const LoadingState: Story = {
   decorators: [
     (Story) => {
-      global.fetch = ((() => new Promise(() => {}))) as any;
+      global.fetch = ((() => new Promise(() => {}))) as typeof globalThis.fetch;
       return <Story />;
     },
   ],
@@ -134,7 +155,7 @@ export const ErrorState: Story = {
           status: 401,
           json: () => Promise.resolve({ error: 'Unauthorized' }),
         } as Response)
-      )) as any;
+      )) as typeof globalThis.fetch;
       return <Story />;
     },
   ],
@@ -142,13 +163,13 @@ export const ErrorState: Story = {
 
 export const AllUnread: Story = {
   args: {
-    initialEmails: mockEmails.map(email => ({ ...email, unread: true })),
+    initialEmails: mockEmails.map(email => ({ ...email, isRead: false })),
   },
 };
 
 export const AllStarred: Story = {
   args: {
-    initialEmails: mockEmails.map(email => ({ ...email, starred: true })),
+    initialEmails: mockEmails.map(email => ({ ...email, isStarred: true })),
   },
 };
 

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import Post from './Post';
 
 const meta = {
@@ -101,6 +101,10 @@ export const PostWithHashtags: Story = {
 };
 
 export const MultiplePostsExample: Story = {
+  args: {
+    post: basePost,
+    currentUserId: 'current-user-id',
+  },
   render: () => {
     const posts = [
       {

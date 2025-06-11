@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from './card';
 import { Label } from './label';
@@ -28,7 +28,7 @@ export const Default: Story = {
           <CardHeader>
             <CardTitle>Account</CardTitle>
             <CardDescription>
-              Make changes to your account here. Click save when you're done.
+              Make changes to your account here. Click save when you&apos;re done.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -48,7 +48,7 @@ export const Default: Story = {
           <CardHeader>
             <CardTitle>Password</CardTitle>
             <CardDescription>
-              Change your password here. After saving, you'll be logged out.
+              Change your password here. After saving, you&apos;ll be logged out.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -78,7 +78,7 @@ export const WithThreeTabs: Story = {
       <TabsContent value="overview" className="space-y-4">
         <h3 className="text-lg font-medium">Overview</h3>
         <p className="text-sm text-muted-foreground">
-          Welcome to your dashboard. Here's a quick overview of your account.
+          Welcome to your dashboard. Here&apos;s a quick overview of your account.
         </p>
       </TabsContent>
       <TabsContent value="analytics" className="space-y-4">

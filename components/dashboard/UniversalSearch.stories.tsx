@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import UniversalSearch from './UniversalSearch';
 import { SessionProvider } from 'next-auth/react';
 
@@ -15,6 +15,7 @@ const meta = {
     (Story) => (
       <SessionProvider session={{
         user: {
+          id: '1',
           name: 'Test User',
           email: 'test@example.com',
           role: 'USER',
@@ -77,7 +78,7 @@ export const WithMockResults: Story = {
           } as Response);
         }
         return Promise.reject(new Error('Not found'));
-      }) as any;
+      }) as typeof globalThis.fetch;
 
       return <Story />;
     },
@@ -92,7 +93,7 @@ export const EmptyState: Story = {
           ok: true,
           json: () => Promise.resolve({ results: [] }),
         } as Response)
-      ) as any;
+      ) as typeof globalThis.fetch;
 
       return <Story />;
     },
@@ -102,7 +103,7 @@ export const EmptyState: Story = {
 export const LoadingState: Story = {
   decorators: [
     (Story) => {
-      global.fetch = (() => new Promise(() => {})) as any;
+      global.fetch = (() => new Promise(() => {})) as typeof globalThis.fetch;
       return <Story />;
     },
   ],
@@ -117,7 +118,7 @@ export const ErrorState: Story = {
           status: 500,
           json: () => Promise.resolve({ error: 'Internal server error' }),
         } as Response)
-      ) as any;
+      ) as typeof globalThis.fetch;
 
       return <Story />;
     },
@@ -129,6 +130,7 @@ export const InHeader: Story = {
     (Story) => (
       <SessionProvider session={{
         user: {
+          id: '2',
           name: 'Test User',
           email: 'test@example.com',
           role: 'USER',

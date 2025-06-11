@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import Sidebar from './Sidebar';
 import { SessionProvider } from 'next-auth/react';
 import { SidebarProvider } from '@/contexts/SidebarContext';
@@ -19,6 +19,7 @@ const meta = {
     (Story) => (
       <SessionProvider session={{
         user: {
+          id: '1',
           name: 'Test User',
           email: 'test@example.com',
           role: 'USER',
@@ -52,6 +53,7 @@ export const AdminUser: Story = {
     (Story) => (
       <SessionProvider session={{
         user: {
+          id: '2',
           name: 'Admin User',
           email: 'admin@example.com',
           role: 'ADMIN',
@@ -99,19 +101,20 @@ export const Collapsed: Story = {
     (Story) => (
       <SessionProvider session={{
         user: {
+          id: '3',
           name: 'Test User',
           email: 'test@example.com',
           role: 'USER',
         },
         expires: '2025-12-31',
       }}>
-        <SidebarProvider initialCollapsed={true}>
+        <SidebarProvider>
           <div className="flex h-screen bg-background">
             <Story />
             <div className="flex-1 p-8">
               <h1 className="text-2xl font-bold mb-4">Collapsed Sidebar</h1>
               <p className="text-muted-foreground">
-                The sidebar starts in collapsed state.
+                The sidebar can be collapsed using the toggle button.
               </p>
             </div>
           </div>
@@ -140,11 +143,12 @@ export const WithCustomMenuItems: Story = {
           } as Response);
         }
         return Promise.reject(new Error('Not found'));
-      }) as any;
+      }) as typeof globalThis.fetch;
 
       return (
         <SessionProvider session={{
           user: {
+            id: '4',
             name: 'Test User',
             email: 'test@example.com',
             role: 'USER',

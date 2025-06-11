@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import NewsWidget from './NewsWidget';
 
 const mockArticles = [
@@ -56,7 +56,7 @@ export const Default: Story = {
           ok: true,
           json: () => Promise.resolve({ articles: mockArticles }),
         } as Response)
-      )) as any;
+      )) as typeof globalThis.fetch;
 
       return <Story />;
     },
@@ -66,7 +66,7 @@ export const Default: Story = {
 export const Loading: Story = {
   decorators: [
     (Story) => {
-      global.fetch = ((() => new Promise(() => {}))) as any;
+      global.fetch = ((() => new Promise(() => {}))) as typeof globalThis.fetch;
       return <Story />;
     },
   ],
@@ -80,7 +80,7 @@ export const Error: Story = {
           ok: false,
           status: 500,
         } as Response)
-      )) as any;
+      )) as typeof globalThis.fetch;
 
       return <Story />;
     },
@@ -95,7 +95,7 @@ export const NoArticles: Story = {
           ok: true,
           json: () => Promise.resolve({ articles: [] }),
         } as Response)
-      )) as any;
+      )) as typeof globalThis.fetch;
 
       return <Story />;
     },
@@ -122,7 +122,7 @@ export const WithManyArticles: Story = {
           ok: true,
           json: () => Promise.resolve({ articles: manyArticles }),
         } as Response)
-      )) as any;
+      )) as typeof globalThis.fetch;
 
       return <Story />;
     },
@@ -142,7 +142,7 @@ export const MobileView: Story = {
           ok: true,
           json: () => Promise.resolve({ articles: mockArticles }),
         } as Response)
-      )) as any;
+      )) as typeof globalThis.fetch;
 
       return <Story />;
     },

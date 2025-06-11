@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import TaskWidget from './TaskWidget';
 import { SessionProvider } from 'next-auth/react';
 
@@ -12,6 +12,7 @@ const meta = {
     (Story) => (
       <SessionProvider session={{
         user: {
+          id: '1',
           name: 'Test User',
           email: 'test@example.com',
         },
@@ -63,7 +64,7 @@ export const WithTasks: Story = {
             },
           ]),
         } as Response)
-      )) as any;
+      )) as typeof globalThis.fetch;
 
       return <Story />;
     },
@@ -78,7 +79,7 @@ export const EmptyState: Story = {
           ok: true,
           json: () => Promise.resolve([]),
         } as Response)
-      )) as any;
+      )) as typeof globalThis.fetch;
 
       return <Story />;
     },
@@ -88,7 +89,7 @@ export const EmptyState: Story = {
 export const LoadingState: Story = {
   decorators: [
     (Story) => {
-      global.fetch = ((() => new Promise(() => {}))) as any;
+      global.fetch = ((() => new Promise(() => {}))) as typeof globalThis.fetch;
       return <Story />;
     },
   ],
@@ -102,7 +103,7 @@ export const ErrorState: Story = {
           ok: false,
           status: 500,
         } as Response)
-      )) as any;
+      )) as typeof globalThis.fetch;
 
       return <Story />;
     },
@@ -114,6 +115,7 @@ export const AuthenticatedWithToken: Story = {
     (Story) => (
       <SessionProvider session={{
         user: {
+          id: '2',
           name: 'Test User',
           email: 'test@example.com',
         },

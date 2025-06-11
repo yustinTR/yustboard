@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import { WeatherWidget } from './WeatherWidget';
 
 const meta = {
@@ -66,7 +66,7 @@ export const Default: Story = {
           ok: true,
           json: () => Promise.resolve(mockWeatherData),
         } as Response)
-      )) as any;
+      )) as typeof globalThis.fetch;
 
       return <Story />;
     },
@@ -79,7 +79,7 @@ export const Loading: Story = {
       // Mock a delayed response to show loading state
       global.fetch = ((() =>
         new Promise(() => {})
-      )) as any;
+      )) as typeof globalThis.fetch;
 
       return <Story />;
     },
