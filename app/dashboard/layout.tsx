@@ -16,10 +16,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [loadingTimeout, setLoadingTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // Use useEffect to handle the redirect instead of doing it during render
   useEffect(() => {
+    console.log('Dashboard layout - session state:', { status, session, error: session?.error });
+    
     if (status === 'unauthenticated') {
+      console.log('Status is unauthenticated, redirecting to login');
       router.push('/login');
     }
     // Also redirect if there's a refresh token error
@@ -27,6 +31,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       console.log('Session has RefreshAccessTokenError, signing out and redirecting to login');
       signOut({ 
         callbackUrl: '/login?error=RefreshAccessTokenError',
+        redirect: true 
+      });
+    }
+    // Check if we have a session but no user or accessToken (might indicate an error)
+    if (status === 'authenticated' && session && (!session.user || !session.accessToken)) {
+      console.log('Session exists but missing user or accessToken, potential error state');
+      signOut({ 
+        callbackUrl: '/login?error=SessionInvalid',
         redirect: true 
       });
     }
@@ -44,6 +56,40 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       pollingManager.stop();
     }
   }, [status, session?.error]);
+
+  // Set up timeout for loading state to prevent infinite loading
+  useEffect(() => {
+    if (status === 'loading') {
+      // Clear any existing timeout
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+      }
+      
+      // Set a 10-second timeout for loading
+      const timeout = setTimeout(() => {
+        console.log('Loading timeout reached, forcing logout');
+        signOut({ 
+          callbackUrl: '/login?error=LoadingTimeout',
+          redirect: true 
+        });
+      }, 10000);
+      
+      setLoadingTimeout(timeout);
+    } else {
+      // Clear timeout when not loading
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+        setLoadingTimeout(null);
+      }
+    }
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+      }
+    };
+  }, [status, loadingTimeout]);
 
   // Show loading state while checking authentication
   if (status === 'loading') {

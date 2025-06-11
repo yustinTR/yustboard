@@ -38,6 +38,12 @@ function LoginContent() {
         return 'Google authentication failed. Please check your credentials or try another method.';
       case 'RefreshAccessTokenError':
         return 'Je sessie is verlopen. Log opnieuw in om door te gaan.';
+      case 'LoadingTimeout':
+        return 'De pagina laadde te lang. Log opnieuw in om door te gaan.';
+      case 'SessionInvalid':
+        return 'Je sessie is ongeldig geworden. Log opnieuw in om door te gaan.';
+      case 'SessionExpired':
+        return 'Je sessie is verlopen. Log opnieuw in om door te gaan.';
       default:
         return 'An error occurred during authentication. Please try again.';
     }

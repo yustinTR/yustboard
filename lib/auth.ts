@@ -44,9 +44,13 @@ async function refreshAccessToken(token: any) {
   } catch (error) {
     console.error("Error refreshing access token", error);
 
+    // Return a token that will be invalidated
     return {
       ...token,
       error: "RefreshAccessTokenError",
+      accessToken: null,
+      refreshToken: null,
+      accessTokenExpires: null,
     };
   }
 }
@@ -127,7 +131,13 @@ export const authOptions = {
 
       // Token is expired, try to refresh it
       console.log("JWT callback: Token expired, attempting refresh");
-      return await refreshAccessToken(token);
+      const refreshResult = await refreshAccessToken(token);
+      console.log("JWT callback: Refresh result:", { 
+        hasError: !!refreshResult.error,
+        error: refreshResult.error,
+        hasAccessToken: !!refreshResult.accessToken 
+      });
+      return refreshResult;
     },
     async session({ session, token }: { session: any; token: any }) {
       // This is now always called with a token, not a user
@@ -140,12 +150,9 @@ export const authOptions = {
 
         // Check if token refresh failed
         if (token.error === "RefreshAccessTokenError") {
-          // Return session with error flag - this will trigger logout in the frontend
-          session.error = "RefreshAccessTokenError";
-          // Clear the session user to prevent any further usage
-          session.user = undefined;
-          session.accessToken = undefined;
-          return session;
+          console.log("Session callback: RefreshAccessTokenError detected, returning null session");
+          // Return null to force logout instead of a session with error
+          return null;
         }
 
         // Add the access token and user ID to the session
