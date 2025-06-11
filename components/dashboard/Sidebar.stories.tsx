@@ -125,7 +125,7 @@ export const WithCustomMenuItems: Story = {
   decorators: [
     (Story) => {
       // Mock fetch to return custom menu items
-      global.fetch = jest.fn((url) => {
+      global.fetch = ((url) => {
         if (typeof url === 'string' && url.includes('/api/settings/menu')) {
           return Promise.resolve({
             ok: true,
@@ -140,7 +140,7 @@ export const WithCustomMenuItems: Story = {
           } as Response);
         }
         return Promise.reject(new Error('Not found'));
-      });
+      }) as any;
 
       return (
         <SessionProvider session={{

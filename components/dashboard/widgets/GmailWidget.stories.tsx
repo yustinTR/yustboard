@@ -119,7 +119,7 @@ export const LimitedEmails: Story = {
 export const LoadingState: Story = {
   decorators: [
     (Story) => {
-      global.fetch = jest.fn(() => new Promise(() => {}));
+      global.fetch = ((() => new Promise(() => {}))) as any;
       return <Story />;
     },
   ],
@@ -128,13 +128,13 @@ export const LoadingState: Story = {
 export const ErrorState: Story = {
   decorators: [
     (Story) => {
-      global.fetch = jest.fn(() =>
+      global.fetch = ((() =>
         Promise.resolve({
           ok: false,
           status: 401,
           json: () => Promise.resolve({ error: 'Unauthorized' }),
         } as Response)
-      );
+      )) as any;
       return <Story />;
     },
   ],

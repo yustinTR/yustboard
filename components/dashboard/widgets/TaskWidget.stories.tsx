@@ -35,7 +35,7 @@ export const WithTasks: Story = {
   decorators: [
     (Story) => {
       // Mock fetch to return calendar events
-      global.fetch = jest.fn(() =>
+      global.fetch = ((() =>
         Promise.resolve({
           ok: true,
           json: () => Promise.resolve([
@@ -63,7 +63,7 @@ export const WithTasks: Story = {
             },
           ]),
         } as Response)
-      );
+      )) as any;
 
       return <Story />;
     },
@@ -73,12 +73,12 @@ export const WithTasks: Story = {
 export const EmptyState: Story = {
   decorators: [
     (Story) => {
-      global.fetch = jest.fn(() =>
+      global.fetch = ((() =>
         Promise.resolve({
           ok: true,
           json: () => Promise.resolve([]),
         } as Response)
-      );
+      )) as any;
 
       return <Story />;
     },
@@ -88,7 +88,7 @@ export const EmptyState: Story = {
 export const LoadingState: Story = {
   decorators: [
     (Story) => {
-      global.fetch = jest.fn(() => new Promise(() => {}));
+      global.fetch = ((() => new Promise(() => {}))) as any;
       return <Story />;
     },
   ],
@@ -97,12 +97,12 @@ export const LoadingState: Story = {
 export const ErrorState: Story = {
   decorators: [
     (Story) => {
-      global.fetch = jest.fn(() =>
+      global.fetch = ((() =>
         Promise.resolve({
           ok: false,
           status: 500,
         } as Response)
-      );
+      )) as any;
 
       return <Story />;
     },

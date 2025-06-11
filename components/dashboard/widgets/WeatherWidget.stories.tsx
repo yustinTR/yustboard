@@ -36,33 +36,37 @@ export const Default: Story = {
     (Story) => {
       // Mock geolocation
       if (typeof window !== 'undefined') {
-        window.navigator.geolocation = {
-          getCurrentPosition: (success) => {
-            success({
-              coords: {
-                latitude: 52.3676,
-                longitude: 4.9041,
-                accuracy: 100,
-                altitude: null,
-                altitudeAccuracy: null,
-                heading: null,
-                speed: null,
-              },
-              timestamp: Date.now(),
-            } as GeolocationPosition);
+        Object.defineProperty(window.navigator, 'geolocation', {
+          value: {
+            getCurrentPosition: (success: PositionCallback) => {
+              success({
+                coords: {
+                  latitude: 52.3676,
+                  longitude: 4.9041,
+                  accuracy: 100,
+                  altitude: null,
+                  altitudeAccuracy: null,
+                  heading: null,
+                  speed: null,
+                },
+                timestamp: Date.now(),
+              } as GeolocationPosition);
+            },
+            watchPosition: () => 0,
+            clearWatch: () => {},
           },
-          watchPosition: () => 0,
-          clearWatch: () => {},
-        };
+          writable: true,
+          configurable: true,
+        });
       }
 
       // Mock fetch
-      global.fetch = jest.fn(() =>
+      global.fetch = ((() =>
         Promise.resolve({
           ok: true,
           json: () => Promise.resolve(mockWeatherData),
         } as Response)
-      );
+      )) as any;
 
       return <Story />;
     },
@@ -73,9 +77,9 @@ export const Loading: Story = {
   decorators: [
     (Story) => {
       // Mock a delayed response to show loading state
-      global.fetch = jest.fn(() =>
+      global.fetch = ((() =>
         new Promise(() => {})
-      );
+      )) as any;
 
       return <Story />;
     },
@@ -87,19 +91,25 @@ export const Error: Story = {
     (Story) => {
       // Mock geolocation error
       if (typeof window !== 'undefined') {
-        window.navigator.geolocation = {
-          getCurrentPosition: (_, error) => {
-            error({
-              code: 1,
-              message: 'User denied Geolocation',
-              PERMISSION_DENIED: 1,
-              POSITION_UNAVAILABLE: 2,
-              TIMEOUT: 3,
-            } as GeolocationPositionError);
+        Object.defineProperty(window.navigator, 'geolocation', {
+          value: {
+            getCurrentPosition: (_: PositionCallback, error?: PositionErrorCallback) => {
+              if (error) {
+                error({
+                  code: 1,
+                  message: 'User denied Geolocation',
+                  PERMISSION_DENIED: 1,
+                  POSITION_UNAVAILABLE: 2,
+                  TIMEOUT: 3,
+                } as GeolocationPositionError);
+              }
+            },
+            watchPosition: () => 0,
+            clearWatch: () => {},
           },
-          watchPosition: () => 0,
-          clearWatch: () => {},
-        };
+          writable: true,
+          configurable: true,
+        });
       }
 
       return <Story />;

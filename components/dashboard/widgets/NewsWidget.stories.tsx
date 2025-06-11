@@ -51,12 +51,12 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   decorators: [
     (Story) => {
-      global.fetch = jest.fn(() =>
+      global.fetch = ((() =>
         Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ articles: mockArticles }),
         } as Response)
-      );
+      )) as any;
 
       return <Story />;
     },
@@ -66,7 +66,7 @@ export const Default: Story = {
 export const Loading: Story = {
   decorators: [
     (Story) => {
-      global.fetch = jest.fn(() => new Promise(() => {}));
+      global.fetch = ((() => new Promise(() => {}))) as any;
       return <Story />;
     },
   ],
@@ -75,12 +75,12 @@ export const Loading: Story = {
 export const Error: Story = {
   decorators: [
     (Story) => {
-      global.fetch = jest.fn(() =>
+      global.fetch = ((() =>
         Promise.resolve({
           ok: false,
           status: 500,
         } as Response)
-      );
+      )) as any;
 
       return <Story />;
     },
@@ -90,12 +90,12 @@ export const Error: Story = {
 export const NoArticles: Story = {
   decorators: [
     (Story) => {
-      global.fetch = jest.fn(() =>
+      global.fetch = ((() =>
         Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ articles: [] }),
         } as Response)
-      );
+      )) as any;
 
       return <Story />;
     },
@@ -117,12 +117,12 @@ export const WithManyArticles: Story = {
         category: ['technology', 'business', 'science', 'general'][i % 4],
       }));
 
-      global.fetch = jest.fn(() =>
+      global.fetch = ((() =>
         Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ articles: manyArticles }),
         } as Response)
-      );
+      )) as any;
 
       return <Story />;
     },
@@ -137,12 +137,12 @@ export const MobileView: Story = {
   },
   decorators: [
     (Story) => {
-      global.fetch = jest.fn(() =>
+      global.fetch = ((() =>
         Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ articles: mockArticles }),
         } as Response)
-      );
+      )) as any;
 
       return <Story />;
     },

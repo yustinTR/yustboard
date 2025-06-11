@@ -39,7 +39,7 @@ export const WithMockResults: Story = {
   decorators: [
     (Story) => {
       // Mock the fetch API to return search results
-      global.fetch = jest.fn((url) => {
+      global.fetch = ((url) => {
         if (typeof url === 'string' && url.includes('/api/search')) {
           return Promise.resolve({
             ok: true,
@@ -77,7 +77,7 @@ export const WithMockResults: Story = {
           } as Response);
         }
         return Promise.reject(new Error('Not found'));
-      });
+      }) as any;
 
       return <Story />;
     },
@@ -87,12 +87,12 @@ export const WithMockResults: Story = {
 export const EmptyState: Story = {
   decorators: [
     (Story) => {
-      global.fetch = jest.fn(() =>
+      global.fetch = (() =>
         Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ results: [] }),
         } as Response)
-      );
+      ) as any;
 
       return <Story />;
     },
@@ -102,7 +102,7 @@ export const EmptyState: Story = {
 export const LoadingState: Story = {
   decorators: [
     (Story) => {
-      global.fetch = jest.fn(() => new Promise(() => {}));
+      global.fetch = (() => new Promise(() => {})) as any;
       return <Story />;
     },
   ],
@@ -111,13 +111,13 @@ export const LoadingState: Story = {
 export const ErrorState: Story = {
   decorators: [
     (Story) => {
-      global.fetch = jest.fn(() =>
+      global.fetch = (() =>
         Promise.resolve({
           ok: false,
           status: 500,
           json: () => Promise.resolve({ error: 'Internal server error' }),
         } as Response)
-      );
+      ) as any;
 
       return <Story />;
     },
