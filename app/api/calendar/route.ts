@@ -20,7 +20,7 @@ const mockTasks = [
 ];
 
 // Check if the user is using the test account
-function isTestUser(session: any) {
+function isTestUser(session: any): boolean { // eslint-disable-line @typescript-eslint/no-explicit-any
   return session?.accessToken === 'test-access-token' || session?.user?.email === 'test@example.com';
 }
 

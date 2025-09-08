@@ -22,7 +22,8 @@
       "Bash(mv:*)",
       "Bash(find:*)",
       "Bash(npm run lint:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "Bash(npm update:*)"
     ],
     "deny": []
   },

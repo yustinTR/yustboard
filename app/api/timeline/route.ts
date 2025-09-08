@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
         content,
         userId: session.user.id,
         media: media ? {
-          create: media.map((item: any) => ({
+          create: media.map((item: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
             type: item.type,
             url: item.url,
             filename: item.filename,

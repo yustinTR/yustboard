@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ results: [] });
     }
 
-    const results: any[] = [];
+    const results: any[] = []; // eslint-disable-line @typescript-eslint/no-explicit-any
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
       select: { 

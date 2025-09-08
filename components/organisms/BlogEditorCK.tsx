@@ -1,7 +1,7 @@
 'use client';
 
 import { CKEditor } from '@ckeditor/ckeditor5-react';
-import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import CustomEditor from '@/lib/ckeditor/custom-editor';
 import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { FiUpload, FiX, FiImage, FiLoader, FiCheck } from 'react-icons/fi';
@@ -133,7 +133,7 @@ export default function BlogEditorCK({ content, onChange, onImageUpload }: BlogE
       {/* CKEditor */}
       <CKEditor
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        editor={ClassicEditor as any}
+        editor={CustomEditor as any}
         data={content}
         onReady={(editor) => {
           editorRef.current = editor;
@@ -169,18 +169,7 @@ export default function BlogEditorCK({ content, onChange, onImageUpload }: BlogE
           const data = editor.getData();
           onChange(data);
         }}
-        config={{
-          toolbar: [
-            'heading', '|',
-            'bold', 'italic', 'link', '|',
-            'bulletedList', 'numberedList', '|',
-            'uploadImage', 'blockQuote', '|',
-            'undo', 'redo'
-          ],
-          image: {
-            toolbar: ['imageTextAlternative', 'imageStyle:inline', 'imageStyle:block', 'imageStyle:side'],
-          },
-        }}
+        config={{}}
       />
 
       {/* Media Library Button */}
