@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiArrowRight, FiGithub, FiLinkedin, FiTwitter, FiMail, FiPhone, FiMapPin, FiExternalLink, FiMenu, FiX } from 'react-icons/fi';
-// import PublicNavigation from '@/components/PublicNavigation';
+// import PublicNavigation from '@/components/organisms/PublicNavigation';
 
 interface Hero {
   id?: string;

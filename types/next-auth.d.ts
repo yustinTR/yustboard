@@ -14,6 +14,8 @@ declare module "next-auth" {
     
     /** Access token for Google API or other providers */
     accessToken?: string;
+    /** Error message if session has errors */
+    error?: string;
   }
 }
 

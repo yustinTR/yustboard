@@ -7,16 +7,16 @@ import { FiRefreshCw } from 'react-icons/fi';
 import Masonry from 'react-masonry-css';
 
 // Dynamically import widgets to support lazy loading
-const TaskWidget = dynamic(() => import('@/components/dashboard/widgets/TaskWidget'));
-const BankingWidget = dynamic(() => import('@/components/dashboard/widgets/BankingWidget'));
-const WeatherWidget = dynamic(() => import('@/components/dashboard/widgets/WeatherWidget'));
-const SocialWidget = dynamic(() => import('@/components/dashboard/widgets/SocialWidget'));
-const FilesWidget = dynamic(() => import('@/components/dashboard/widgets/FilesWidget'));
-const GmailWidget = dynamic(() => import('@/components/dashboard/widgets/GmailWidget'));
-const TimelineWidget = dynamic(() => import('@/components/dashboard/widgets/TimelineWidget'));
-const NewsWidget = dynamic(() => import('@/components/dashboard/widgets/NewsWidget'));
-const FitnessWidget = dynamic(() => import('@/components/dashboard/widgets/FitnessWidget'));
-const BlogWidget = dynamic(() => import('@/components/dashboard/widgets/BlogWidget'));
+const TaskWidget = dynamic(() => import('@/components/organisms/widgets/TaskWidget'));
+const BankingWidget = dynamic(() => import('@/components/organisms/widgets/BankingWidget'));
+const WeatherWidget = dynamic(() => import('@/components/organisms/widgets/WeatherWidget'));
+const SocialWidget = dynamic(() => import('@/components/organisms/widgets/SocialWidget'));
+const FilesWidget = dynamic(() => import('@/components/organisms/widgets/FilesWidget'));
+const GmailWidget = dynamic(() => import('@/components/organisms/widgets/GmailWidget'));
+const TimelineWidget = dynamic(() => import('@/components/organisms/widgets/TimelineWidget'));
+const NewsWidget = dynamic(() => import('@/components/organisms/widgets/NewsWidget'));
+const FitnessWidget = dynamic(() => import('@/components/organisms/widgets/FitnessWidget'));
+const BlogWidget = dynamic(() => import('@/components/organisms/widgets/BlogWidget'));
 
 // Widget component map
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

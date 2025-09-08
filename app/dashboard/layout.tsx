@@ -2,37 +2,94 @@
 
 import { ReactNode, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import Sidebar from '@/components/dashboard/Sidebar';
-import Header from '@/components/dashboard/Header';
+import { useSession, signOut } from 'next-auth/react';
+import Sidebar from '@/components/organisms/Sidebar';
+import Header from '@/components/organisms/Header';
 import { SidebarProvider } from '@/contexts/SidebarContext';
-import { pollingManager } from '@/lib/polling-manager';
+import { pollingManager } from '@/lib/api/polling-manager';
 
 interface DashboardLayoutProps {
   children: ReactNode;
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [loadingTimeout, setLoadingTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // Use useEffect to handle the redirect instead of doing it during render
   useEffect(() => {
+    console.log('Dashboard layout - session state:', { status, session, error: session?.error });
+    
     if (status === 'unauthenticated') {
+      console.log('Status is unauthenticated, redirecting to login');
       router.push('/login');
     }
-  }, [status, router]);
+    // Also redirect if there's a refresh token error
+    if (status === 'authenticated' && session?.error === 'RefreshAccessTokenError') {
+      console.log('Session has RefreshAccessTokenError, signing out and redirecting to login');
+      signOut({ 
+        callbackUrl: '/login?error=RefreshAccessTokenError',
+        redirect: true 
+      });
+    }
+    // Check if we have a session but no user or accessToken (might indicate an error)
+    if (status === 'authenticated' && session && (!session.user || !session.accessToken)) {
+      console.log('Session exists but missing user or accessToken, potential error state');
+      signOut({ 
+        callbackUrl: '/login?error=SessionInvalid',
+        redirect: true 
+      });
+    }
+  }, [status, session, router]);
 
   // Start polling manager when authenticated
   useEffect(() => {
-    if (status === 'authenticated') {
+    if (status === 'authenticated' && !session?.error) {
       pollingManager.start();
       return () => {
         pollingManager.stop();
       };
+    } else {
+      // Stop polling if not authenticated or if there's a session error
+      pollingManager.stop();
     }
-  }, [status]);
+  }, [status, session?.error]);
+
+  // Set up timeout for loading state to prevent infinite loading
+  useEffect(() => {
+    if (status === 'loading') {
+      // Clear any existing timeout
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+      }
+      
+      // Set a 10-second timeout for loading
+      const timeout = setTimeout(() => {
+        console.log('Loading timeout reached, forcing logout');
+        signOut({ 
+          callbackUrl: '/login?error=LoadingTimeout',
+          redirect: true 
+        });
+      }, 10000);
+      
+      setLoadingTimeout(timeout);
+    } else {
+      // Clear timeout when not loading
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+        setLoadingTimeout(null);
+      }
+    }
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+      }
+    };
+  }, [status, loadingTimeout]);
 
   // Show loading state while checking authentication
   if (status === 'loading') {
@@ -60,7 +117,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen bg-secondary overflow-hidden">
+      <div className="flex h-screen bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-pink-50/50 dark:from-gray-900/50 dark:via-gray-800/30 dark:to-gray-900/50 backdrop-blur-3xl overflow-hidden">
         {/* Mobile sidebar backdrop */}
         {isSidebarOpen && (
           <div 
@@ -76,7 +133,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         
         <div className="flex-1 flex flex-col overflow-hidden min-w-0">
           <Header />
-          <main className="flex-1 relative overflow-y-auto overflow-x-hidden">
+          <main className="flex-1 relative overflow-y-auto overflow-x-hidden bg-gradient-to-br from-transparent via-white/5 to-transparent backdrop-blur-sm">
             {children}
           </main>
         </div>

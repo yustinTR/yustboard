@@ -3,12 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { FiSave, FiPlus, FiTrash2, FiEdit, FiGithub, FiLinkedin, FiTwitter } from 'react-icons/fi';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import MediaSelector from '@/components/dashboard/MediaSelector';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/molecules/card';
+import { Button } from '@/components/atoms/button';
+import { Label } from '@/components/atoms/label';
+import { Switch } from '@/components/atoms/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/molecules/tabs';
+import MediaSelector from '@/components/organisms/MediaSelector';
 
 interface Hero {
   id?: string;

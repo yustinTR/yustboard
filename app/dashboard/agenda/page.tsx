@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { FiPlus, FiCalendar, FiClock, FiEdit, FiTrash2, FiLoader, FiX, FiList, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { format, parseISO, addHours, startOfDay, endOfDay, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
-import { Task } from '@/utils/google-calendar';
+import { Task } from '@/utils/google/google-calendar';
 
 // Helper function to ensure a task has proper Date objects
 function ensureTaskDates(task: { id: string; title: string; description?: string; date: Date | string; endDate?: Date | string; completed: boolean }): Task {

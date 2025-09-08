@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Switch } from '@/components/ui/switch'
-import { Label } from '@/components/ui/label'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/molecules/card'
+import { Button } from '@/components/atoms/button'
+import { Switch } from '@/components/atoms/switch'
+import { Label } from '@/components/atoms/label'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/molecules/tabs'
+import { Badge } from '@/components/atoms/badge'
 import { FiMenu, FiShield, FiSave, FiRefreshCw, FiCalendar, FiSettings, FiLayout, FiGrid, FiUser, FiMail } from 'react-icons/fi'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 import { toast } from 'sonner'
@@ -259,7 +259,7 @@ export default function SettingsPage() {
         </TabsList>
 
         <TabsContent value="widgets" className="space-y-4">
-          <Card>
+          <Card className="backdrop-blur-md bg-white/80 dark:bg-gray-900/80 border-white/20 dark:border-gray-700/30 shadow-xl shadow-black/5">
             <CardHeader>
               <CardTitle>Dashboard Widgets</CardTitle>
               <CardDescription>
@@ -277,9 +277,9 @@ export default function SettingsPage() {
                             <div
                               ref={provided.innerRef}
                               {...provided.draggableProps}
-                              className={`flex items-center justify-between p-3 rounded-lg border ${
-                                snapshot.isDragging ? 'bg-muted shadow-lg' : ''
-                              }`}
+                              className={`flex items-center justify-between p-3 rounded-lg border border-white/20 dark:border-gray-700/30 backdrop-blur-sm ${
+                                snapshot.isDragging ? 'bg-white/20 dark:bg-gray-800/20 shadow-lg' : 'bg-white/10 dark:bg-gray-900/10 hover:bg-white/20 dark:hover:bg-gray-800/20'
+                              } transition-all duration-200`}
                             >
                               <div className="flex items-center gap-3">
                                 <div {...provided.dragHandleProps}>
@@ -311,7 +311,7 @@ export default function SettingsPage() {
         </TabsContent>
 
         <TabsContent value="menu" className="space-y-4">
-          <Card>
+          <Card className="backdrop-blur-md bg-white/80 dark:bg-gray-900/80 border-white/20 dark:border-gray-700/30 shadow-xl shadow-black/5">
             <CardHeader>
               <CardTitle>FiMenu Items</CardTitle>
               <CardDescription>
@@ -329,9 +329,9 @@ export default function SettingsPage() {
                             <div
                               ref={provided.innerRef}
                               {...provided.draggableProps}
-                              className={`flex items-center justify-between p-3 rounded-lg border ${
-                                snapshot.isDragging ? 'bg-muted shadow-lg' : ''
-                              }`}
+                              className={`flex items-center justify-between p-3 rounded-lg border border-white/20 dark:border-gray-700/30 backdrop-blur-sm ${
+                                snapshot.isDragging ? 'bg-white/20 dark:bg-gray-800/20 shadow-lg' : 'bg-white/10 dark:bg-gray-900/10 hover:bg-white/20 dark:hover:bg-gray-800/20'
+                              } transition-all duration-200`}
                             >
                               <div className="flex items-center gap-3">
                                 <div {...provided.dragHandleProps}>
@@ -364,7 +364,7 @@ export default function SettingsPage() {
         </TabsContent>
 
         <TabsContent value="roles" className="space-y-4">
-          <Card>
+          <Card className="backdrop-blur-md bg-white/80 dark:bg-gray-900/80 border-white/20 dark:border-gray-700/30 shadow-xl shadow-black/5">
             <CardHeader>
               <CardTitle>Gebruikers & Rollen</CardTitle>
               <CardDescription>
@@ -374,7 +374,7 @@ export default function SettingsPage() {
             <CardContent>
               <div className="space-y-4">
                 {users.map((user) => (
-                  <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div key={user.id} className="flex items-center justify-between p-4 border border-white/20 dark:border-gray-700/30 backdrop-blur-sm bg-white/10 dark:bg-gray-900/10 hover:bg-white/20 dark:hover:bg-gray-800/20 transition-all duration-200 rounded-lg">
                     <div className="flex items-center gap-4">
                       {user.image ? (
                         <img 

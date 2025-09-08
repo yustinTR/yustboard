@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { format } from 'date-fns';
 import { FiCalendar, FiUser, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
-import ModernNavigation from '@/components/ModernNavigation';
+import ModernNavigation from '@/components/organisms/ModernNavigation';
 
 interface BlogPost {
   id: string;

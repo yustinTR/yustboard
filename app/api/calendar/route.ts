@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { parseISO } from 'date-fns';
-import { authOptions } from '@/lib/auth';
+import { authOptions } from '@/lib/auth/auth';
 import { 
   fetchGoogleCalendarEvents, 
   createGoogleCalendarEvent, 
   updateGoogleCalendarEvent, 
   deleteGoogleCalendarEvent,
   Task
-} from '@/utils/google-calendar';
+} from '@/utils/google/google-calendar';
 
 // Mock data for the test user
 const mockTasks = [
@@ -20,7 +20,7 @@ const mockTasks = [
 ];
 
 // Check if the user is using the test account
-function isTestUser(session: { accessToken?: string; user?: { email?: string } } | null) {
+function isTestUser(session: any): boolean { // eslint-disable-line @typescript-eslint/no-explicit-any
   return session?.accessToken === 'test-access-token' || session?.user?.email === 'test@example.com';
 }
 
@@ -29,12 +29,14 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions);
     
     // For debugging
-    console.log("Calendar API GET session:", {
-      isAuthenticated: !!session,
-      hasAccessToken: session?.accessToken ? true : false,
-      email: session?.user?.email,
-      isTestUser: isTestUser(session)
-    });
+    if (process.env.NODE_ENV === 'development') {
+      console.log("Calendar API GET session:", {
+        isAuthenticated: !!session,
+        hasAccessToken: session?.accessToken ? true : false,
+        email: session?.user?.email,
+        isTestUser: isTestUser(session)
+      });
+    }
     
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized - No session' }, { status: 401 });
@@ -42,7 +44,9 @@ export async function GET(req: NextRequest) {
     
     // If it's a test user or we have no access token, return mock data
     if (isTestUser(session) || !session.accessToken) {
-      console.log("Using mock data for calendar events");
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Using mock data for calendar events");
+      }
       return NextResponse.json(mockTasks);
     }
     

@@ -6,10 +6,10 @@ import { useSession } from 'next-auth/react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { FiArrowLeft, FiSave, FiEye, FiEyeOff, FiLoader } from 'react-icons/fi';
-import CoverImageSelector from '@/components/dashboard/CoverImageSelector';
+import CoverImageSelector from '@/components/organisms/CoverImageSelector';
 
 // Dynamically import the editor to avoid SSR issues
-const BlogEditor = dynamic(() => import('@/components/dashboard/BlogEditorCK'), {
+const BlogEditor = dynamic(() => import('@/components/organisms/BlogEditorCK'), {
   ssr: false,
   loading: () => (
     <div className="h-96 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">

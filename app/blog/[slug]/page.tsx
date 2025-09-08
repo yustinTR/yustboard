@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { format } from 'date-fns';
 import { FiCalendar, FiArrowLeft, FiEdit } from 'react-icons/fi';
 import { useSession } from 'next-auth/react';
-import ModernNavigation from '@/components/ModernNavigation';
+import ModernNavigation from '@/components/organisms/ModernNavigation';
 
 interface BlogPost {
   id: string;

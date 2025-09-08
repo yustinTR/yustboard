@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from "@/lib/auth"
+import { authOptions } from "@/lib/auth/auth"
 
 // NewsAPI.org - Free tier: 100 requests per day
 const NEWS_API_KEY = process.env.NEWS_API_KEY || ''

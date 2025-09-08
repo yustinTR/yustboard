@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getAuthenticatedSession } from '@/lib/auth-utils';
-import { fetchEmails, getEmailCounts } from '@/utils/google-gmail';
+import { getAuthenticatedSession } from '@/lib/auth/auth-utils';
+import { fetchEmails, getEmailCounts } from '@/utils/google/google-gmail';
 
 export async function GET(request: Request) {
   try {
@@ -21,10 +21,18 @@ export async function GET(request: Request) {
     
     // If countsOnly is true, return only email counts
     if (countsOnly) {
+      if (!session.accessToken) {
+        return NextResponse.json({ error: 'No access token available' }, { status: 401 });
+      }
       const counts = await getEmailCounts(session.accessToken);
       return NextResponse.json({ counts });
     }
     
+    // Check access token is available
+    if (!session.accessToken) {
+      return NextResponse.json({ error: 'No access token available' }, { status: 401 });
+    }
+
     // Fetch emails
     const result = await fetchEmails(
       session.accessToken,
@@ -43,8 +51,39 @@ export async function GET(request: Request) {
     }
     
     return NextResponse.json(result);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error in Gmail API route:', error);
+    
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    
+    // Handle Google API errors
+    if (error && typeof error === 'object' && 'response' in error && 
+        typeof error.response === 'object' && error.response) {
+      const response = error.response as { status: number; data?: { error?: string | { message?: string } } };
+      
+      if (response.status === 403) {
+        return NextResponse.json({ error: 'Insufficient permissions. Please re-authorize the app.' }, { status: 403 });
+      }
+      
+      if (response.status === 401 || response.status === 400) {
+        // Check for invalid_grant error specifically
+        if (response.data && (response.data.error === 'invalid_grant' || 
+            (typeof response.data.error === 'object' && response.data.error?.message === 'invalid_grant'))) {
+          console.log('invalid_grant error detected in Gmail list, token refresh failed');
+          return NextResponse.json({ error: 'Authentication expired. Please sign out and sign in again.' }, { status: 401 });
+        }
+        return NextResponse.json({ error: 'Authentication failed. Please sign in again.' }, { status: 401 });
+      }
+    }
+    
+    // Check for specific Google API error messages
+    if (errorMessage.includes('invalid_grant')) {
+      return NextResponse.json({ error: 'Authentication expired. Please sign out and sign in again.' }, { status: 401 });
+    }
+    
+    if (errorMessage.includes('insufficient_scope') || errorMessage.includes('access_denied')) {
+      return NextResponse.json({ error: 'Insufficient permissions. Please re-authorize the app.' }, { status: 403 });
+    }
     
     return NextResponse.json(
       { error: 'Failed to fetch emails' },

@@ -55,3 +55,6 @@ Thumbs.db
 
 # Blog uploads
 public/uploads/blog/
+
+*storybook.log
+storybook-static
