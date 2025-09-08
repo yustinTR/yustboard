@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import prisma from '@/lib/prisma';
+import { authOptions } from '@/lib/auth/auth';
+import prisma from '@/lib/database/prisma';
 import { google } from 'googleapis';
 
 export async function GET(request: NextRequest) {
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ results: [] });
     }
 
-    const results = [];
+    const results: any[] = [];
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
       select: { 
@@ -65,16 +65,17 @@ export async function GET(request: NextRequest) {
     // Search Google services if user has tokens
     const googleAccount = user.accounts[0];
     if (googleAccount?.access_token && googleAccount?.refresh_token) {
-      const auth = new google.auth.OAuth2(
-        process.env.GOOGLE_CLIENT_ID,
-        process.env.GOOGLE_CLIENT_SECRET,
-        process.env.GOOGLE_REDIRECT_URI
-      );
+      try {
+        const auth = new google.auth.OAuth2(
+          process.env.GOOGLE_CLIENT_ID,
+          process.env.GOOGLE_CLIENT_SECRET,
+          `${process.env.NEXTAUTH_URL}/api/auth/callback/google`
+        );
 
-      auth.setCredentials({
-        access_token: googleAccount.access_token,
-        refresh_token: googleAccount.refresh_token
-      });
+        auth.setCredentials({
+          access_token: googleAccount.access_token,
+          refresh_token: googleAccount.refresh_token
+        });
 
       // Search Gmail
       try {
@@ -165,6 +166,9 @@ export async function GET(request: NextRequest) {
         }
       } catch (error) {
         console.error('Drive search error:', error);
+      }
+      } catch (error) {
+        console.error('Google auth error:', error);
       }
     }
 

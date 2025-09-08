@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/atoms/button'
+import { Badge } from '@/components/atoms/badge'
 import { FiFileText, FiExternalLink, FiRefreshCw, FiCalendar, FiChevronLeft } from 'react-icons/fi'
 import { formatDistanceToNow } from 'date-fns'
 import { nl } from 'date-fns/locale'

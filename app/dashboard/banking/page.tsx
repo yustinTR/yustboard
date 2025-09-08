@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { FiFilter, FiArrowUp, FiArrowDown, FiRefreshCw } from 'react-icons/fi';
 import { format } from 'date-fns';
 import { useSession } from 'next-auth/react';
-import { Transaction } from '@/utils/gmail-transactions';
+import { Transaction } from '@/utils/google/gmail-transactions';
 
 // Mock accounts (would come from API in real app)
 const accounts = [

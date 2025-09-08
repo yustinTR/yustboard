@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getAuthenticatedSession } from '@/lib/auth-utils';
-import { fetchEmails, getEmailCounts } from '@/utils/google-gmail';
+import { getAuthenticatedSession } from '@/lib/auth/auth-utils';
+import { fetchEmails, getEmailCounts } from '@/utils/google/google-gmail';
 
 export async function GET(request: Request) {
   try {

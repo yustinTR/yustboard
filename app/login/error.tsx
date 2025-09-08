@@ -10,6 +10,8 @@ export default function ErrorPage() {
 
   const getErrorMessage = (error: string) => {
     switch (error) {
+      case 'RefreshAccessTokenError':
+        return 'Your session has expired and could not be refreshed. Please sign in again.';
       case 'OAuthSignin':
         return 'Error starting the OAuth sign-in flow.';
       case 'OAuthCallback':

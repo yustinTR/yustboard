@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withApiMiddleware, ApiContext } from '@/lib/api-middleware';
-import prisma from '@/lib/prisma';
+import { withApiMiddleware, ApiContext } from '@/lib/api/api-middleware';
+import prisma from '@/lib/database/prisma';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const GET = withApiMiddleware(async (request: NextRequest, context: ApiContext) => {

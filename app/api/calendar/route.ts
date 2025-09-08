@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { parseISO } from 'date-fns';
-import { authOptions } from '@/lib/auth';
+import { authOptions } from '@/lib/auth/auth';
 import { 
   fetchGoogleCalendarEvents, 
   createGoogleCalendarEvent, 
   updateGoogleCalendarEvent, 
   deleteGoogleCalendarEvent,
   Task
-} from '@/utils/google-calendar';
+} from '@/utils/google/google-calendar';
 
 // Mock data for the test user
 const mockTasks = [

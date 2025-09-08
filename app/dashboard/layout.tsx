@@ -3,10 +3,10 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
-import Sidebar from '@/components/dashboard/Sidebar';
-import Header from '@/components/dashboard/Header';
+import Sidebar from '@/components/organisms/Sidebar';
+import Header from '@/components/organisms/Header';
 import { SidebarProvider } from '@/contexts/SidebarContext';
-import { pollingManager } from '@/lib/polling-manager';
+import { pollingManager } from '@/lib/api/polling-manager';
 
 interface DashboardLayoutProps {
   children: ReactNode;

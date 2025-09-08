@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from "@/lib/auth"
+import { authOptions } from "@/lib/auth/auth"
 
 // OpenWeatherMap - Free tier: 1000 calls/day
 const WEATHER_API_KEY = process.env.OPENWEATHER_API_KEY || ''

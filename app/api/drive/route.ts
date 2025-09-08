@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from "@/lib/auth";
-import { fetchRecentFiles, fetchSharedFiles } from '@/utils/google-drive';
+import { authOptions } from "@/lib/auth/auth";
+import { fetchRecentFiles, fetchSharedFiles } from '@/utils/google/google-drive';
 
 export async function GET(request: Request) {
   try {

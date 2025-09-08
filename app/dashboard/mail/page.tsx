@@ -8,7 +8,7 @@ import {
   FiSearch, FiMail, FiMoreVertical, FiArrowLeft, FiClock,
   FiX
 } from 'react-icons/fi';
-import { EmailMessage } from '@/utils/google-gmail';
+import { EmailMessage } from '@/utils/google/google-gmail';
 
 const LABELS = [
   { id: 'inbox', name: 'Inbox', icon: FiInbox, color: 'text-blue-600' },

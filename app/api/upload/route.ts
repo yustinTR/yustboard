@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from "@/lib/auth";
-import { supabaseAdmin } from '@/lib/supabase';
+import { authOptions } from "@/lib/auth/auth";
+import { supabaseAdmin } from '@/lib/database/supabase';
 import { writeFile, readdir, stat, mkdir } from 'fs/promises';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';

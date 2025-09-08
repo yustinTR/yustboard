@@ -1,4 +1,4 @@
-import Timeline from '@/components/dashboard/timeline/Timeline';
+import Timeline from '@/components/organisms/timeline/Timeline';
 
 export default function TimelinePage() {
   return (
