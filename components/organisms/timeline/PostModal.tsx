@@ -479,5 +479,10 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
     </div>
   );
 
+  // Only render portal on client side
+  if (!mounted || typeof document === 'undefined') {
+    return null;
+  }
+
   return createPortal(modalContent, document.body);
 }
