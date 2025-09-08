@@ -3,13 +3,15 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import prisma from "@/lib/database/prisma";
+import { logger } from "@/lib/logger";
+import type { NextAuthOptions } from "next-auth";
 
 // Helper function to refresh Google access token
 async function refreshAccessToken(token: any) {
   try {
     // Check if we have a refresh token
     if (!token.refreshToken) {
-      console.error("No refresh token available");
+      logger.error("No refresh token available");
       throw new Error("No refresh token available");
     }
 
@@ -32,7 +34,7 @@ async function refreshAccessToken(token: any) {
     const refreshedTokens = await response.json();
 
     if (!response.ok) {
-      console.error("Token refresh failed:", {
+      logger.error("Token refresh failed:", {
         status: response.status,
         statusText: response.statusText,
         error: refreshedTokens
@@ -40,13 +42,13 @@ async function refreshAccessToken(token: any) {
       
       // If refresh token is invalid, we need to re-authenticate
       if (refreshedTokens.error === 'invalid_grant') {
-        console.error("Refresh token is invalid or expired. User needs to re-authenticate.");
+        logger.error("Refresh token is invalid or expired. User needs to re-authenticate.");
       }
       
       throw refreshedTokens;
     }
 
-    console.log("Token refresh successful");
+    logger.debug("Token refresh successful");
 
     // Update the token in the database
     if (token.userId) {
@@ -63,7 +65,7 @@ async function refreshAccessToken(token: any) {
           },
         });
       } catch (dbError) {
-        console.error("Failed to update tokens in database:", dbError);
+        logger.error("Failed to update tokens in database:", dbError as Error);
       }
     }
 
@@ -74,7 +76,7 @@ async function refreshAccessToken(token: any) {
       refreshToken: refreshedTokens.refresh_token ?? token.refreshToken, // Fall back to old refresh token
     };
   } catch (error) {
-    console.error("Error refreshing access token", error);
+    logger.error("Error refreshing access token", error as Error);
 
     // Return a token that will be invalidated
     return {
@@ -87,15 +89,15 @@ async function refreshAccessToken(token: any) {
   }
 }
 
-// For debugging purposes
-console.log("NextAuth Config:", {
+// Log configuration only in development
+logger.debug("NextAuth Config:", {
   googleId: process.env.GOOGLE_CLIENT_ID ? "Set" : "Not set",
   googleSecret: process.env.GOOGLE_CLIENT_SECRET ? "Set" : "Not set",
   nextAuthUrl: process.env.NEXTAUTH_URL,
   nextAuthSecret: process.env.NEXTAUTH_SECRET ? "Set" : "Not set",
 });
 
-export const authOptions = {
+export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
     GoogleProvider({
@@ -119,10 +121,9 @@ export const authOptions = {
       allowDangerousEmailAccountLinking: true,
     }),
   ],
-  trustHost: true,
   callbacks: {
     async signIn({ user, account, profile }: { user: any; account: any; profile?: any }) {
-      console.log("SignIn callback:", { 
+      logger.debug("SignIn callback:", { 
         user: user ? { id: user.id, name: user.name, email: user.email } : null,
         account: account ? { provider: account.provider, type: account.type } : null,
         profile: profile ? { email: profile.email } : null,
@@ -134,7 +135,7 @@ export const authOptions = {
     async jwt({ token, user, account, trigger, session }: { token: any; user?: any; account?: any; trigger?: any; session?: any }) {
       // Initial sign in
       if (account && user) {
-        console.log("JWT callback (initial sign in):", {
+        logger.debug("JWT callback (initial sign in):", {
           provider: account.provider,
           accessToken: account.access_token ? "Provided" : "Missing",
           refreshToken: account.refresh_token ? "Provided" : "Missing",
@@ -159,14 +160,14 @@ export const authOptions = {
 
       // Return previous token if the access token has not expired yet
       if (token.accessTokenExpires && Date.now() < token.accessTokenExpires) {
-        console.log("JWT callback: Using existing token (not expired)");
+        logger.debug("JWT callback: Using existing token (not expired)");
         return token;
       }
 
       // Token is expired, try to refresh it
-      console.log("JWT callback: Token expired, attempting refresh");
+      logger.debug("JWT callback: Token expired, attempting refresh");
       const refreshResult = await refreshAccessToken(token);
-      console.log("JWT callback: Refresh result:", { 
+      logger.debug("JWT callback: Refresh result:", { 
         hasError: !!refreshResult.error,
         error: refreshResult.error,
         hasAccessToken: !!refreshResult.accessToken 
@@ -176,7 +177,7 @@ export const authOptions = {
     async session({ session, token }: { session: any; token: any }) {
       // This is now always called with a token, not a user
       if (token) {
-        console.log("Session callback with token:", { 
+        logger.debug("Session callback with token:", { 
           userId: token.userId,
           accessToken: token.accessToken ? "Provided" : "Missing",
           error: token.error,
@@ -184,7 +185,7 @@ export const authOptions = {
 
         // Check if token refresh failed
         if (token.error === "RefreshAccessTokenError") {
-          console.log("Session callback: RefreshAccessTokenError detected, clearing session");
+          logger.debug("Session callback: RefreshAccessTokenError detected, clearing session");
           // Don't return null immediately - instead clear the session data 
           // and let the client handle the redirect
           session.error = "RefreshAccessTokenError";
@@ -206,7 +207,7 @@ export const authOptions = {
             });
             session.user.role = user?.role || 'USER';
           } catch (dbError) {
-            console.error("Failed to fetch user role:", dbError);
+            logger.error("Failed to fetch user role:", dbError as Error);
             session.user.role = 'USER';
           }
         }
@@ -228,13 +229,13 @@ export const authOptions = {
   },
   logger: {
     error(code: any, metadata: any) {
-      console.error(`NextAuth Error: ${code}`, metadata);
+      logger.error(`NextAuth Error: ${code}`, metadata);
     },
     warn(code: any) {
-      console.warn(`NextAuth Warning: ${code}`);
+      logger.warn(`NextAuth Warning: ${code}`, undefined);
     },
     debug(code: any, metadata: any) {
-      console.log(`NextAuth Debug: ${code}`, metadata);
+      logger.debug(`NextAuth Debug: ${code}`, metadata);
     },
   },
 };

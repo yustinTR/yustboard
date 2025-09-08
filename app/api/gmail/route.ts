@@ -21,10 +21,18 @@ export async function GET(request: Request) {
     
     // If countsOnly is true, return only email counts
     if (countsOnly) {
+      if (!session.accessToken) {
+        return NextResponse.json({ error: 'No access token available' }, { status: 401 });
+      }
       const counts = await getEmailCounts(session.accessToken);
       return NextResponse.json({ counts });
     }
     
+    // Check access token is available
+    if (!session.accessToken) {
+      return NextResponse.json({ error: 'No access token available' }, { status: 401 });
+    }
+
     // Fetch emails
     const result = await fetchEmails(
       session.accessToken,
