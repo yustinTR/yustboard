@@ -11,8 +11,35 @@ async function refreshAccessToken(token: any) {
   try {
     // Check if we have a refresh token
     if (!token.refreshToken) {
-      logger.error("No refresh token available");
-      throw new Error("No refresh token available");
+      logger.error("No refresh token available", { userId: token.userId });
+
+      // Try to fetch refresh token from database as fallback
+      if (token.userId) {
+        try {
+          const account = await prisma.account.findFirst({
+            where: {
+              userId: token.userId,
+              provider: "google",
+            },
+            select: {
+              refresh_token: true,
+            },
+          });
+
+          if (account?.refresh_token) {
+            logger.debug("Found refresh token in database");
+            token.refreshToken = account.refresh_token;
+          } else {
+            logger.error("No refresh token found in database either");
+            throw new Error("No refresh token available");
+          }
+        } catch (dbError) {
+          logger.error("Failed to fetch refresh token from database:", dbError as Error);
+          throw new Error("No refresh token available");
+        }
+      } else {
+        throw new Error("No refresh token available");
+      }
     }
 
     const url = "https://oauth2.googleapis.com/token";
@@ -142,7 +169,7 @@ export const authOptions: NextAuthOptions = {
           expiresAt: account.expires_at,
         });
 
-        
+
         return {
           ...token,
           accessToken: account.access_token,
@@ -158,6 +185,37 @@ export const authOptions: NextAuthOptions = {
         return { ...token, ...session };
       }
 
+      // If no refresh token in JWT token but we have userId, try to fetch from database
+      if (!token.refreshToken && token.userId) {
+        try {
+          const account = await prisma.account.findFirst({
+            where: {
+              userId: token.userId,
+              provider: "google",
+            },
+            select: {
+              refresh_token: true,
+              access_token: true,
+              expires_at: true,
+            },
+          });
+
+          if (account?.refresh_token) {
+            logger.debug("JWT callback: Found refresh token in database for existing session");
+            token.refreshToken = account.refresh_token;
+            // Also update access token and expiry if available
+            if (account.access_token) {
+              token.accessToken = account.access_token;
+            }
+            if (account.expires_at) {
+              token.accessTokenExpires = account.expires_at * 1000;
+            }
+          }
+        } catch (dbError) {
+          logger.error("JWT callback: Failed to fetch tokens from database:", dbError as Error);
+        }
+      }
+
       // Return previous token if the access token has not expired yet
       if (token.accessTokenExpires && Date.now() < token.accessTokenExpires) {
         logger.debug("JWT callback: Using existing token (not expired)");
@@ -167,10 +225,10 @@ export const authOptions: NextAuthOptions = {
       // Token is expired, try to refresh it
       logger.debug("JWT callback: Token expired, attempting refresh");
       const refreshResult = await refreshAccessToken(token);
-      logger.debug("JWT callback: Refresh result:", { 
+      logger.debug("JWT callback: Refresh result:", {
         hasError: !!refreshResult.error,
         error: refreshResult.error,
-        hasAccessToken: !!refreshResult.accessToken 
+        hasAccessToken: !!refreshResult.accessToken
       });
       return refreshResult;
     },

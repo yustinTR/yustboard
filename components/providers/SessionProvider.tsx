@@ -1,6 +1,6 @@
 'use client';
 
-import { SessionProvider as NextAuthSessionProvider, signOut } from 'next-auth/react';
+import { SessionProvider as NextAuthSessionProvider, signOut, useSession } from 'next-auth/react';
 import { ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -10,6 +10,18 @@ interface SessionProviderProps {
 
 function SessionWrapper({ children }: SessionProviderProps) {
   const router = useRouter();
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    // Check for refresh token errors in session
+    if (session && 'error' in session && session.error === 'RefreshAccessTokenError') {
+      console.log('Refresh token error detected, signing out user');
+      signOut({
+        callbackUrl: '/login?error=RefreshTokenExpired',
+        redirect: true
+      });
+    }
+  }, [session]);
 
   useEffect(() => {
     // Listen for session update events
@@ -32,17 +44,17 @@ function SessionWrapper({ children }: SessionProviderProps) {
         // Check if it's a fetch error related to authentication
         if (error.message && error.message.includes('401')) {
           console.log('Detected 401 error, possible token issue');
-          signOut({ 
+          signOut({
             callbackUrl: '/login?error=TokenExpired',
-            redirect: true 
+            redirect: true
           });
         }
         // Check for specific refresh token errors
-        if (error.message && error.message.includes('RefreshAccessTokenError')) {
+        if (error.message && (error.message.includes('RefreshAccessTokenError') || error.message.includes('No refresh token available'))) {
           console.log('Detected RefreshAccessTokenError in unhandled rejection');
-          signOut({ 
+          signOut({
             callbackUrl: '/login?error=RefreshAccessTokenError',
-            redirect: true 
+            redirect: true
           });
         }
       }
