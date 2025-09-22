@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { FiPlus, FiCalendar, FiClock, FiEdit, FiTrash2, FiLoader, FiX, FiList, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { format, parseISO, addHours, startOfDay, endOfDay, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
@@ -155,7 +155,7 @@ export default function AgendaPage() {
   });
 
   // Fetch tasks from Google Calendar
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -180,7 +180,7 @@ export default function AgendaPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentMonth]);
 
   // Create a new task
   const createTask = async () => {
@@ -371,7 +371,7 @@ export default function AgendaPage() {
     if (status === 'authenticated') {
       fetchTasks();
     }
-  }, [status, currentMonth]);
+  }, [status, fetchTasks]);
 
   // Make sure all tasks have Date objects before sorting
   const tasksWithDates = tasks.map(task => ensureTaskDates(task));

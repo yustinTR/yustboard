@@ -1,10 +1,9 @@
 import { google } from 'googleapis';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/auth';
+import { getServerSession } from '@/lib/auth/server';
 import prisma from '@/lib/database/prisma';
 
 export async function getGmailClient() {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession();
   
   if (!session?.user?.email) {
     throw new Error('Unauthorized');
@@ -12,7 +11,6 @@ export async function getGmailClient() {
 
   // Check if session has error (like RefreshAccessTokenError)
   if ((session as any).error) {
-    console.log('Session has error:', (session as any).error);
     throw new Error('Unauthorized');
   }
 
@@ -59,7 +57,7 @@ export async function getGmailClient() {
 
   // Set up automatic token refresh
   auth.on('tokens', async (tokens) => {
-    console.log('Gmail client received new tokens, updating database');
+    // Gmail client received new tokens, updating database
     if (tokens.access_token && googleAccount) {
       try {
         // Find the account first
@@ -82,7 +80,7 @@ export async function getGmailClient() {
         });
         }
       } catch (error) {
-        console.error('Failed to update access token in database:', error);
+        // Failed to update access token in database
       }
     }
   });

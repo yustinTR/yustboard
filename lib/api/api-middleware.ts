@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
+import { getServerSession } from '@/lib/auth/server';
 import { Session } from 'next-auth';
-import { authOptions } from '@/lib/auth/auth';
 import prisma from '@/lib/database/prisma';
 
 type UserRole = 'USER' | 'AUTHOR' | 'ADMIN';
@@ -79,7 +78,7 @@ export function withApiMiddleware(
       let user = null;
 
       if (requireAuth) {
-        session = await getServerSession(authOptions);
+        session = await getServerSession();
         
         if (!session?.user?.email) {
           return NextResponse.json(

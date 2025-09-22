@@ -52,7 +52,6 @@ export async function GET(request: Request) {
     
     return NextResponse.json(result);
   } catch (error: unknown) {
-    console.error('Error in Gmail API route:', error);
     
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     
@@ -69,7 +68,7 @@ export async function GET(request: Request) {
         // Check for invalid_grant error specifically
         if (response.data && (response.data.error === 'invalid_grant' || 
             (typeof response.data.error === 'object' && response.data.error?.message === 'invalid_grant'))) {
-          console.log('invalid_grant error detected in Gmail list, token refresh failed');
+          // invalid_grant error detected in Gmail list, token refresh failed
           return NextResponse.json({ error: 'Authentication expired. Please sign out and sign in again.' }, { status: 401 });
         }
         return NextResponse.json({ error: 'Authentication failed. Please sign in again.' }, { status: 401 });

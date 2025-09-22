@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import GithubProvider from "next-auth/providers/github";
-import GoogleProvider from "next-auth/providers/google";
+import GitHub from "next-auth/providers/github";
+import Google from "next-auth/providers/google";
 import prisma from "@/lib/database/prisma";
 import { logger } from "@/lib/logger";
-import type { NextAuthOptions } from "next-auth";
+import type { NextAuthConfig } from "next-auth";
 
 // Helper function to refresh Google access token
 async function refreshAccessToken(token: any) {
@@ -109,9 +109,9 @@ async function refreshAccessToken(token: any) {
     return {
       ...token,
       error: "RefreshAccessTokenError",
-      accessToken: null,
-      refreshToken: null,
-      accessTokenExpires: null,
+      accessToken: undefined,
+      refreshToken: undefined,
+      accessTokenExpires: undefined,
     };
   }
 }
@@ -124,10 +124,10 @@ logger.debug("NextAuth Config:", {
   nextAuthSecret: process.env.NEXTAUTH_SECRET ? "Set" : "Not set",
 });
 
-export const authOptions: NextAuthOptions = {
+export const authConfig: NextAuthConfig = {
   adapter: PrismaAdapter(prisma),
   providers: [
-    GoogleProvider({
+    Google({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
       authorization: {
@@ -140,14 +140,14 @@ export const authOptions: NextAuthOptions = {
       },
       allowDangerousEmailAccountLinking: true,
     }),
-    GithubProvider({
+    GitHub({
       clientId: process.env.GITHUB_ID || "",
       clientSecret: process.env.GITHUB_SECRET || "",
       allowDangerousEmailAccountLinking: true,
     }),
   ],
   callbacks: {
-    async signIn({ user, account, profile }: { user: any; account: any; profile?: any }) {
+    async signIn({ user, account, profile }) {
       logger.debug("SignIn callback:", { 
         user: user ? { id: user.id, name: user.name, email: user.email } : null,
         account: account ? { provider: account.provider, type: account.type } : null,
@@ -157,7 +157,7 @@ export const authOptions: NextAuthOptions = {
       // Allow sign in regardless of whether the account is already linked
       return true;
     },
-    async jwt({ token, user, account, trigger, session }: { token: any; user?: any; account?: any; trigger?: any; session?: any }) {
+    async jwt({ token, user, account, trigger, session }) {
       // Initial sign in
       if (account && user) {
         logger.debug("JWT callback (initial sign in):", {
@@ -215,7 +215,7 @@ export const authOptions: NextAuthOptions = {
       }
 
       // Return previous token if the access token has not expired yet
-      if (token.accessTokenExpires && Date.now() < token.accessTokenExpires) {
+      if (token.accessTokenExpires && typeof token.accessTokenExpires === 'number' && Date.now() < token.accessTokenExpires) {
         logger.debug("JWT callback: Using existing token (not expired)");
         return token;
       }
@@ -230,7 +230,7 @@ export const authOptions: NextAuthOptions = {
       });
       return refreshResult;
     },
-    async session({ session, token }: { session: any; token: any }) {
+    async session({ session, token }) {
       // This is now always called with a token, not a user
       if (token) {
         logger.debug("Session callback with token:", { 
@@ -242,17 +242,17 @@ export const authOptions: NextAuthOptions = {
         // Check if token refresh failed
         if (token.error === "RefreshAccessTokenError") {
           logger.debug("Session callback: RefreshAccessTokenError detected, clearing session");
-          // Don't return null immediately - instead clear the session data 
+          // Don't return null immediately - instead clear the session data
           // and let the client handle the redirect
           session.error = "RefreshAccessTokenError";
-          session.accessToken = null;
+          session.accessToken = undefined;
           return session;
         }
 
         // Add the access token and user ID to the session
-        session.accessToken = token.accessToken;
-        session.user.id = token.userId || token.sub;
-        session.error = null; // Clear any previous errors
+        session.accessToken = token.accessToken as string;
+        session.user.id = (token.userId || token.sub) as string;
+        session.error = undefined; // Clear any previous errors
         
         // Fetch user role from database
         if (session.user.id) {
@@ -283,15 +283,7 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
     updateAge: 24 * 60 * 60, // 24 hours
   },
-  logger: {
-    error(code: any, metadata: any) {
-      logger.error(`NextAuth Error: ${code}`, metadata);
-    },
-    warn(code: any) {
-      logger.warn(`NextAuth Warning: ${code}`, undefined);
-    },
-    debug(code: any, metadata: any) {
-      logger.debug(`NextAuth Debug: ${code}`, metadata);
-    },
-  },
 };
+
+// Backward compatibility export
+export const authOptions = authConfig;

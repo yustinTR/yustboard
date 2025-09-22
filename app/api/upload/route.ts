@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from "@/lib/auth/auth";
+import { getServerSession } from '@/lib/auth/server';
 import { supabaseAdmin } from '@/lib/database/supabase';
 import { writeFile, readdir, stat, mkdir } from 'fs/promises';
 import path from 'path';
@@ -12,7 +11,7 @@ const STORAGE_BUCKET = 'yustboard-images';
 // GET request to list uploaded files
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -100,7 +99,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -212,7 +211,7 @@ export async function POST(request: NextRequest) {
 // DELETE request to delete a file
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

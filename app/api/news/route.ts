@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from "@/lib/auth/auth"
+import { getServerSession } from '@/lib/auth/server'
 
 // NewsAPI.org - Free tier: 100 requests per day
 const NEWS_API_KEY = process.env.NEWS_API_KEY || ''
@@ -8,7 +7,7 @@ const NEWS_API_URL = 'https://newsapi.org/v2/top-headlines'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession()
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -19,14 +18,12 @@ export async function GET(request: NextRequest) {
     const page = searchParams.get('page') || '1'
     
     if (!NEWS_API_KEY) {
-      console.warn('NEWS_API_KEY not found. Please get a free API key from https://newsapi.org')
       return NextResponse.json({
         articles: [],
         message: 'News API key not configured. Get a free key at https://newsapi.org'
       })
     }
 
-    console.log('Fetching news with API key:', NEWS_API_KEY.substring(0, 8) + '...')
 
     // Fetch real news from NewsAPI
     const url = new URL(NEWS_API_URL)
@@ -45,23 +42,16 @@ export async function GET(request: NextRequest) {
 
     if (!response.ok) {
       const errorData = await response.json()
-      console.error('News API error:', errorData)
       throw new Error(`News API responded with status: ${response.status} - ${errorData.message || 'Unknown error'}`)
     }
 
     const data = await response.json()
     
-    console.log('News API response:', {
-      status: data.status,
-      totalResults: data.totalResults,
-      articlesCount: data.articles?.length || 0
-    })
     
     return NextResponse.json({
       articles: data.articles || []
     })
-  } catch (error) {
-    console.error('Error fetching news:', error)
+  } catch {
     return NextResponse.json(
       { error: 'Failed to fetch news' },
       { status: 500 }

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiArrowRight, FiGithub, FiLinkedin, FiTwitter, FiMail, FiPhone, FiMapPin, FiExternalLink, FiMenu, FiX } from 'react-icons/fi';
@@ -308,10 +309,13 @@ export default function LandingPage() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.6, delay: 0.2 }}
                   >
-                    <img
+                    <Image
                       src={about.image}
                       alt="Profile"
-                      className="rounded-lg shadow-xl"
+                      width={600}
+                      height={400}
+                      className="rounded-lg shadow-xl object-cover"
+                      unoptimized={true}
                     />
                   </motion.div>
                 )}
@@ -382,10 +386,13 @@ export default function LandingPage() {
                     className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
                   >
                     <div className="h-48 overflow-hidden">
-                      <img
+                      <Image
                         src={project.image}
                         alt={project.title}
+                        width={400}
+                        height={192}
                         className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                        unoptimized={true}
                       />
                     </div>
                     <div className="p-6">

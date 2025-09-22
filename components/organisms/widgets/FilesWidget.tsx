@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FiFile, FiRefreshCw, FiExternalLink, FiClock } from 'react-icons/fi';
 import { useSession } from 'next-auth/react';
 import { DriveFile } from '@/utils/google/google-drive';
@@ -63,7 +63,7 @@ const FilesWidget = React.memo(function FilesWidget({ initialFiles = [], maxFile
     return 'File';
   };
 
-  const fetchFiles = async () => {
+  const fetchFiles = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -130,13 +130,13 @@ const FilesWidget = React.memo(function FilesWidget({ initialFiles = [], maxFile
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [maxFiles]);
 
   useEffect(() => {
     if (session?.accessToken && files.length === 0) {
       fetchFiles();
     }
-  }, [session, files.length, maxFiles]);
+  }, [session?.accessToken, files.length, fetchFiles]);
 
   return (
     <div className="backdrop-blur-md bg-white/10 dark:bg-gray-900/10 border border-white/20 dark:border-gray-700/30 rounded-xl shadow-xl shadow-black/10 overflow-hidden">

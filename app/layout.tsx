@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import "./globals.css";
 import SessionProvider from "@/components/providers/SessionProvider";
+import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Toaster } from 'sonner';
 
 const roboto = Roboto({
@@ -28,8 +30,10 @@ export default function RootLayout({
       >
         <SessionProvider>
           {children}
-          <Toaster 
-            position="bottom-left" 
+          <Analytics />
+          <SpeedInsights />
+          <Toaster
+            position="bottom-left"
             toastOptions={{
               className: 'shadow-2',
               style: {

@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
+import Image from 'next/image'
 import { Button } from '@/components/atoms/button'
 import { Badge } from '@/components/atoms/badge'
 import { FiFileText, FiExternalLink, FiRefreshCw, FiCalendar, FiChevronLeft } from 'react-icons/fi'
@@ -50,7 +51,7 @@ export default function NewsPage() {
     { value: 'au', label: '🇦🇺 Australië' }
   ]
 
-  const fetchNews = async (pageNum = 1) => {
+  const fetchNews = useCallback(async (pageNum = 1) => {
     setLoading(true)
     setError(null)
     
@@ -70,12 +71,12 @@ export default function NewsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [selectedCategory, selectedCountry])
 
   useEffect(() => {
     setPage(1)
     fetchNews(1)
-  }, [selectedCategory, selectedCountry])
+  }, [selectedCategory, selectedCountry, fetchNews])
 
   const loadMore = () => {
     const nextPage = page + 1
@@ -165,10 +166,13 @@ export default function NewsPage() {
         {articles.map((article, index) => (
           <article key={index} className="bg-card rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition-all transition-colors">
             {article.urlToImage && (
-              <img 
-                src={article.urlToImage} 
+              <Image
+                src={article.urlToImage}
                 alt={article.title}
+                width={400}
+                height={192}
                 className="w-full h-48 object-cover"
+                unoptimized={true}
               />
             )}
             

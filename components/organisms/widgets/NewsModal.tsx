@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import Image from 'next/image';
 import { FiX, FiExternalLink, FiCalendar, FiFileText, FiShare2, FiBookmark } from 'react-icons/fi';
 import { formatDistanceToNow } from 'date-fns';
 import { nl } from 'date-fns/locale';
@@ -147,10 +148,13 @@ export default function NewsModal({ article, isOpen, onClose }: NewsModalProps) 
           {/* Article image */}
           {article.urlToImage && (
             <div className="relative h-64 overflow-hidden">
-              <img
+              <Image
                 src={article.urlToImage}
                 alt={article.title}
+                width={800}
+                height={256}
                 className="w-full h-full object-cover"
+                unoptimized={true}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
             </div>

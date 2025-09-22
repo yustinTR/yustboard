@@ -50,7 +50,6 @@ export async function getGmailClient(accessToken: string) {
     throw new Error("Access token is required for Gmail API");
   }
   
-  console.log("Initializing Gmail client with access token");
   const auth = new google.auth.OAuth2();
   auth.setCredentials({ access_token: accessToken });
   return google.gmail({ version: 'v1', auth });
@@ -207,7 +206,6 @@ export async function fetchGmailLabels(accessToken: string) {
     
     return response.data.labels || [];
   } catch (error) {
-    console.error('Error fetching Gmail labels:', error);
     throw error;
   }
 }
@@ -220,7 +218,6 @@ export async function fetchEmails(
   pageToken?: string
 ): Promise<{ emails: EmailMessage[]; nextPageToken?: string }> {
   try {
-    console.log(`Fetching emails with query: ${query}`);
     const gmail = await getGmailClient(accessToken);
     
     // First, list message IDs based on the query
@@ -232,7 +229,6 @@ export async function fetchEmails(
     });
     
     const messageIds = messagesResponse.data.messages || [];
-    console.log(`Found ${messageIds.length} messages`);
     
     if (messageIds.length === 0) {
       return { emails: [] };
@@ -259,13 +255,6 @@ export async function fetchEmails(
       nextPageToken: messagesResponse.data.nextPageToken || undefined,
     };
   } catch (error) {
-    console.error('Error fetching emails:', error);
-    
-    // Show more detailed error information
-    if (error instanceof Error) {
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
-    }
     
     // Return empty array rather than failing completely
     return { emails: [] };
@@ -278,7 +267,6 @@ export async function fetchEmailById(
   messageId: string
 ): Promise<EmailMessage | null> {
   try {
-    console.log(`Fetching email with ID: ${messageId}`);
     const gmail = await getGmailClient(accessToken);
     
     const messageResponse = await gmail.users.messages.get({
@@ -289,7 +277,6 @@ export async function fetchEmailById(
     
     return convertGmailMessageToEmail(messageResponse.data as GmailMessage);
   } catch (error) {
-    console.error(`Error fetching email ${messageId}:`, error);
     return null;
   }
 }

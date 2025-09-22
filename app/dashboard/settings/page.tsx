@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
+import Image from 'next/image'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/molecules/card'
 import { Button } from '@/components/atoms/button'
 import { Switch } from '@/components/atoms/switch'
@@ -73,11 +74,7 @@ export default function SettingsPage() {
   const [updatingUser, setUpdatingUser] = useState<string | null>(null)
   const isAdmin = session?.user?.role === 'ADMIN'
 
-  useEffect(() => {
-    fetchSettings()
-  }, [session])
-
-  const fetchSettings = async () => {
+  const fetchSettings = useCallback(async () => {
     if (!session) return
     
     try {
@@ -109,7 +106,11 @@ export default function SettingsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [session, isAdmin])
+
+  useEffect(() => {
+    fetchSettings()
+  }, [fetchSettings])
 
   const handleWidgetToggle = (widgetId: string) => {
     setWidgets(prev => 
@@ -377,20 +378,22 @@ export default function SettingsPage() {
                   <div key={user.id} className="flex items-center justify-between p-4 border border-white/20 dark:border-gray-700/30 backdrop-blur-sm bg-white/10 dark:bg-gray-900/10 hover:bg-white/20 dark:hover:bg-gray-800/20 transition-all duration-200 rounded-lg">
                     <div className="flex items-center gap-4">
                       {user.image ? (
-                        <img 
-                          src={user.image} 
-                          alt={user.name || user.email} 
-                          className="h-10 w-10 rounded-full"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                            target.nextElementSibling?.classList.remove('hidden');
+                        <Image
+                          src={user.image}
+                          alt={user.name || user.email}
+                          width={40}
+                          height={40}
+                          className="h-10 w-10 rounded-full object-cover"
+                          unoptimized={true}
+                          onError={() => {
+                            // Image will be hidden on error and fallback will show
                           }}
                         />
-                      ) : null}
-                      <div className={`h-10 w-10 rounded-full bg-muted flex items-center justify-center ${user.image ? 'hidden' : ''}`}>
-                        <FiUser className="h-5 w-5 text-muted-foreground" />
-                      </div>
+                      ) : (
+                        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                          <FiUser className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                      )}
                       
                       <div>
                         <div className="font-medium">{user.name || 'Geen naam'}</div>

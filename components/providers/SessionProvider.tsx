@@ -10,12 +10,11 @@ interface SessionProviderProps {
 
 function SessionWrapper({ children }: SessionProviderProps) {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
 
   useEffect(() => {
     // Check for refresh token errors in session
     if (session && 'error' in session && session.error === 'RefreshAccessTokenError') {
-      console.log('Refresh token error detected, signing out user');
       signOut({
         callbackUrl: '/login?error=RefreshTokenExpired',
         redirect: true
@@ -28,10 +27,8 @@ function SessionWrapper({ children }: SessionProviderProps) {
     const handleStorageChange = (e: StorageEvent) => {
       // Check if NextAuth session was cleared externally or if there are errors
       if (e.key?.startsWith('next-auth.') || e.key === 'next-auth.session-token') {
-        console.log('NextAuth storage change detected:', e);
         // Force a page reload to re-evaluate session
         if (!e.newValue && e.oldValue) {
-          console.log('Session token was removed, redirecting to login');
           window.location.href = '/login?error=SessionExpired';
         }
       }
@@ -43,7 +40,6 @@ function SessionWrapper({ children }: SessionProviderProps) {
       if (error && typeof error === 'object') {
         // Check if it's a fetch error related to authentication
         if (error.message && error.message.includes('401')) {
-          console.log('Detected 401 error, possible token issue');
           signOut({
             callbackUrl: '/login?error=TokenExpired',
             redirect: true
@@ -51,7 +47,6 @@ function SessionWrapper({ children }: SessionProviderProps) {
         }
         // Check for specific refresh token errors
         if (error.message && (error.message.includes('RefreshAccessTokenError') || error.message.includes('No refresh token available'))) {
-          console.log('Detected RefreshAccessTokenError in unhandled rejection');
           signOut({
             callbackUrl: '/login?error=RefreshAccessTokenError',
             redirect: true

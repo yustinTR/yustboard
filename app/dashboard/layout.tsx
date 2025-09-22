@@ -20,26 +20,21 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   // Use useEffect to handle the redirect instead of doing it during render
   useEffect(() => {
-    console.log('Dashboard layout - session state:', { status, session, error: session?.error });
-    
     if (status === 'unauthenticated') {
-      console.log('Status is unauthenticated, redirecting to login');
       router.push('/login');
     }
     // Also redirect if there's a refresh token error
     if (status === 'authenticated' && session?.error === 'RefreshAccessTokenError') {
-      console.log('Session has RefreshAccessTokenError, signing out and redirecting to login');
-      signOut({ 
+      signOut({
         callbackUrl: '/login?error=RefreshAccessTokenError',
-        redirect: true 
+        redirect: true
       });
     }
     // Check if we have a session but no user or accessToken (might indicate an error)
     if (status === 'authenticated' && session && (!session.user || !session.accessToken)) {
-      console.log('Session exists but missing user or accessToken, potential error state');
-      signOut({ 
+      signOut({
         callbackUrl: '/login?error=SessionInvalid',
-        redirect: true 
+        redirect: true
       });
     }
   }, [status, session, router]);
@@ -67,10 +62,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       
       // Set a 10-second timeout for loading
       const timeout = setTimeout(() => {
-        console.log('Loading timeout reached, forcing logout');
-        signOut({ 
+        signOut({
           callbackUrl: '/login?error=LoadingTimeout',
-          redirect: true 
+          redirect: true
         });
       }, 10000);
       
