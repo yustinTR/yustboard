@@ -135,9 +135,7 @@ export const authOptions: NextAuthOptions = {
           scope: "openid email profile https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.metadata.readonly https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/fitness.activity.read https://www.googleapis.com/auth/fitness.body.read",
           prompt: "consent",
           access_type: "offline",
-          response_type: "code",
-          // Force refresh token on every login
-          approval_prompt: "force"
+          response_type: "code"
         }
       },
       allowDangerousEmailAccountLinking: true,
