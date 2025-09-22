@@ -150,7 +150,9 @@ export function usePolling(
 ) {
   const { enabled = true, priority = 'medium', runImmediately = true } = options || {};
 
-  const stableCallback = useCallback(callback, []);
+  const stableCallback = useCallback(() => {
+    callback();
+  }, [callback]);
 
   useEffect(() => {
     if (!enabled) return;

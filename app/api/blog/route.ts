@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth/auth';
+import { getServerSession } from '@/lib/auth/server';
 import prisma from '@/lib/database/prisma';
 
 // GET all published blog posts (public) or all posts (for authors/admins)
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '10');
     const page = parseInt(searchParams.get('page') || '1');
@@ -84,7 +83,7 @@ export async function GET(request: NextRequest) {
 // POST create new blog post (authors/admins only)
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
     
     if (!session?.user) {
       return NextResponse.json(

@@ -322,11 +322,14 @@ export default function PostWithInteractions({ post, onUpdate }: PostProps) {
               {post.media.map((media) => (
                 <div key={media.id}>
                   {media.type === 'image' ? (
-                    <img
+                    <Image
                       src={media.url}
                       alt={media.filename}
-                      className="rounded-xl max-w-full cursor-pointer hover:opacity-90 transition-opacity shadow-sm"
+                      width={800}
+                      height={600}
+                      className="rounded-xl max-w-full h-auto cursor-pointer hover:opacity-90 transition-opacity shadow-sm object-contain"
                       onClick={() => setSelectedImage(media.url)}
+                      unoptimized={true}
                     />
                   ) : (
                     <a
@@ -469,10 +472,13 @@ export default function PostWithInteractions({ post, onUpdate }: PostProps) {
             >
               <FiX className="w-6 h-6" />
             </button>
-            <img
+            <Image
               src={selectedImage}
               alt="Full size"
-              className="max-w-full max-h-full rounded-lg"
+              width={1200}
+              height={800}
+              className="max-w-full max-h-full rounded-lg object-contain"
+              unoptimized={true}
             />
           </div>
         </div>

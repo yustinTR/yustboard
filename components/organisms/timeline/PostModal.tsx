@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
@@ -70,6 +70,21 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
   const [isDeleting, setIsDeleting] = useState(false);
   const [showActions, setShowActions] = useState(false);
 
+  const loadComments = useCallback(async () => {
+    setIsLoadingComments(true);
+    try {
+      const response = await fetch(`/api/timeline/${post.id}/comments`);
+      if (response.ok) {
+        const data = await response.json();
+        setComments(data.comments);
+      }
+    } catch (error) {
+      console.error('Error loading comments:', error);
+    } finally {
+      setIsLoadingComments(false);
+    }
+  }, [post.id]);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -86,7 +101,7 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen]);
+  }, [isOpen, loadComments]);
 
   // Close actions menu when clicking outside
   useEffect(() => {
@@ -105,21 +120,6 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
       };
     }
   }, [showActions]);
-
-  const loadComments = async () => {
-    setIsLoadingComments(true);
-    try {
-      const response = await fetch(`/api/timeline/${post.id}/comments`);
-      if (response.ok) {
-        const data = await response.json();
-        setComments(data.comments);
-      }
-    } catch (error) {
-      console.error('Error loading comments:', error);
-    } finally {
-      setIsLoadingComments(false);
-    }
-  };
 
   const handleLike = async () => {
     try {
@@ -347,10 +347,13 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
               {post.media.map((media) => (
                 <div key={media.id}>
                   {media.type === 'image' ? (
-                    <img
+                    <Image
                       src={media.url}
                       alt={media.filename}
-                      className="rounded-lg max-w-full"
+                      width={800}
+                      height={600}
+                      className="rounded-lg max-w-full h-auto object-contain"
+                      unoptimized={true}
                     />
                   ) : (
                     <a

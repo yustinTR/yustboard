@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/molecules/card'
 import { Button } from '@/components/atoms/button'
 import { Badge } from '@/components/atoms/badge'
@@ -119,10 +120,13 @@ export default function AdminPage() {
               <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="flex items-center gap-4">
                   {user.image ? (
-                    <img 
-                      src={user.image} 
-                      alt={user.name || user.email} 
-                      className="h-10 w-10 rounded-full"
+                    <Image
+                      src={user.image}
+                      alt={user.name || user.email}
+                      width={40}
+                      height={40}
+                      className="h-10 w-10 rounded-full object-cover"
+                      unoptimized={true}
                     />
                   ) : (
                     <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">

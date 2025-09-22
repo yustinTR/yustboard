@@ -1,12 +1,11 @@
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from "@/lib/auth/auth";
+import { getServerSession } from '@/lib/auth/server';
 import { fetchTransactionsFromGmail, getTransactionStats } from '@/utils/google/gmail-transactions';
-import { ApiResponse, withErrorHandler } from '@/lib/api/response-helpers';
+import { ApiResponse } from '@/lib/api/response-helpers';
 
 export async function GET(request: Request) {
   try {
   // Get the user's session
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession();
 
   if (!session?.accessToken) {
     return ApiResponse.unauthorized('No access token available');

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
+import { getServerSession } from '@/lib/auth/server';
 import { parseISO } from 'date-fns';
-import { authOptions } from '@/lib/auth/auth';
 import { 
   fetchGoogleCalendarEvents, 
   createGoogleCalendarEvent, 
@@ -26,7 +25,7 @@ function isTestUser(session: any): boolean { // eslint-disable-line @typescript-
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
     
     
     if (!session) {
@@ -52,14 +51,14 @@ export async function GET(req: NextRequest) {
     
     const events = await fetchGoogleCalendarEvents(session.accessToken, timeMin, timeMax);
     return NextResponse.json(events);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch calendar events' }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
     
     
     if (!session) {
@@ -89,14 +88,14 @@ export async function POST(req: NextRequest) {
     }
     
     return NextResponse.json(createdEvent);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to create calendar event' }, { status: 500 });
   }
 }
 
 export async function PUT(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
     
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized - No session' }, { status: 401 });
@@ -125,14 +124,14 @@ export async function PUT(req: NextRequest) {
     }
     
     return NextResponse.json(updatedEvent);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to update calendar event' }, { status: 500 });
   }
 }
 
 export async function DELETE(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
     
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized - No session' }, { status: 401 });
@@ -157,7 +156,7 @@ export async function DELETE(req: NextRequest) {
     }
     
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to delete calendar event' }, { status: 500 });
   }
 }

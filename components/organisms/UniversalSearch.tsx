@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { FiSearch, FiMail, FiCalendar, FiFileText, FiFolder, FiX } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -24,6 +24,30 @@ export default function UniversalSearch() {
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const { data: session } = useSession();
+
+  const handleResultClick = useCallback((result: SearchResult) => {
+    setIsOpen(false);
+    setQuery('');
+    setResults([]);
+
+    // Navigate based on result type
+    switch (result.type) {
+      case 'email':
+        router.push(`/dashboard/mail?id=${result.id}`);
+        break;
+      case 'calendar':
+        router.push(`/dashboard/agenda?event=${result.id}`);
+        break;
+      case 'blog':
+        router.push(result.url || `/blog/${result.id}`);
+        break;
+      case 'file':
+        if (result.url) {
+          window.open(result.url, '_blank');
+        }
+        break;
+    }
+  }, [router]);
 
   // Close search when clicking outside
   useEffect(() => {
@@ -75,7 +99,7 @@ export default function UniversalSearch() {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, results, selectedIndex]);
+  }, [isOpen, results, selectedIndex, handleResultClick]);
 
   // Debounced search
   useEffect(() => {
@@ -106,30 +130,6 @@ export default function UniversalSearch() {
 
     return () => clearTimeout(searchTimer);
   }, [query]);
-
-  const handleResultClick = (result: SearchResult) => {
-    setIsOpen(false);
-    setQuery('');
-    setResults([]);
-
-    // Navigate based on result type
-    switch (result.type) {
-      case 'email':
-        router.push(`/dashboard/mail?id=${result.id}`);
-        break;
-      case 'calendar':
-        router.push(`/dashboard/agenda?event=${result.id}`);
-        break;
-      case 'blog':
-        router.push(result.url || `/blog/${result.id}`);
-        break;
-      case 'file':
-        if (result.url) {
-          window.open(result.url, '_blank');
-        }
-        break;
-    }
-  };
 
   const getIcon = (type: SearchResult['type']) => {
     switch (type) {

@@ -441,7 +441,7 @@ function MailPageContent() {
     if (session?.accessToken) {
       fetchEmails(selectedLabel, searchQuery);
     }
-  }, [session?.accessToken, selectedLabel]);
+  }, [session?.accessToken, selectedLabel, searchQuery, fetchEmails]);
 
   // Handle URL email parameter
   useEffect(() => {

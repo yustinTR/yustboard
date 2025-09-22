@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { FiArrowUp, FiArrowDown, FiRefreshCw } from 'react-icons/fi';
 import { format } from 'date-fns';
 import { useSession } from 'next-auth/react';
@@ -18,7 +18,7 @@ const BankingWidget = React.memo(function BankingWidget({ initialTransactions = 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     if (!session?.accessToken) return;
     
     setIsLoading(true);
@@ -51,13 +51,13 @@ const BankingWidget = React.memo(function BankingWidget({ initialTransactions = 
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [session?.accessToken, initialTransactions, initialBalance]);
 
   useEffect(() => {
     if (session?.accessToken) {
       fetchTransactions();
     }
-  }, [session]);
+  }, [session?.accessToken, fetchTransactions]);
 
   // Sort and limit transactions for display
   const recentTransactions = transactions

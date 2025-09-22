@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { FiTwitter, FiInstagram, FiMessageCircle, FiHeart, FiShare2, FiRefreshCw } from 'react-icons/fi';
 
 // Mock social media posts (would come from API in real app)
@@ -131,10 +132,13 @@ export default function SocialPage() {
           <div key={post.id} className="bg-white rounded-lg shadow-sm overflow-hidden">
             <div className="p-4">
               <div className="flex items-start">
-                <img 
-                  src={post.author.avatar} 
-                  alt={post.author.name} 
-                  className="w-10 h-10 rounded-full mr-3"
+                <Image
+                  src={post.author.avatar}
+                  alt={post.author.name}
+                  width={40}
+                  height={40}
+                  className="w-10 h-10 rounded-full mr-3 object-cover"
+                  unoptimized={true}
                 />
                 <div className="flex-1">
                   <div className="flex items-center">
@@ -146,7 +150,14 @@ export default function SocialPage() {
                   <p className="mt-2 text-gray-700 dark:text-gray-300">{post.content}</p>
                   {post.image && (
                     <div className="mt-3 rounded-lg overflow-hidden">
-                      <img src={post.image} alt="Post" className="w-full h-auto" />
+                      <Image
+                        src={post.image}
+                        alt="Post"
+                        width={600}
+                        height={400}
+                        className="w-full h-auto object-cover"
+                        unoptimized={true}
+                      />
                     </div>
                   )}
                   <div className="mt-4 flex items-center text-gray-500 dark:text-gray-400">

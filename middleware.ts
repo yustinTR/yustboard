@@ -1,26 +1,25 @@
-import { withAuth } from "next-auth/middleware";
+import { auth } from "@/lib/auth/server";
 import { NextResponse } from "next/server";
 
-export default withAuth(
-  function middleware(req) {
-    // Check if the session has a refresh error
-    const token = req.nextauth.token;
-    
-    if (token?.error === "RefreshAccessTokenError") {
-      // Redirect to sign in page if refresh failed
-      const signInUrl = new URL("/login", req.url);
-      signInUrl.searchParams.set("error", "RefreshAccessTokenError");
-      return NextResponse.redirect(signInUrl);
-    }
-    
-    return NextResponse.next();
-  },
-  {
-    callbacks: {
-      authorized: ({ token }) => !!token,
-    },
+export default auth((req) => {
+  // Check if the session has a refresh error
+  const token = req.auth;
+
+  if (!token) {
+    // Redirect to sign in page if not authenticated
+    const signInUrl = new URL("/login", req.url);
+    return NextResponse.redirect(signInUrl);
   }
-);
+
+  if (token?.error === "RefreshAccessTokenError") {
+    // Redirect to sign in page if refresh failed
+    const signInUrl = new URL("/login", req.url);
+    signInUrl.searchParams.set("error", "RefreshAccessTokenError");
+    return NextResponse.redirect(signInUrl);
+  }
+
+  return NextResponse.next();
+});
 
 export const config = {
   matcher: [

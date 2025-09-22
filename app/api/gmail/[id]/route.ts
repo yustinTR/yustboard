@@ -65,9 +65,8 @@ export async function GET(
             removeLabelIds: ['UNREAD'],
           },
         });
-      } catch (modifyError: unknown) {
-        // If we can't modify, just log it but don't fail the whole request
-        const errorMessage = modifyError instanceof Error ? modifyError.message : 'Unknown error';
+      } catch {
+        // If we can't modify, just ignore it but don't fail the whole request
         // Cannot mark email as read - insufficient permissions
       }
     }

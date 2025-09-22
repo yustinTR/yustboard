@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
+import Image from 'next/image'
 import { FiFileText, FiExternalLink, FiRefreshCw, FiCalendar } from 'react-icons/fi'
 import { formatDistanceToNow } from 'date-fns'
 import { nl } from 'date-fns/locale'
@@ -51,7 +52,7 @@ const NewsWidget = React.memo(function NewsWidget() {
     { value: 'de', label: '🇩🇪 DE' }
   ]
 
-  const fetchNews = async () => {
+  const fetchNews = useCallback(async () => {
     setLoading(true)
     setError(null)
     
@@ -67,11 +68,11 @@ const NewsWidget = React.memo(function NewsWidget() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [selectedCategory, selectedCountry])
 
   useEffect(() => {
     fetchNews()
-  }, [selectedCategory, selectedCountry])
+  }, [fetchNews])
 
   return (
     <div className="h-[600px] backdrop-blur-md bg-white/10 dark:bg-gray-900/10 border border-white/20 dark:border-gray-700/30 rounded-xl shadow-xl shadow-black/10 overflow-hidden flex flex-col">
@@ -164,10 +165,13 @@ const NewsWidget = React.memo(function NewsWidget() {
             onClick={() => setSelectedArticle(article)}
           >
             {article.urlToImage && (
-              <img 
-                src={article.urlToImage} 
+              <Image
+                src={article.urlToImage}
                 alt={article.title}
+                width={400}
+                height={128}
                 className="w-full h-32 object-cover rounded-md"
+                unoptimized={true}
               />
             )}
             

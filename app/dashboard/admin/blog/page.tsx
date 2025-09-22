@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -29,18 +29,7 @@ export default function BlogCMSPage() {
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (status === 'loading') return;
-    
-    if (!session?.user || (session.user.role !== 'AUTHOR' && session.user.role !== 'ADMIN')) {
-      router.push('/dashboard');
-      return;
-    }
-
-    fetchPosts();
-  }, [session, status, router]);
-
-  const fetchPosts = async () => {
+  const fetchPosts = useCallback(async () => {
     try {
       setLoading(true);
       const url = session?.user?.role === 'AUTHOR' 
@@ -61,7 +50,18 @@ export default function BlogCMSPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [session?.user?.role]);
+
+  useEffect(() => {
+    if (status === 'loading') return;
+
+    if (!session?.user || (session.user.role !== 'AUTHOR' && session.user.role !== 'ADMIN')) {
+      router.push('/dashboard');
+      return;
+    }
+
+    fetchPosts();
+  }, [session, status, router, fetchPosts]);
 
   const handleDelete = async (slug: string, id: string) => {
     if (!confirm('Are you sure you want to delete this blog post?')) {

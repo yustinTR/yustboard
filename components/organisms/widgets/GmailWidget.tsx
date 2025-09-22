@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   FiStar, FiRefreshCw, FiChevronRight, 
   FiPaperclip, FiSearch
@@ -68,7 +68,7 @@ const GmailWidget = React.memo(function GmailWidget({ initialEmails = [], maxEma
   };
 
   // Fetch emails from Gmail
-  const fetchGmailEmails = async () => {
+  const fetchGmailEmails = useCallback(async () => {
     setIsLoading(true);
     setError('');
     
@@ -155,7 +155,7 @@ const GmailWidget = React.memo(function GmailWidget({ initialEmails = [], maxEma
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [maxEmails, searchQuery]);
 
   // Handle search
   const handleSearch = (e: React.FormEvent) => {
@@ -167,7 +167,7 @@ const GmailWidget = React.memo(function GmailWidget({ initialEmails = [], maxEma
     if (session?.accessToken && emails.length === 0) {
       fetchGmailEmails();
     }
-  }, [session, emails.length, maxEmails]);
+  }, [session?.accessToken, emails.length, fetchGmailEmails]);
 
   return (
     <div className="backdrop-blur-md bg-white/10 dark:bg-gray-900/10 border border-white/20 dark:border-gray-700/30 rounded-xl shadow-xl shadow-black/10 overflow-hidden">

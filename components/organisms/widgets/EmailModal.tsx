@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { FiX, FiStar, FiDownload, FiExternalLink, FiMail, FiCalendar, FiCornerUpLeft, FiCornerUpRight } from 'react-icons/fi';
 import { EmailMessage } from '@/utils/google/google-gmail';
@@ -23,13 +23,38 @@ function EmailModal({ emailId, isOpen, onClose }: EmailModalProps) {
   const [error, setError] = useState<string | null>(null);
   const [isStarred, setIsStarred] = useState(false);
 
+  const fetchEmailDetails = useCallback(async () => {
+    if (!emailId) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/gmail/${emailId}`);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Failed to fetch email: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      setEmail(data.email);
+      setIsStarred(data.email.isStarred);
+    } catch (error) {
+      console.error('Error fetching email details:', error);
+      setError(error instanceof Error ? error.message : 'Failed to load email');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [emailId]);
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
   useEffect(() => {
     if (!mounted) return;
-    
+
     if (isOpen && emailId) {
       fetchEmailDetails();
       // Prevent body scroll when modal is open
@@ -43,32 +68,7 @@ function EmailModal({ emailId, isOpen, onClose }: EmailModalProps) {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen, emailId, mounted]);
-
-  const fetchEmailDetails = async () => {
-    if (!emailId) return;
-    
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch(`/api/gmail/${emailId}`);
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Failed to fetch email: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      setEmail(data.email);
-      setIsStarred(data.email.isStarred);
-    } catch (error) {
-      console.error('Error fetching email details:', error);
-      setError(error instanceof Error ? error.message : 'Failed to load email');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  }, [isOpen, emailId, mounted, fetchEmailDetails]);
 
   const handleStar = async () => {
     if (!email) return;

@@ -1,10 +1,9 @@
 import { google } from 'googleapis';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/auth';
+import { getServerSession } from '@/lib/auth/server';
 import prisma from '@/lib/database/prisma';
 
 export async function getGmailClient() {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession();
   
   if (!session?.user?.email) {
     throw new Error('Unauthorized');

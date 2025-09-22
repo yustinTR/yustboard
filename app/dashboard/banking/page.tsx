@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { FiFilter, FiArrowUp, FiArrowDown, FiRefreshCw } from 'react-icons/fi';
 import { format } from 'date-fns';
 import { useSession } from 'next-auth/react';
@@ -26,7 +26,7 @@ export default function BankingPage() {
   const [daysBack, setDaysBack] = useState(30);
 
   // Fetch transactions from API
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     if (!session?.accessToken) return;
     
     setIsLoading(true);
@@ -61,13 +61,13 @@ export default function BankingPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [session?.accessToken, daysBack]);
 
   useEffect(() => {
     if (session?.accessToken) {
       fetchTransactions();
     }
-  }, [session, daysBack]);
+  }, [session?.accessToken, fetchTransactions]);
 
   // Filter transactions by category if a filter is selected
   const filteredTransactions = filterCategory

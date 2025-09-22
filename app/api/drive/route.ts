@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from "@/lib/auth/auth";
+import { getServerSession } from '@/lib/auth/server';
 import { fetchRecentFiles, fetchSharedFiles } from '@/utils/google/google-drive';
 
 export async function GET(request: Request) {
   try {
     // Get the user's session
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
     
     
     if (!session?.accessToken) {

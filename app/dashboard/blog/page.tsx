@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { format } from 'date-fns';
@@ -41,11 +41,7 @@ export default function BlogOverviewPage() {
   
   const isAuthorOrAdmin = session?.user?.role === 'AUTHOR' || session?.user?.role === 'ADMIN';
 
-  useEffect(() => {
-    fetchPosts();
-  }, [currentPage]);
-
-  const fetchPosts = async () => {
+  const fetchPosts = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -64,7 +60,11 @@ export default function BlogOverviewPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, postsPerPage]);
+
+  useEffect(() => {
+    fetchPosts();
+  }, [fetchPosts]);
 
   if (loading) {
     return (
