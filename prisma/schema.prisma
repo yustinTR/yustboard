@@ -8,6 +8,65 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// Multi-tenant Organization model
+model Organization {
+  id                String                 @id @default(cuid())
+  name              String
+  slug              String                 @unique
+  description       String?
+  logo              String?
+  plan              Plan                   @default(FREE)
+  stripeCustomerId  String?                @unique
+  stripeSubscriptionId String?             @unique
+  trialEndsAt       DateTime?
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+
+  // Relations
+  users             User[]
+  posts             Post[]
+  tasks             Task[]
+  transactions      Transaction[]
+  widgetPreferences UserWidgetPreference[]
+  blogPosts         BlogPost[]
+  settings          OrganizationSettings?
+  invites           OrganizationInvite[]
+
+  @@index([slug])
+  @@index([plan])
+}
+
+model OrganizationSettings {
+  id               String       @id @default(cuid())
+  organizationId   String       @unique
+  allowUserInvites Boolean      @default(true)
+  maxUsers         Int?
+  maxWidgets       Int?
+  customDomain     String?
+  brandingEnabled  Boolean      @default(false)
+  logoUrl          String?
+  primaryColor     String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model OrganizationInvite {
+  id             String             @id @default(cuid())
+  organizationId String
+  email          String
+  role           OrganizationRole   @default(MEMBER)
+  token          String             @unique
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  createdAt      DateTime           @default(now())
+  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, email])
+  @@index([token])
+  @@index([email])
+}
+
 model User {
   id                String                 @id @default(cuid())
   name              String?
@@ -17,6 +76,13 @@ model User {
   createdAt         DateTime               @default(now())
   role              UserRole               @default(USER)
   updatedAt         DateTime               @default(now()) @updatedAt
+
+  // Multi-tenant fields
+  organizationId    String?
+  organizationRole  OrganizationRole       @default(MEMBER)
+
+  // Relations
+  organization      Organization?          @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   accounts          Account[]
   posts             Post[]
   comments          PostComment[]
@@ -26,6 +92,9 @@ model User {
   transactions      Transaction[]
   widgetPreferences UserWidgetPreference[]
   blogPosts         BlogPost[]
+
+  @@index([organizationId])
+  @@index([email])
 }
 
 model Account {
@@ -64,40 +133,51 @@ model VerificationToken {
 }
 
 model Task {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  date        DateTime
-  completed   Boolean  @default(false)
-  userId      String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String       @id @default(cuid())
+  title          String
+  description    String?
+  date           DateTime
+  completed      Boolean      @default(false)
+  userId         String
+  organizationId String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
 }
 
 model Transaction {
-  id          String   @id @default(cuid())
-  amount      Float
-  description String
-  date        DateTime
-  category    String?
-  userId      String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String       @id @default(cuid())
+  amount         Float
+  description    String
+  date           DateTime
+  category       String?
+  userId         String
+  organizationId String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
 }
 
 model Post {
-  id        String        @id @default(cuid())
-  content   String
-  userId    String
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  comments  PostComment[]
-  likes     PostLike[]
-  media     PostMedia[]
+  id             String        @id @default(cuid())
+  content        String
+  userId         String
+  organizationId String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  comments       PostComment[]
+  likes          PostLike[]
+  media          PostMedia[]
 
+  @@index([organizationId])
   @@index([createdAt(sort: Desc)])
 }
 
@@ -140,18 +220,21 @@ model PostMedia {
 }
 
 model UserWidgetPreference {
-  id        String   @id @default(cuid())
-  userId    String
-  widgetId  String
-  enabled   Boolean  @default(true)
-  position  Int      @default(0)
-  settings  Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String       @id @default(cuid())
+  userId         String
+  widgetId       String
+  organizationId String
+  enabled        Boolean      @default(true)
+  position       Int          @default(0)
+  settings       Json?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, widgetId])
+  @@unique([userId, widgetId, organizationId])
   @@index([userId])
+  @@index([organizationId])
 }
 
 model GlobalMenuSetting {
@@ -167,28 +250,45 @@ model GlobalMenuSetting {
 }
 
 model BlogPost {
-  id          String   @id @default(cuid())
-  title       String
-  slug        String   @unique
-  excerpt     String
-  content     String   @db.Text
-  coverImage  String?
-  published   Boolean  @default(false)
-  authorId    String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  publishedAt DateTime?
-  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  id             String       @id @default(cuid())
+  title          String
+  slug           String       @unique
+  excerpt        String
+  content        String       @db.Text
+  coverImage     String?
+  published      Boolean      @default(false)
+  authorId       String
+  organizationId String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  publishedAt    DateTime?
+  author         User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([slug])
   @@index([published, publishedAt])
   @@index([authorId])
+  @@index([organizationId])
 }
 
 enum UserRole {
   USER
   AUTHOR
   ADMIN
+}
+
+enum Plan {
+  FREE
+  STARTER
+  PRO
+  ENTERPRISE
+}
+
+enum OrganizationRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
 }
 
 // Landing Page Content Models
