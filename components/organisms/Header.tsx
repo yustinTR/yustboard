@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import UniversalSearch from './UniversalSearch';
 import MobileSidebar from './MobileSidebar';
 
@@ -15,7 +16,14 @@ export default function Header() {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [buttonRect, setButtonRect] = useState<DOMRect | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   const isAdmin = session?.user?.role === 'ADMIN';
   const isAuthor = session?.user?.role === 'AUTHOR';
@@ -23,16 +31,24 @@ export default function Header() {
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      // Check if clicking outside both button and dropdown
+      const target = event.target as Node;
+      const isButtonClick = buttonRef.current?.contains(target);
+      const isDropdownClick = showProfileDropdown && event.target &&
+        (event.target as Element).closest('[data-profile-dropdown]');
+
+      if (!isButtonClick && !isDropdownClick) {
         setShowProfileDropdown(false);
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+    if (showProfileDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showProfileDropdown]);
   
   // Get page title based on current path
   const getPageTitle = () => {
@@ -88,7 +104,13 @@ export default function Header() {
         {/* Profile Dropdown - hide on mobile */}
         <div className="relative ml-2 hidden lg:block" ref={dropdownRef}>
           <button
-            onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+            ref={buttonRef}
+            onClick={() => {
+              setShowProfileDropdown(!showProfileDropdown);
+              if (buttonRef.current) {
+                setButtonRect(buttonRef.current.getBoundingClientRect());
+              }
+            }}
             className="flex items-center gap-2 p-2 rounded-lg hover:bg-white/20 dark:hover:bg-gray-800/20 transition-colors backdrop-blur-sm"
           >
             {session?.user?.image && !imageError ? (
@@ -111,9 +133,22 @@ export default function Header() {
             )}
             <FiChevronDown className={`h-4 w-4 text-gray-700 dark:text-gray-300 transition-transform ${showProfileDropdown ? 'rotate-180' : ''}`} />
           </button>
-          
-          {showProfileDropdown && (
-            <div className="absolute right-0 mt-2 w-56 backdrop-blur-md bg-white/90 dark:bg-gray-900/90 border border-white/20 dark:border-gray-700/30 rounded-xl shadow-xl shadow-black/10 py-2 z-50">
+
+          {/* Profile dropdown content will be rendered via portal */}
+        </div>
+      </div>
+
+      {/* Profile Dropdown - render via portal for better z-index control */}
+      {mounted && showProfileDropdown && buttonRect && createPortal(
+        <div
+          data-profile-dropdown
+          className="fixed backdrop-blur-md bg-white/90 dark:bg-gray-900/90 border border-white/20 dark:border-gray-700/30 rounded-xl shadow-xl shadow-black/10 py-2 z-[10000]"
+          style={{
+            top: buttonRect.bottom + 8,
+            right: window.innerWidth - buttonRect.right,
+            width: '224px'
+          }}
+        >
               {/* User Info */}
               <div className="px-4 py-3 border-b border-white/10 dark:border-gray-700/30">
                 <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{session?.user?.name}</p>
@@ -156,10 +191,9 @@ export default function Header() {
                   Uitloggen
                 </button>
               </div>
-            </div>
-          )}
-        </div>
-      </div>
+            </div>,
+        document.body
+      )}
       
       {/* Mobile Sidebar */}
       <MobileSidebar 

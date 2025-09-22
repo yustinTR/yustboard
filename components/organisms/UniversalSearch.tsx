@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { FiSearch, FiMail, FiCalendar, FiFileText, FiFolder, FiX } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { createPortal } from 'react-dom';
 
 interface SearchResult {
   id: string;
@@ -20,10 +21,17 @@ export default function UniversalSearch() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [mounted, setMounted] = useState(false);
+  const [inputRect, setInputRect] = useState<DOMRect | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const { data: session } = useSession();
+
+  // Handle client-side mounting
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleResultClick = useCallback((result: SearchResult) => {
     setIsOpen(false);
@@ -150,7 +158,7 @@ export default function UniversalSearch() {
     <div ref={searchRef} className="relative w-full max-w-xl">
       {/* Search input */}
       <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-2">
           <FiSearch className="h-5 w-5 text-muted-foreground" />
         </div>
         <input
@@ -158,9 +166,14 @@ export default function UniversalSearch() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => setIsOpen(true)}
+          onFocus={() => {
+            setIsOpen(true);
+            if (inputRef.current) {
+              setInputRect(inputRef.current.getBoundingClientRect());
+            }
+          }}
           placeholder="Search emails, calendar, blog posts, files..."
-          className="w-full pl-10 pr-10 py-2 bg-secondary/50 hover:bg-secondary/70 focus:bg-secondary rounded-lg outline-none text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+          className="w-full pl-10 pr-10 py-2 bg-white/20 dark:bg-gray-800/20 hover:bg-white/30 dark:hover:bg-gray-700/30 focus:bg-white/30 dark:focus:bg-gray-700/30 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 rounded-lg outline-none text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:ring-2 focus:ring-primary/20"
         />
         <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
           {query ? (
@@ -181,9 +194,18 @@ export default function UniversalSearch() {
         </div>
       </div>
 
-      {/* Search modal */}
-      {isOpen && (query.length >= 2 || loading) && (
-        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[600px] max-w-[90vw] bg-white dark:bg-gray-900 backdrop-blur-md border border-white/20 dark:border-gray-700/30 rounded-lg shadow-2xl z-[9999] animate-in fade-in-0 zoom-in-95 duration-200">
+      {/* Search modal - render via portal for better z-index control */}
+      {mounted && isOpen && (query.length >= 2 || loading) && inputRect && createPortal(
+        <div
+          className="fixed backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 border border-white/20 dark:border-gray-700/30 rounded-xl shadow-2xl shadow-black/20 z-[10000] animate-in fade-in-0 zoom-in-95 duration-200"
+          style={{
+            top: inputRect.bottom + 8,
+            left: inputRect.left + (inputRect.width / 2),
+            transform: 'translateX(-50%)',
+            width: '600px',
+            maxWidth: '90vw'
+          }}
+        >
 
           {/* Results */}
           <div className="max-h-[400px] overflow-y-auto">
@@ -198,8 +220,8 @@ export default function UniversalSearch() {
                     key={`${result.type}-${result.id}`}
                     onClick={() => handleResultClick(result)}
                     onMouseEnter={() => setSelectedIndex(index)}
-                    className={`w-full px-4 py-3 flex items-start gap-3 hover:bg-secondary transition-colors text-left ${
-                      index === selectedIndex ? 'bg-secondary' : ''
+                    className={`w-full px-4 py-3 flex items-start gap-3 hover:bg-white/20 dark:hover:bg-gray-800/20 transition-colors text-left backdrop-blur-sm ${
+                      index === selectedIndex ? 'bg-white/20 dark:bg-gray-800/20' : ''
                     }`}
                   >
                     <div className="mt-0.5 text-muted-foreground">
@@ -247,7 +269,8 @@ export default function UniversalSearch() {
               </span>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

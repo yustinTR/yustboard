@@ -228,9 +228,9 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
 
   const modalContent = (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 pt-20 animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl border border-gray-200 dark:border-gray-700 animate-in slide-in-from-bottom-4 duration-300">
+      <div className="backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 rounded-3xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl shadow-black/20 border border-white/25 dark:border-gray-700/25 animate-in slide-in-from-bottom-4 duration-300">
         {/* Header */}
-        <div className="relative p-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="relative p-6 border-b border-white/20 dark:border-gray-700/30 bg-gradient-to-r from-indigo-500/80 to-indigo-600/80 backdrop-blur-sm text-white rounded-t-3xl">
           <div className="flex items-center space-x-4">
             {post.user.image ? (
               <Image
@@ -248,10 +248,10 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
               </div>
             )}
             <div className="flex-1">
-              <p className="font-semibold text-gray-900 dark:text-gray-100">
+              <p className="font-semibold text-white">
                 {post.user.name || post.user.email?.split('@')[0] || 'Anonymous'}
               </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-white/80">
                 {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
               </p>
             </div>
@@ -264,9 +264,9 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
                 <button
                   data-actions-button
                   onClick={() => setShowActions(!showActions)}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors group"
+                  className="p-2 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-xl transition-all duration-300 hover:scale-105 group"
                 >
-                  <FiMoreHorizontal className="w-5 h-5 text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300" />
+                  <FiMoreHorizontal className="w-5 h-5 text-white/80 group-hover:text-white" />
                 </button>
                 
                 {showActions && (
@@ -298,14 +298,14 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
           
           <button
             onClick={onClose}
-            className="absolute top-6 right-6 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors group"
+            className="absolute top-6 right-6 p-2 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-xl transition-all duration-300 hover:scale-105 group"
           >
-            <FiX className="w-6 h-6 text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300" />
+            <FiX className="w-6 h-6 text-white/80 group-hover:text-white" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 bg-white/5 dark:bg-gray-900/5 backdrop-blur-sm">
           {isEditing ? (
             <div className="mb-4">
               <textarea

@@ -113,20 +113,20 @@ function EmailModal({ emailId, isOpen, onClose }: EmailModalProps) {
 
   const modalContent = (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-4xl max-h-[85vh] flex flex-col shadow-2xl border border-gray-200 dark:border-gray-700 animate-in slide-in-from-bottom-4 duration-300">
+      <div className="backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 overflow-hidden rounded-3xl w-full max-w-4xl max-h-[85vh] flex flex-col shadow-2xl shadow-black/20 border border-white/25 dark:border-gray-700/25 animate-in slide-in-from-bottom-4 duration-300">
         {/* Header */}
-        <div className="relative p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-red-500/10 to-red-600/10">
+        <div className="relative p-6 border-b border-white/20 dark:border-gray-700/30 bg-gradient-to-r from-red-500/80 to-red-600/80 backdrop-blur-sm text-white rounded-t-3xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center">
                 <FiMail className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                <h2 className="text-lg font-semibold text-white">
                   {isLoading ? 'Loading email...' : email?.subject || '(No subject)'}
                 </h2>
                 {email && (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                  <p className="text-sm text-white flex items-center gap-1">
                     <FiCalendar className="w-3 h-3" />
                     {formatFullDate(email.date)}
                   </p>
@@ -139,19 +139,19 @@ function EmailModal({ emailId, isOpen, onClose }: EmailModalProps) {
                 <>
                   <button
                     onClick={handleStar}
-                    className={`p-2 rounded-lg transition-colors ${
-                      isStarred 
-                        ? 'text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20' 
-                        : 'text-gray-400 hover:text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
+                    className={`p-2 rounded-lg transition-all duration-300 hover:scale-105 ${
+                      isStarred
+                        ? 'text-yellow-300 bg-white/30 backdrop-blur-sm border border-white/40'
+                        : 'text-white/80 hover:text-yellow-300 hover:bg-white/20 backdrop-blur-sm border border-white/20'
                     }`}
                     title={isStarred ? 'Remove star' : 'Add star'}
                   >
                     <FiStar className={`w-5 h-5 ${isStarred ? 'fill-current' : ''}`} />
                   </button>
-                  
+
                   <button
                     onClick={openInMailApp}
-                    className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                    className="p-2 text-white/80 hover:text-white hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg transition-all duration-300 hover:scale-105"
                     title="Open in mail app"
                   >
                     <FiExternalLink className="w-5 h-5" />
@@ -161,7 +161,7 @@ function EmailModal({ emailId, isOpen, onClose }: EmailModalProps) {
               
               <button
                 onClick={onClose}
-                className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                className="p-2 text-white/80 hover:text-white hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg transition-all duration-300 hover:scale-105"
               >
                 <FiX className="w-6 h-6" />
               </button>
@@ -170,7 +170,7 @@ function EmailModal({ emailId, isOpen, onClose }: EmailModalProps) {
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-hidden flex flex-col">
+        <div className="flex-1 overflow-hidden flex flex-col p-6 bg-white/5 dark:bg-gray-900/5 backdrop-blur-sm">
           {isLoading ? (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center space-y-3">
@@ -199,7 +199,7 @@ function EmailModal({ emailId, isOpen, onClose }: EmailModalProps) {
           ) : email ? (
             <>
               {/* Email metadata */}
-              <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+              <div className="p-6 border-b border-white/20 dark:border-gray-700/30 bg-white/5 dark:bg-gray-800/15 backdrop-blur-sm">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-3">
                     <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
@@ -227,16 +227,16 @@ function EmailModal({ emailId, isOpen, onClose }: EmailModalProps) {
 
                 {/* Action buttons */}
                 <div className="flex items-center space-x-3">
-                  <button className="flex items-center space-x-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors">
+                  <button className="flex items-center space-x-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 rounded-2xl transition-all duration-300 hover:scale-[1.02] backdrop-blur-sm border border-red-400/30">
                     <FiCornerUpLeft className="w-4 h-4" />
                     <span>Reply</span>
                   </button>
-                  <button className="flex items-center space-x-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors">
+                  <button className="flex items-center space-x-2 px-4 py-2 bg-white/20 dark:bg-gray-800/20 hover:bg-white/30 dark:hover:bg-gray-700/30 text-gray-700 dark:text-gray-300 rounded-2xl transition-all duration-300 hover:scale-[1.02] backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
                     <FiCornerUpRight className="w-4 h-4" />
                     <span>Forward</span>
                   </button>
                   {email.hasAttachments && (
-                    <button className="flex items-center space-x-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors">
+                    <button className="flex items-center space-x-2 px-4 py-2 bg-white/20 dark:bg-gray-800/20 hover:bg-white/30 dark:hover:bg-gray-700/30 text-gray-700 dark:text-gray-300 rounded-2xl transition-all duration-300 hover:scale-[1.02] backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
                       <FiDownload className="w-4 h-4" />
                       <span>Attachments</span>
                     </button>
