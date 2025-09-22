@@ -8,14 +8,8 @@ export async function GET(request: Request) {
     // Get the user's session
     const session = await getServerSession(authOptions);
     
-    console.log('Drive API - Session check:', {
-      hasSession: !!session,
-      hasAccessToken: !!session?.accessToken,
-      userId: session?.user?.id
-    });
     
     if (!session?.accessToken) {
-      console.error('Drive API - No access token in session');
       return NextResponse.json(
         { error: 'Unauthorized - No access token available. Please sign out and sign in again.' },
         { status: 401 }
@@ -37,7 +31,6 @@ export async function GET(request: Request) {
     
     return NextResponse.json({ files });
   } catch (error) {
-    console.error('Error in Google Drive API route:', error);
     
     // Check if it's an authentication error
     if (error instanceof Error && error.message.includes('Invalid Credentials')) {

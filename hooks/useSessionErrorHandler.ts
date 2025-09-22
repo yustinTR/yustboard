@@ -11,8 +11,6 @@ export function useSessionErrorHandler() {
   useEffect(() => {
     // Check if session has a refresh token error
     if (session?.error === 'RefreshAccessTokenError') {
-      console.log('Session error detected, signing out user');
-      
       // Sign out the user and redirect to login with error
       signOut({ 
         redirect: false 

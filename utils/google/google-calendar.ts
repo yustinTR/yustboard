@@ -79,7 +79,7 @@ export function eventToTask(event: GoogleEvent): Task {
       isAllDay,
     };
   } catch (error) {
-    console.error("Error converting event to task:", error, "Event:", event);
+    // Error converting event to task - providing fallback
     // Provide a fallback if there's an issue with the date format
     return {
       id: event.id || "unknown-id",
@@ -139,7 +139,6 @@ export async function getGoogleCalendarClient(accessToken: string) {
     throw new Error("Access token is required for Google Calendar API");
   }
   
-  console.log("Initializing Google Calendar client with access token");
   const auth = new google.auth.OAuth2();
   auth.setCredentials({ access_token: accessToken });
   return google.calendar({ version: 'v3', auth });
@@ -148,7 +147,6 @@ export async function getGoogleCalendarClient(accessToken: string) {
 // Fetch events from Google Calendar
 export async function fetchGoogleCalendarEvents(accessToken: string, timeMin?: Date, timeMax?: Date): Promise<Task[]> {
   try {
-    console.log("Fetching Google Calendar events...");
     const calendar = await getGoogleCalendarClient(accessToken);
     
     const now = new Date();
@@ -158,7 +156,6 @@ export async function fetchGoogleCalendarEvents(accessToken: string, timeMin?: D
     const timeMinStr = timeMin ? formatISO(timeMin) : formatISO(now);
     const timeMaxStr = timeMax ? formatISO(timeMax) : formatISO(oneMonthLater);
     
-    console.log(`Fetching events from ${timeMinStr} to ${timeMaxStr}`);
     
     const response = await calendar.events.list({
       calendarId: 'primary',
@@ -169,7 +166,6 @@ export async function fetchGoogleCalendarEvents(accessToken: string, timeMin?: D
       maxResults: 100,
     });
 
-    console.log(`Received ${response.data.items?.length || 0} events from Google Calendar`);
     
     if (!response.data.items || response.data.items.length === 0) {
       return [];
@@ -180,26 +176,16 @@ export async function fetchGoogleCalendarEvents(accessToken: string, timeMin?: D
       return (event.start?.dateTime || event.start?.date) && (event.end?.dateTime || event.end?.date);
     });
 
-    if (validEvents.length < (response.data.items?.length || 0)) {
-      console.log(`Filtered out ${(response.data.items?.length || 0) - validEvents.length} events with invalid dates`);
-    }
 
     return validEvents.map(event => {
       try {
         return eventToTask(event as GoogleEvent);
       } catch (error) {
-        console.error("Error processing event:", error, "Event:", event);
+        // Error processing event - skipping
         return null;
       }
     }).filter(Boolean) as Task[];
   } catch (error) {
-    console.error('Error fetching Google Calendar events:', error);
-    
-    // Show more detailed error information
-    if (error instanceof Error) {
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
-    }
     
     // Return empty array rather than failing completely
     return [];
@@ -209,7 +195,6 @@ export async function fetchGoogleCalendarEvents(accessToken: string, timeMin?: D
 // Create a new event in Google Calendar
 export async function createGoogleCalendarEvent(accessToken: string, task: Task): Promise<Task | null> {
   try {
-    console.log("Creating Google Calendar event:", task.title);
     const calendar = await getGoogleCalendarClient(accessToken);
     const event = taskToEvent(task);
     
@@ -218,7 +203,6 @@ export async function createGoogleCalendarEvent(accessToken: string, task: Task)
       requestBody: event as any,
     });
 
-    console.log("Event created successfully:", response.data.id);
     
     if (response.data) {
       return eventToTask(response.data as GoogleEvent);
@@ -226,13 +210,6 @@ export async function createGoogleCalendarEvent(accessToken: string, task: Task)
     
     return null;
   } catch (error) {
-    console.error('Error creating Google Calendar event:', error);
-    
-    // Show more detailed error information
-    if (error instanceof Error) {
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
-    }
     
     return null;
   }
@@ -241,7 +218,6 @@ export async function createGoogleCalendarEvent(accessToken: string, task: Task)
 // Update an existing event in Google Calendar
 export async function updateGoogleCalendarEvent(accessToken: string, task: Task): Promise<Task | null> {
   try {
-    console.log("Updating Google Calendar event:", task.id);
     const calendar = await getGoogleCalendarClient(accessToken);
     const event = taskToEvent(task);
     
@@ -251,7 +227,6 @@ export async function updateGoogleCalendarEvent(accessToken: string, task: Task)
       requestBody: event as any,
     });
 
-    console.log("Event updated successfully");
     
     if (response.data) {
       return eventToTask(response.data as GoogleEvent);
@@ -259,13 +234,6 @@ export async function updateGoogleCalendarEvent(accessToken: string, task: Task)
     
     return null;
   } catch (error) {
-    console.error('Error updating Google Calendar event:', error);
-    
-    // Show more detailed error information
-    if (error instanceof Error) {
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
-    }
     
     return null;
   }
@@ -274,7 +242,6 @@ export async function updateGoogleCalendarEvent(accessToken: string, task: Task)
 // Delete an event from Google Calendar
 export async function deleteGoogleCalendarEvent(accessToken: string, eventId: string): Promise<boolean> {
   try {
-    console.log("Deleting Google Calendar event:", eventId);
     const calendar = await getGoogleCalendarClient(accessToken);
     
     await calendar.events.delete({
@@ -282,16 +249,8 @@ export async function deleteGoogleCalendarEvent(accessToken: string, eventId: st
       eventId: eventId,
     });
     
-    console.log("Event deleted successfully");
     return true;
   } catch (error) {
-    console.error('Error deleting Google Calendar event:', error);
-    
-    // Show more detailed error information
-    if (error instanceof Error) {
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
-    }
     
     return false;
   }

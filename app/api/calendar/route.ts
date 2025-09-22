@@ -28,15 +28,6 @@ export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
-    // For debugging
-    if (process.env.NODE_ENV === 'development') {
-      console.log("Calendar API GET session:", {
-        isAuthenticated: !!session,
-        hasAccessToken: session?.accessToken ? true : false,
-        email: session?.user?.email,
-        isTestUser: isTestUser(session)
-      });
-    }
     
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized - No session' }, { status: 401 });
@@ -44,9 +35,6 @@ export async function GET(req: NextRequest) {
     
     // If it's a test user or we have no access token, return mock data
     if (isTestUser(session) || !session.accessToken) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log("Using mock data for calendar events");
-      }
       return NextResponse.json(mockTasks);
     }
     
@@ -65,7 +53,6 @@ export async function GET(req: NextRequest) {
     const events = await fetchGoogleCalendarEvents(session.accessToken, timeMin, timeMax);
     return NextResponse.json(events);
   } catch (error) {
-    console.error('Error in GET /api/calendar:', error);
     return NextResponse.json({ error: 'Failed to fetch calendar events' }, { status: 500 });
   }
 }
@@ -74,13 +61,6 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
-    // For debugging
-    console.log("Calendar API POST session:", {
-      isAuthenticated: !!session,
-      hasAccessToken: session?.accessToken ? true : false,
-      email: session?.user?.email,
-      isTestUser: isTestUser(session)
-    });
     
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized - No session' }, { status: 401 });
@@ -95,7 +75,6 @@ export async function POST(req: NextRequest) {
     
     // If it's a test user or we have no access token, return mock success
     if (isTestUser(session) || !session.accessToken) {
-      console.log("Using mock data for creating calendar event");
       const mockId = Math.random().toString(36).substring(2, 9);
       return NextResponse.json({
         id: mockId,
@@ -111,7 +90,6 @@ export async function POST(req: NextRequest) {
     
     return NextResponse.json(createdEvent);
   } catch (error) {
-    console.error('Error in POST /api/calendar:', error);
     return NextResponse.json({ error: 'Failed to create calendar event' }, { status: 500 });
   }
 }
@@ -137,7 +115,6 @@ export async function PUT(req: NextRequest) {
     
     // If it's a test user or we have no access token, return mock success
     if (isTestUser(session) || !session.accessToken) {
-      console.log("Using mock data for updating calendar event");
       return NextResponse.json(task);
     }
     
@@ -149,7 +126,6 @@ export async function PUT(req: NextRequest) {
     
     return NextResponse.json(updatedEvent);
   } catch (error) {
-    console.error('Error in PUT /api/calendar:', error);
     return NextResponse.json({ error: 'Failed to update calendar event' }, { status: 500 });
   }
 }
@@ -171,7 +147,6 @@ export async function DELETE(req: NextRequest) {
     
     // If it's a test user or we have no access token, return mock success
     if (isTestUser(session) || !session.accessToken) {
-      console.log("Using mock data for deleting calendar event");
       return NextResponse.json({ success: true });
     }
     
@@ -183,7 +158,6 @@ export async function DELETE(req: NextRequest) {
     
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error in DELETE /api/calendar:', error);
     return NextResponse.json({ error: 'Failed to delete calendar event' }, { status: 500 });
   }
 }

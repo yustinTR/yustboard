@@ -68,7 +68,7 @@ export async function GET(
       } catch (modifyError: unknown) {
         // If we can't modify, just log it but don't fail the whole request
         const errorMessage = modifyError instanceof Error ? modifyError.message : 'Unknown error';
-        console.warn('Cannot mark email as read - insufficient permissions:', errorMessage);
+        // Cannot mark email as read - insufficient permissions
       }
     }
 
@@ -111,7 +111,6 @@ export async function GET(
 
     return NextResponse.json({ email });
   } catch (error: unknown) {
-    console.error('Error fetching email details:', error);
     
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     
@@ -140,7 +139,7 @@ export async function GET(
         // Check for invalid_grant error specifically
         if (response.data && (response.data.error === 'invalid_grant' || 
             (typeof response.data.error === 'object' && response.data.error?.message === 'invalid_grant'))) {
-          console.log('invalid_grant error detected, token refresh failed');
+          // invalid_grant error detected, token refresh failed
           return NextResponse.json({ error: 'Authentication expired. Please sign out and sign in again.' }, { status: 401 });
         }
         return NextResponse.json({ error: 'Authentication failed. Please sign in again.' }, { status: 401 });
