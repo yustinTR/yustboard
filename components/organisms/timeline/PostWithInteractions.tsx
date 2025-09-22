@@ -210,7 +210,7 @@ export default function PostWithInteractions({ post, onUpdate }: PostProps) {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-all duration-200">
+    <div className="backdrop-blur-md bg-white/10 dark:bg-gray-900/10 border border-white/20 dark:border-gray-700/30 rounded-xl shadow-xl shadow-black/10 p-6 hover:shadow-2xl transition-all duration-200">
       {/* Post header */}
       <div className="flex space-x-4">
         <div className="flex-shrink-0">
@@ -249,12 +249,12 @@ export default function PostWithInteractions({ post, onUpdate }: PostProps) {
                   <button
                     data-actions-button
                     onClick={() => setShowActions(!showActions)}
-                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                    className="p-1 hover:bg-white/20 dark:hover:bg-gray-800/20 rounded-lg transition-colors backdrop-blur-sm"
                   >
                     <FiMoreHorizontal className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                   </button>
                   {showActions && (
-                    <div data-actions-menu className="absolute right-0 top-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 py-2 min-w-[120px] z-10">
+                    <div data-actions-menu className="absolute right-0 top-8 backdrop-blur-md bg-white/90 dark:bg-gray-800/90 rounded-xl shadow-lg border border-white/20 dark:border-gray-700/30 py-2 min-w-[120px] z-10">
                       <button
                         onClick={() => {
                           setIsEditing(true);
@@ -287,7 +287,7 @@ export default function PostWithInteractions({ post, onUpdate }: PostProps) {
               <textarea
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
-                className="w-full min-h-[100px] px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-none"
+                className="w-full min-h-[100px] px-3 py-2 bg-white/20 dark:bg-gray-800/20 border border-white/30 dark:border-gray-600/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-sm text-gray-900 dark:text-gray-100 resize-none"
                 disabled={isUpdating}
               />
               <div className="flex items-center justify-end space-x-2 mt-2">
@@ -335,7 +335,7 @@ export default function PostWithInteractions({ post, onUpdate }: PostProps) {
                     <a
                       href={media.url}
                       download={media.filename}
-                      className="flex items-center space-x-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer border border-gray-200 dark:border-gray-700 group"
+                      className="flex items-center space-x-3 p-4 bg-white/20 dark:bg-gray-800/20 rounded-xl hover:bg-white/30 dark:hover:bg-gray-700/30 transition-colors cursor-pointer border border-white/30 dark:border-gray-600/30 backdrop-blur-sm group"
                     >
                       <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors">
                         <FiFile className="w-5 h-5 text-blue-600 dark:text-blue-400" />
@@ -390,7 +390,7 @@ export default function PostWithInteractions({ post, onUpdate }: PostProps) {
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   placeholder="Write a comment..."
-                  className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-all"
+                  className="flex-1 px-4 py-3 bg-white/20 dark:bg-gray-800/20 border border-white/30 dark:border-gray-600/30 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-all"
                   disabled={isSubmittingComment}
                 />
                 <button
@@ -440,7 +440,7 @@ export default function PostWithInteractions({ post, onUpdate }: PostProps) {
                         )}
                       </div>
                       <div className="flex-1">
-                        <div className="bg-gray-50 dark:bg-gray-800 rounded-xl px-4 py-3 group-hover:bg-gray-100 dark:group-hover:bg-gray-700 transition-colors">
+                        <div className="bg-white/20 dark:bg-gray-800/20 rounded-xl px-4 py-3 group-hover:bg-white/30 dark:group-hover:bg-gray-700/30 transition-colors backdrop-blur-sm">
                           <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">
                             {comment.user.name || comment.user.email?.split('@')[0] || 'Anonymous'}
                           </p>

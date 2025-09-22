@@ -62,15 +62,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Get user's organization
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { organizationId: true }
+    })
+
+    if (!user?.organizationId) {
+      return NextResponse.json({ error: 'User must belong to an organization' }, { status: 400 })
+    }
+
     const { widgets } = await request.json()
 
     // Update or create preferences for each widget
     for (const widget of widgets) {
       await prisma.userWidgetPreference.upsert({
         where: {
-          userId_widgetId: {
+          userId_widgetId_organizationId: {
             userId: session.user.id,
-            widgetId: widget.id
+            widgetId: widget.id,
+            organizationId: user.organizationId
           }
         },
         update: {
@@ -81,6 +92,7 @@ export async function POST(request: NextRequest) {
         create: {
           userId: session.user.id,
           widgetId: widget.id,
+          organizationId: user.organizationId,
           enabled: widget.enabled,
           position: widget.position,
           settings: widget.settings || null

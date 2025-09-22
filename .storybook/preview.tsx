@@ -16,9 +16,7 @@ const preview: Preview = {
   },
   decorators: [
     (Story) => (
-      <div className="min-h-screen bg-background">
-        <Story />
-      </div>
+      <Story />
     ),
   ],
 };

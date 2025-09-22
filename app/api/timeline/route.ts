@@ -68,9 +68,19 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession();
-    
+
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Get user's organization
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { organizationId: true }
+    });
+
+    if (!user?.organizationId) {
+      return NextResponse.json({ error: 'User must belong to an organization' }, { status: 400 });
     }
 
     const { content, media } = await request.json();
@@ -83,6 +93,7 @@ export async function POST(request: NextRequest) {
       data: {
         content,
         userId: session.user.id,
+        organizationId: user.organizationId,
         media: media ? {
           create: media.map((item: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
             type: item.type,

@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  FiStar, FiRefreshCw, FiChevronRight, 
+import {
+  FiStar, FiRefreshCw,
   FiPaperclip, FiSearch
 } from 'react-icons/fi';
 import { useSession } from 'next-auth/react';
@@ -170,90 +170,116 @@ const GmailWidget = React.memo(function GmailWidget({ initialEmails = [], maxEma
   }, [session?.accessToken, emails.length, fetchGmailEmails]);
 
   return (
-    <div className="backdrop-blur-md bg-white/10 dark:bg-gray-900/10 border border-white/20 dark:border-gray-700/30 rounded-xl shadow-xl shadow-black/10 overflow-hidden">
-      <div className="p-4 bg-gradient-to-r from-red-500/80 to-red-600/80 backdrop-blur-sm text-white flex justify-between items-center">
-        <h3 className="font-medium">Gmail</h3>
-        <button 
-          onClick={fetchGmailEmails} 
+    <div className="backdrop-blur-xl bg-white/15 dark:bg-gray-900/15 border border-white/25 dark:border-gray-700/25 rounded-3xl shadow-2xl shadow-black/20 overflow-hidden">
+      {/* Header with Google Material red gradient */}
+      <div className="px-6 py-4 bg-gradient-to-r from-red-500/90 to-pink-500/90 backdrop-blur-sm text-white flex justify-between items-center">
+        <h3 className="text-lg font-medium tracking-wide">Gmail</h3>
+        <button
+          onClick={fetchGmailEmails}
           disabled={isLoading}
-          className="text-white/90 hover:text-white hover:bg-white/10 p-1.5 rounded-lg transition-all duration-200 disabled:opacity-50 cursor-pointer"
+          className="text-white/90 hover:text-white hover:bg-white/20 p-2 rounded-full transition-all duration-300 disabled:opacity-50 cursor-pointer hover:scale-105"
           aria-label="Refresh emails"
         >
-          <FiRefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+          <FiRefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
         </button>
       </div>
-      
-      <div className="p-4 bg-white/5 backdrop-blur-sm">
-        <form onSubmit={handleSearch} className="mb-4">
+
+      {/* Search Section */}
+      <div className="px-6 py-4 bg-white/10 dark:bg-gray-900/10 backdrop-blur-sm">
+        <form onSubmit={handleSearch}>
           <div className="relative">
+            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 w-5 h-5" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search emails..."
-              className="w-full pl-10 pr-4 py-2 bg-white/20 dark:bg-gray-800/20 border border-white/30 dark:border-gray-600/30 rounded-lg backdrop-blur-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all duration-200"
+              className="w-full pl-12 pr-4 py-3 bg-white/30 dark:bg-gray-800/30 border border-white/40 dark:border-gray-600/40 rounded-2xl backdrop-blur-sm text-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-400/60 focus:border-red-400/60 transition-all duration-300 text-sm"
             />
-            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400" />
-            <button 
-              type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-red-500 hover:text-red-600 hover:bg-white/10 p-1 rounded transition-all duration-200 cursor-pointer"
-              aria-label="Search"
-            >
-              <FiChevronRight />
-            </button>
           </div>
         </form>
+      </div>
+
+      {/* Content Area */}
+      <div className="px-6 pb-4 bg-white/5 dark:bg-gray-900/5 backdrop-blur-sm">
         
         {error && (
-          <div className="bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 p-3 rounded-lg mb-4 backdrop-blur-sm">
+          <div className="bg-red-500/15 border border-red-400/30 text-red-600 dark:text-red-400 p-4 rounded-2xl mb-4 backdrop-blur-sm">
             {error}
           </div>
         )}
-        
+
         {isLoading ? (
-          <div className="py-8 flex justify-center">
-            <FiRefreshCw className="animate-spin text-red-500 w-6 h-6" />
+          <div className="py-12 flex justify-center">
+            <FiRefreshCw className="animate-spin text-red-500 w-8 h-8" />
           </div>
         ) : emails.length === 0 ? (
-          <p className="text-gray-500 dark:text-gray-400 text-center py-4">No emails to display</p>
+          <p className="text-gray-500 dark:text-gray-400 text-center py-8 text-sm">No emails to display</p>
         ) : (
-          <ul className="divide-y divide-white/10 dark:divide-gray-700/30">
+          <div className="space-y-3">
             {emails.map((email) => (
-              <li 
-                key={email.id} 
-                className={`py-3 cursor-pointer hover:bg-white/10 dark:hover:bg-gray-800/20 rounded-lg transition-all duration-200 ${!email.isRead ? 'bg-red-500/5 border-l-4 border-red-500/50 pl-4' : 'px-2'}`}
+              <div
+                key={email.id}
                 onClick={() => openEmail(email.id)}
+                className={`relative p-4 rounded-2xl cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-lg backdrop-blur-sm border ${
+                  !email.isRead
+                    ? 'bg-red-50/30 dark:bg-red-900/20 border-red-200/40 dark:border-red-700/40 shadow-md'
+                    : 'bg-white/20 dark:bg-gray-800/20 border-white/30 dark:border-gray-600/30 hover:bg-white/30 dark:hover:bg-gray-700/30'
+                }`}
               >
-                <div className="flex items-center mb-1">
-                  <div className={`w-2 h-2 rounded-full mr-2 ${!email.isRead ? 'bg-red-500' : 'bg-transparent'}`}></div>
-                  <span className={`font-medium mr-2 ${!email.isRead ? 'text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300'}`}>
-                    {email.from.name || email.from.email}
-                  </span>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 ml-auto">
-                    {formatDate(email.date)}
-                  </span>
+                {/* Unread indicator */}
+                {!email.isRead && (
+                  <div className="absolute left-2 top-4 w-3 h-3 bg-red-500 rounded-full"></div>
+                )}
+
+                {/* Starred indicator */}
+                {email.isStarred && (
+                  <div className="absolute right-2 top-2">
+                    <FiStar className="w-4 h-4 text-yellow-500 fill-current" />
+                  </div>
+                )}
+
+                {/* Email content */}
+                <div className={`${!email.isRead ? 'pl-4' : ''}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className={`font-medium text-sm ${!email.isRead ? 'text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300'}`}>
+                      {email.from.name || email.from.email}
+                    </span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-auto">
+                      {formatDate(email.date)}
+                    </span>
+                  </div>
+
+                  <h4 className={`text-sm mb-2 leading-snug ${!email.isRead ? 'font-semibold text-gray-900 dark:text-gray-100' : 'font-medium text-gray-700 dark:text-gray-300'}`}>
+                    {truncate(email.subject, 45)}
+                  </h4>
+
+                  <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-2">
+                    {truncate(email.snippet, 85)}
+                  </p>
+
+                  {/* Icons row */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center text-xs text-gray-400 dark:text-gray-500">
+                      {email.hasAttachments && (
+                        <FiPaperclip className="w-3 h-3 mr-1" />
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <h4 className={`text-sm ${!email.isRead ? 'font-medium text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300'}`}>
-                  {truncate(email.subject, 50)}
-                </h4>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{truncate(email.snippet, 80)}</p>
-                <div className="flex items-center mt-1 text-xs text-gray-400 dark:text-gray-500">
-                  {email.isStarred && <FiStar className="text-yellow-400 mr-2" />}
-                  {email.hasAttachments && <FiPaperclip className="mr-2" />}
-                </div>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </div>
-      
-      <div className="p-3 bg-white/5 dark:bg-gray-800/20 backdrop-blur-sm border-t border-white/10 dark:border-gray-700/30 text-center">
-        <a 
-          href="/dashboard/mail" 
-          className="text-red-500 hover:text-red-400 text-sm font-medium flex items-center justify-center hover:bg-white/10 dark:hover:bg-gray-800/20 px-3 py-1 rounded-lg transition-all duration-200"
+
+      {/* Footer with Material button */}
+      <div className="px-6 py-4 bg-white/10 dark:bg-gray-800/15 backdrop-blur-sm border-t border-white/20 dark:border-gray-600/20">
+        <a
+          href="/dashboard/mail"
+          className="block w-full text-center bg-red-500/20 hover:bg-red-500/30 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-sm font-medium py-3 px-4 rounded-2xl transition-all duration-300 hover:scale-[1.02] border border-red-400/30 backdrop-blur-sm"
         >
           Alle e-mails bekijken
-          <FiChevronRight className="ml-1" />
         </a>
       </div>
 

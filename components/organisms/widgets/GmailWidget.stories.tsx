@@ -1,119 +1,116 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
-import GmailWidget from './GmailWidget';
 import { SessionProvider } from 'next-auth/react';
+import GmailWidget from './GmailWidget';
+import type { EmailMessage } from '@/utils/google/google-gmail';
 
-const mockEmails = [
+// Mock email data for Storybook
+const mockEmails: EmailMessage[] = [
   {
-    id: '1',
+    id: 'email1',
     threadId: 'thread1',
-    from: {
-      name: 'John Doe',
-      email: 'john@example.com',
-    },
-    to: ['me@example.com'],
-    subject: 'Project Update - Q4 Review',
-    snippet: 'Hi team, I wanted to share the latest updates on our Q4 project. We have made significant progress...',
-    date: new Date(),
-    isRead: false,
-    isStarred: false,
-    hasAttachments: true,
-    labels: ['INBOX', 'IMPORTANT'],
-    sizeEstimate: 2048,
-  },
-  {
-    id: '2',
-    threadId: 'thread2',
-    from: {
-      name: 'Sarah Johnson',
-      email: 'sarah@company.com',
-    },
-    to: ['me@example.com'],
-    subject: 'Meeting Tomorrow at 2 PM',
-    snippet: 'Just a reminder about our meeting tomorrow to discuss the new feature implementation...',
+    from: { name: 'John Doe', email: 'john@example.com' },
+    to: ['you@example.com'],
+    subject: 'Project Update — Q4 Review',
+    snippet: 'Hi team, I wanted to share the latest updates on our Q4 project. We have...',
     date: new Date(Date.now() - 3600000), // 1 hour ago
     isRead: false,
     isStarred: true,
-    hasAttachments: false,
-    labels: ['INBOX'],
-    sizeEstimate: 1024,
+    hasAttachments: true,
+    labels: ['INBOX', 'UNREAD', 'STARRED'],
+    sizeEstimate: 15420
   },
   {
-    id: '3',
+    id: 'email2',
+    threadId: 'thread2',
+    from: { name: 'Sarah Johnson', email: 'sarah@example.com' },
+    to: ['you@example.com'],
+    subject: 'Meeting Tomorrow at 2 PM',
+    snippet: 'Just a reminder about our meeting tomorrow to discuss the new feature implementa...',
+    date: new Date(Date.now() - 86400000), // 1 day ago
+    isRead: false,
+    isStarred: true,
+    hasAttachments: false,
+    labels: ['INBOX', 'UNREAD'],
+    sizeEstimate: 8250
+  },
+  {
+    id: 'email3',
     threadId: 'thread3',
-    from: {
-      name: 'GitHub',
-      email: 'notifications@github.com',
-    },
-    to: ['me@example.com'],
+    from: { name: 'GitHub', email: 'notifications@github.com' },
+    to: ['you@example.com'],
     subject: '[PR] New pull request in yustboard',
-    snippet: 'A new pull request has been opened by user123: "Add dark mode support"...',
-    date: new Date(Date.now() - 86400000), // Yesterday
+    snippet: 'A new pull request has been opened by usr123. "Add dark mode support"...',
+    date: new Date(Date.now() - 86400000 * 2), // 2 days ago
     isRead: true,
     isStarred: false,
     hasAttachments: false,
     labels: ['INBOX'],
-    sizeEstimate: 1536,
+    sizeEstimate: 5680
   },
   {
-    id: '4',
+    id: 'email4',
     threadId: 'thread4',
-    from: {
-      name: 'Slack',
-      email: 'team@slack.com',
-    },
-    to: ['me@example.com'],
+    from: { name: 'Slack', email: 'notifications@slack.com' },
+    to: ['you@example.com'],
     subject: 'Your weekly team summary',
-    snippet: 'Here\'s what happened in your workspace this week: 42 messages, 8 files shared...',
-    date: new Date(Date.now() - 172800000), // 2 days ago
+    snippet: 'Here\'s what happened in your workspace this week: 42 messages, 8 files sh...',
+    date: new Date(Date.now() - 86400000 * 3), // 3 days ago
     isRead: true,
     isStarred: false,
-    hasAttachments: true,
-    labels: ['INBOX'],
-    sizeEstimate: 2560,
-  },
-  {
-    id: '5',
-    threadId: 'thread5',
-    from: {
-      name: 'Service Team',
-      email: 'billing@service.com',
-    },
-    to: ['me@example.com'],
-    subject: 'Invoice for December 2024',
-    snippet: 'Your invoice for December 2024 is now available. Total amount: $99.00...',
-    date: new Date(Date.now() - 604800000), // 1 week ago
-    isRead: true,
-    isStarred: false,
-    hasAttachments: true,
-    labels: ['INBOX', 'IMPORTANT'],
-    sizeEstimate: 1792,
-  },
+    hasAttachments: false,
+    labels: ['INBOX', 'CATEGORY_UPDATES'],
+    sizeEstimate: 12340
+  }
 ];
 
-const meta = {
+const mockSession = {
+  user: {
+    id: 'user123',
+    name: 'Test User',
+    email: 'test@example.com',
+    image: null,
+    role: 'USER' as const
+  },
+  accessToken: 'mock-access-token',
+  expires: '2024-12-31'
+};
+
+const meta: Meta<typeof GmailWidget> = {
   title: 'Dashboard/Widgets/GmailWidget',
   component: GmailWidget,
   parameters: {
-    layout: 'padded',
+    layout: 'centered',
+    backgrounds: {
+      default: 'gradient',
+      values: [
+        {
+          name: 'gradient',
+          value: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+        }
+      ]
+    }
   },
+  tags: ['autodocs'],
   decorators: [
     (Story) => (
-      <SessionProvider session={{
-        user: {
-          id: '1',
-          name: 'Test User',
-          email: 'test@example.com',
-        },
-        expires: '2025-12-31',
-      }}>
-        <div className="max-w-2xl">
+      <SessionProvider session={mockSession}>
+        <div className="max-w-md">
           <Story />
         </div>
       </SessionProvider>
-    ),
+    )
   ],
-  tags: ['autodocs'],
-} satisfies Meta<typeof GmailWidget>;
+  argTypes: {
+    initialEmails: {
+      description: 'Initial emails to display in the widget',
+      control: 'object'
+    },
+    maxEmails: {
+      description: 'Maximum number of emails to fetch and display',
+      control: { type: 'number', min: 1, max: 20 }
+    }
+  }
+};
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -121,70 +118,27 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   args: {
     initialEmails: mockEmails,
-  },
+    maxEmails: 5
+  }
 };
 
-export const EmptyInbox: Story = {
-  args: {
-    initialEmails: [],
-  },
-};
-
-export const LimitedEmails: Story = {
-  args: {
-    initialEmails: mockEmails,
-    maxEmails: 3,
-  },
-};
-
-export const LoadingState: Story = {
-  decorators: [
-    (Story) => {
-      global.fetch = ((() => new Promise(() => {}))) as typeof globalThis.fetch;
-      return <Story />;
-    },
-  ],
-};
-
-export const ErrorState: Story = {
-  decorators: [
-    (Story) => {
-      global.fetch = ((() =>
-        Promise.resolve({
-          ok: false,
-          status: 401,
-          json: () => Promise.resolve({ error: 'Unauthorized' }),
-        } as Response)
-      )) as typeof globalThis.fetch;
-      return <Story />;
-    },
-  ],
-};
-
-export const AllUnread: Story = {
+export const WithUnreadEmails: Story = {
   args: {
     initialEmails: mockEmails.map(email => ({ ...email, isRead: false })),
-  },
+    maxEmails: 5
+  }
 };
 
-export const AllStarred: Story = {
+export const WithAllReadEmails: Story = {
   args: {
-    initialEmails: mockEmails.map(email => ({ ...email, isStarred: true })),
-  },
+    initialEmails: mockEmails.map(email => ({ ...email, isRead: true, isStarred: false })),
+    maxEmails: 5
+  }
 };
 
-export const WithLongSubjects: Story = {
+export const EmptyState: Story = {
   args: {
-    initialEmails: [
-      {
-        ...mockEmails[0],
-        subject: 'This is a very long email subject that should be truncated when displayed in the widget to maintain proper layout',
-      },
-      {
-        ...mockEmails[1],
-        subject: 'Another extremely long subject line that goes on and on and needs to be properly handled by the UI component',
-      },
-      ...mockEmails.slice(2),
-    ],
-  },
+    initialEmails: [],
+    maxEmails: 5
+  }
 };

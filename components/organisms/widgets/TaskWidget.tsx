@@ -72,52 +72,70 @@ const TaskWidget = React.memo(function TaskWidget() {
     .slice(0, 5);
 
   return (
-    <div className="backdrop-blur-md bg-white/10 dark:bg-gray-900/10 border border-white/20 dark:border-gray-700/30 rounded-xl shadow-xl shadow-black/10 overflow-hidden">
-      <div className="p-4 bg-gradient-to-r from-green-500/80 to-green-600/80 backdrop-blur-sm text-white flex justify-between items-center">
-        <h3 className="font-medium">Upcoming Events</h3>
-        <a href="/dashboard/agenda" className="p-1.5 rounded-lg hover:bg-white/10 transition-all duration-200">
-          <FiPlus className="w-4 h-4" />
+    <div className="backdrop-blur-xl bg-white/15 dark:bg-gray-900/15 border border-white/25 dark:border-gray-700/25 rounded-3xl shadow-2xl shadow-black/20 overflow-hidden">
+      {/* Header with green gradient for calendar/tasks */}
+      <div className="px-6 py-4 bg-gradient-to-r from-green-500/90 to-emerald-500/90 backdrop-blur-sm text-white flex justify-between items-center">
+        <h3 className="text-lg font-medium tracking-wide">Upcoming Events</h3>
+        <a
+          href="/dashboard/agenda"
+          className="text-white/90 hover:text-white hover:bg-white/20 p-2 rounded-full transition-all duration-300 cursor-pointer hover:scale-105"
+        >
+          <FiPlus className="w-5 h-5" />
         </a>
       </div>
-      <div className="p-4 bg-white/5 backdrop-blur-sm">
+
+      {/* Content Area */}
+      <div className="px-6 pb-4 bg-white/5 dark:bg-gray-900/5 backdrop-blur-sm">
         {loading ? (
-          <div className="flex justify-center items-center py-4">
-            <FiLoader className="animate-spin h-5 w-5 text-green-500 mr-2" />
-            <span className="text-gray-600 dark:text-gray-400">Loading events...</span>
+          <div className="py-12 flex justify-center items-center">
+            <FiLoader className="animate-spin h-8 w-8 text-green-500 mr-3" />
+            <span className="text-gray-600 dark:text-gray-400 text-sm">Loading events...</span>
           </div>
         ) : error ? (
-          <p className="text-red-500 text-center py-4">{error}</p>
+          <div className="bg-red-500/15 border border-red-400/30 text-red-600 dark:text-red-400 p-4 rounded-2xl mb-4 backdrop-blur-sm">
+            {error}
+          </div>
         ) : upcomingTasks.length === 0 ? (
-          <p className="text-gray-600 dark:text-gray-400 text-center py-4">No upcoming events</p>
+          <p className="text-gray-500 dark:text-gray-400 text-center py-8 text-sm">No upcoming events</p>
         ) : (
-          <ul className="divide-y divide-white/10 dark:divide-gray-700/30">
+          <div className="space-y-3 pt-4">
             {upcomingTasks.map((task) => (
-              <li 
-                key={task.id} 
-                className="py-3 hover:bg-white/5 dark:hover:bg-gray-800/20 rounded-lg px-2 transition-all duration-200 cursor-pointer"
+              <div
+                key={task.id}
                 onClick={() => setSelectedTask(task)}
+                className="relative p-4 rounded-2xl cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-lg backdrop-blur-sm border bg-white/20 dark:bg-gray-800/20 border-white/30 dark:border-gray-600/30 hover:bg-white/30 dark:hover:bg-gray-700/30"
               >
+                {/* Event content */}
                 <div>
-                  <p className="font-medium text-gray-900 dark:text-gray-100">{task.title}</p>
-                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    <FiClock className="mr-1 w-3 h-3" />
+                  <h4 className="font-semibold text-sm mb-2 text-gray-900 dark:text-gray-100 leading-snug">
+                    {task.title}
+                  </h4>
+
+                  <div className="flex items-center text-xs text-gray-600 dark:text-gray-400 mb-2">
+                    <FiClock className="mr-2 w-4 h-4 text-green-500" />
                     <span>
                       {format(task.date, 'MMM d')} at {format(task.date, 'h:mm a')}
                     </span>
                   </div>
+
                   {task.location && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">📍 {task.location}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 flex items-center">
+                      <span className="mr-1">📍</span>
+                      {task.location}
+                    </p>
                   )}
                 </div>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </div>
-      <div className="p-3 bg-white/5 dark:bg-gray-800/20 backdrop-blur-sm border-t border-white/10 dark:border-gray-700/30 text-center">
-        <a 
-          href="/dashboard/agenda" 
-          className="text-green-500 hover:text-green-400 text-sm font-medium flex items-center justify-center hover:bg-white/10 dark:hover:bg-gray-800/20 px-3 py-1 rounded-lg transition-all duration-200"
+
+      {/* Footer with Material button */}
+      <div className="px-6 py-4 bg-white/10 dark:bg-gray-800/15 backdrop-blur-sm border-t border-white/20 dark:border-gray-600/20">
+        <a
+          href="/dashboard/agenda"
+          className="block w-full text-center bg-green-500/20 hover:bg-green-500/30 text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 text-sm font-medium py-3 px-4 rounded-2xl transition-all duration-300 hover:scale-[1.02] border border-green-400/30 backdrop-blur-sm"
         >
           View all events
         </a>

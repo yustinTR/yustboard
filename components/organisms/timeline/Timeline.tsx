@@ -177,14 +177,14 @@ export default function Timeline() {
   return (
     <div className="max-w-3xl mx-auto">
       {/* Post form */}
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
+      <div className="backdrop-blur-md bg-white/10 dark:bg-gray-900/10 border border-white/20 dark:border-gray-700/30 rounded-xl shadow-xl shadow-black/10 p-6 mb-8">
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Wat denk je?"
-              className="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-all"
+              className="w-full p-4 bg-white/20 dark:bg-gray-800/20 border border-white/30 dark:border-gray-600/30 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-all"
               rows={3}
               maxLength={280}
               disabled={isPosting}
@@ -193,7 +193,7 @@ export default function Timeline() {
             {attachments.length > 0 && (
               <div className="mt-4 space-y-3">
                 {attachments.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                  <div key={index} className="flex items-center justify-between p-3 bg-white/20 dark:bg-gray-800/20 rounded-xl border border-white/30 dark:border-gray-600/30 backdrop-blur-sm">
                     <div className="flex items-center space-x-3">
                       <div className={`p-2 rounded-lg ${file.type.startsWith('image/') ? 'bg-green-100 dark:bg-green-900' : 'bg-blue-100 dark:bg-blue-900'}`}>
                         {file.type.startsWith('image/') ? (
@@ -224,7 +224,7 @@ export default function Timeline() {
             )}
             <div className="flex justify-between items-center mt-4">
               <div className="flex items-center space-x-4">
-                <label className="p-2 cursor-pointer text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">
+                <label className="p-2 cursor-pointer text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white/20 dark:hover:bg-blue-900/20 rounded-lg transition-colors backdrop-blur-sm">
                   <FiPaperclip className="w-5 h-5" />
                   <input
                     type="file"
@@ -265,7 +265,7 @@ export default function Timeline() {
         <button
           onClick={handleRefresh}
           disabled={isRefreshing}
-          className="flex items-center px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-all cursor-pointer"
+          className="flex items-center px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white/20 dark:hover:bg-blue-900/20 rounded-xl transition-all cursor-pointer backdrop-blur-sm"
         >
           <FiRefreshCw className={`mr-2 w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           <span className="font-medium">Refresh</span>
