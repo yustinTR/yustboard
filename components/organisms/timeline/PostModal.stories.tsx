@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
+import { SessionProvider } from 'next-auth/react';
 import PostModal from './PostModal';
 
 // Mock fetch for comments and likes
@@ -67,6 +68,19 @@ global.fetch = ((url: string, options?: RequestInit) => {
   return Promise.reject(new Error('Not found'));
 }) as typeof fetch;
 
+// Mock session for Storybook
+const mockSession = {
+  user: {
+    id: '1',
+    name: 'Storybook User',
+    email: 'storybook@example.com',
+    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face',
+    role: 'USER'
+  },
+  accessToken: 'mock-access-token',
+  expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours from now
+};
+
 const meta: Meta<typeof PostModal> = {
   title: 'Dashboard/Modals/PostModal',
   component: PostModal,
@@ -79,6 +93,13 @@ const meta: Meta<typeof PostModal> = {
     },
   },
   tags: ['autodocs'],
+  decorators: [
+    (Story) => (
+      <SessionProvider session={mockSession}>
+        <Story />
+      </SessionProvider>
+    ),
+  ],
   argTypes: {
     isOpen: {
       control: 'boolean',
