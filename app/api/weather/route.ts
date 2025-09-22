@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/auth/server'
 
 // OpenWeatherMap - Free tier: 1000 calls/day
-const WEATHER_API_KEY = process.env.OPENWEATHER_API_KEY || ''
+const WEATHER_API_KEY = process.env.OPENWEATHER_API_KEY || process.env.WEATHER_API_KEY || ''
 const WEATHER_API_URL = 'https://api.openweathermap.org/data/2.5'
+
+console.log('Weather API Key loaded:', WEATHER_API_KEY ? `${WEATHER_API_KEY.substring(0, 8)}...` : 'NOT FOUND')
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,12 +22,25 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Latitude and longitude required' }, { status: 400 })
     }
     
-    if (!WEATHER_API_KEY) {
-      console.warn('OPENWEATHER_API_KEY not found. Please get a free API key from https://openweathermap.org/api')
+    if (!WEATHER_API_KEY || WEATHER_API_KEY === 'your_api_key_here' || WEATHER_API_KEY.includes('your_')) {
+      console.warn('OPENWEATHER_API_KEY not configured. Please get a free API key from https://openweathermap.org/api')
+      // Return mock data for development
       return NextResponse.json({
-        error: 'Weather API key not configured',
-        message: 'Get a free key at https://openweathermap.org/api'
-      }, { status: 500 })
+        temperature: 18,
+        feels_like: 16,
+        condition: 'Clouds',
+        description: 'overcast clouds',
+        location: 'Den Haag',
+        humidity: 65,
+        wind_speed: 12,
+        forecast: [
+          { day: 'Ma', temperature: 19, condition: 'Clouds' },
+          { day: 'Di', temperature: 17, condition: 'Rain' },
+          { day: 'Wo', temperature: 20, condition: 'Clear' },
+          { day: 'Do', temperature: 18, condition: 'Clouds' },
+          { day: 'Vr', temperature: 16, condition: 'Rain' }
+        ]
+      })
     }
 
     // Fetch current weather
@@ -38,7 +53,55 @@ export async function GET(request: NextRequest) {
     ])
 
     if (!currentResponse.ok || !forecastResponse.ok) {
-      throw new Error('Failed to fetch weather data')
+      console.error('Weather API Error:', {
+        currentStatus: currentResponse.status,
+        currentStatusText: currentResponse.statusText,
+        forecastStatus: forecastResponse.status,
+        forecastStatusText: forecastResponse.statusText
+      })
+
+      // If API key is invalid, return mock data
+      if (currentResponse.status === 401 || forecastResponse.status === 401) {
+        console.warn('Invalid OpenWeatherMap API key. Please get a valid API key from https://openweathermap.org/api')
+        return NextResponse.json({
+          temperature: 18,
+          feels_like: 16,
+          condition: 'Clouds',
+          description: 'overcast clouds',
+          location: 'Den Haag',
+          humidity: 65,
+          wind_speed: 12,
+          forecast: [
+            { day: 'Ma', temperature: 19, condition: 'Clouds' },
+            { day: 'Di', temperature: 17, condition: 'Rain' },
+            { day: 'Wo', temperature: 20, condition: 'Clear' },
+            { day: 'Do', temperature: 18, condition: 'Clouds' },
+            { day: 'Vr', temperature: 16, condition: 'Rain' }
+          ],
+          isMockData: true,
+          message: 'Using mock data. Please configure a valid OpenWeatherMap API key.'
+        })
+      }
+
+      // Return mock data for any other errors too
+      return NextResponse.json({
+        temperature: 18,
+        feels_like: 16,
+        condition: 'Clouds',
+        description: 'overcast clouds',
+        location: 'Den Haag',
+        humidity: 65,
+        wind_speed: 12,
+        forecast: [
+          { day: 'Ma', temperature: 19, condition: 'Clouds' },
+          { day: 'Di', temperature: 17, condition: 'Rain' },
+          { day: 'Wo', temperature: 20, condition: 'Clear' },
+          { day: 'Do', temperature: 18, condition: 'Clouds' },
+          { day: 'Vr', temperature: 16, condition: 'Rain' }
+        ],
+        isMockData: true,
+        message: 'Weather service temporarily unavailable. Showing mock data.'
+      })
     }
 
     const currentData = await currentResponse.json()

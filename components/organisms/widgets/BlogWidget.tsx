@@ -3,9 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { FiFileText, FiCalendar, FiUser, FiExternalLink, FiRefreshCw } from 'react-icons/fi';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/molecules/card';
-import { Button } from '@/components/atoms/button';
+import { FiFileText, FiCalendar, FiUser, FiRefreshCw } from 'react-icons/fi';
 import Image from 'next/image';
 
 interface BlogPost {
@@ -54,79 +52,92 @@ const BlogWidget = React.memo(function BlogWidget() {
 
   if (loading) {
     return (
-      <Card className="h-full flex flex-col backdrop-blur-md bg-white/10 dark:bg-gray-900/10 border border-white/20 dark:border-gray-700/30 shadow-xl shadow-black/10 rounded-xl overflow-hidden">
-        <CardHeader className="p-4 pb-3 border-b border-white/20 dark:border-gray-700/30 bg-gradient-to-r from-indigo-500/80 to-indigo-600/80 backdrop-blur-sm text-white">
-          <CardTitle className="flex items-center gap-2 text-lg">
+      <div className="h-full backdrop-blur-xl bg-white/15 dark:bg-gray-900/15 border border-white/25 dark:border-gray-700/25 rounded-3xl shadow-2xl shadow-black/20 overflow-hidden flex flex-col">
+        {/* Header with indigo gradient for blog */}
+        <div className="px-6 py-4 bg-gradient-to-r from-indigo-500/90 to-blue-500/90 backdrop-blur-sm text-white">
+          <h3 className="text-lg font-medium tracking-wide flex items-center gap-2">
             <FiFileText className="h-5 w-5" />
             Blog Posts
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-4 flex-1 bg-white/5 backdrop-blur-sm">
+          </h3>
+        </div>
+
+        {/* Loading Content */}
+        <div className="flex-1 px-6 py-4 bg-white/5 dark:bg-gray-900/5 backdrop-blur-sm">
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="animate-pulse">
-                <div className="h-4 bg-secondary rounded-lg w-3/4 mb-2"></div>
-                <div className="h-3 bg-secondary rounded-lg w-full mb-2"></div>
-                <div className="h-3 bg-secondary rounded-lg w-1/2"></div>
+              <div key={i} className="animate-pulse bg-white/20 dark:bg-gray-800/20 rounded-2xl p-4 backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
+                <div className="h-4 bg-white/30 dark:bg-gray-700/30 rounded-lg w-3/4 mb-2"></div>
+                <div className="h-3 bg-white/20 dark:bg-gray-700/20 rounded-lg w-full mb-2"></div>
+                <div className="h-3 bg-white/20 dark:bg-gray-700/20 rounded-lg w-1/2"></div>
               </div>
             ))}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Card className="h-full flex flex-col backdrop-blur-md bg-white/10 dark:bg-gray-900/10 border border-white/20 dark:border-gray-700/30 shadow-xl shadow-black/10 rounded-xl overflow-hidden">
-        <CardHeader className="p-4 pb-3 border-b border-white/20 dark:border-gray-700/30 bg-gradient-to-r from-indigo-500/80 to-indigo-600/80 backdrop-blur-sm text-white">
-          <CardTitle className="flex items-center gap-2 text-lg">
+      <div className="h-full backdrop-blur-xl bg-white/15 dark:bg-gray-900/15 border border-white/25 dark:border-gray-700/25 rounded-3xl shadow-2xl shadow-black/20 overflow-hidden flex flex-col">
+        {/* Header with indigo gradient for blog */}
+        <div className="px-6 py-4 bg-gradient-to-r from-indigo-500/90 to-blue-500/90 backdrop-blur-sm text-white flex justify-between items-center">
+          <h3 className="text-lg font-medium tracking-wide flex items-center gap-2">
             <FiFileText className="h-5 w-5" />
             Blog Posts
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-4 flex-1 bg-white/5 backdrop-blur-sm">
-          <div className="flex items-center justify-center h-32">
-            <p className="text-destructive text-sm">{error}</p>
+          </h3>
+          <button
+            onClick={fetchLatestPosts}
+            disabled={loading}
+            className="text-white/90 hover:text-white hover:bg-white/20 p-2 rounded-full transition-all duration-300 disabled:opacity-50 cursor-pointer hover:scale-105"
+          >
+            <FiRefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
+
+        {/* Error Content */}
+        <div className="flex-1 px-6 py-4 bg-white/5 dark:bg-gray-900/5 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-red-500/15 border border-red-400/30 text-red-600 dark:text-red-400 p-4 rounded-2xl backdrop-blur-sm">
+            {error}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card className="h-full flex flex-col backdrop-blur-md bg-white/10 dark:bg-gray-900/10 border border-white/20 dark:border-gray-700/30 shadow-xl shadow-black/10 rounded-xl overflow-hidden">
-      <CardHeader className="p-4 pb-3 border-b border-white/20 dark:border-gray-700/30 bg-gradient-to-r from-indigo-500/80 to-indigo-600/80 backdrop-blur-sm text-white">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <FiFileText className="h-5 w-5" />
-            Blog Posts
-          </CardTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={fetchLatestPosts}
-            disabled={loading}
-            className="h-8 w-8"
-          >
-            <FiRefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-          </Button>
-        </div>
-      </CardHeader>
+    <div className="h-full backdrop-blur-xl bg-white/15 dark:bg-gray-900/15 border border-white/25 dark:border-gray-700/25 rounded-3xl shadow-2xl shadow-black/20 overflow-hidden flex flex-col">
+      {/* Header with indigo gradient for blog */}
+      <div className="px-6 py-4 bg-gradient-to-r from-indigo-500/90 to-blue-500/90 backdrop-blur-sm text-white flex justify-between items-center">
+        <h3 className="text-lg font-medium tracking-wide flex items-center gap-2">
+          <FiFileText className="h-5 w-5" />
+          Blog Posts
+        </h3>
+        <button
+          onClick={fetchLatestPosts}
+          disabled={loading}
+          className="text-white/90 hover:text-white hover:bg-white/20 p-2 rounded-full transition-all duration-300 disabled:opacity-50 cursor-pointer hover:scale-105"
+        >
+          <FiRefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
+        </button>
+      </div>
 
-      <CardContent className="p-0 flex-1 flex flex-col overflow-hidden bg-white/5 backdrop-blur-sm">
+      {/* Content Area */}
+      <div className="flex-1 px-6 py-4 bg-white/5 dark:bg-gray-900/5 backdrop-blur-sm overflow-hidden flex flex-col">
         {posts.length === 0 ? (
-          <div className="p-8 text-center text-muted-foreground flex-1 flex flex-col items-center justify-center">
-            <FiFileText className="mx-auto mb-2 h-8 w-8" />
-            <p className="font-medium">Nog geen blog posts</p>
-            <p className="text-sm">Begin met het schrijven van je eerste blog post!</p>
+          <div className="flex-1 flex flex-col items-center justify-center text-center space-y-3">
+            <div className="bg-indigo-500/15 border border-indigo-400/30 text-indigo-600 dark:text-indigo-400 p-6 rounded-2xl backdrop-blur-sm">
+              <FiFileText className="mx-auto mb-3 h-8 w-8" />
+              <p className="font-medium mb-2">Nog geen blog posts</p>
+              <p className="text-sm">Begin met het schrijven van je eerste blog post!</p>
+            </div>
           </div>
         ) : (
           <>
-            <div className="flex-1 overflow-y-auto divide-y divide-white/10 dark:divide-gray-700/30">
+            <div className="flex-1 overflow-y-auto space-y-3">
               {posts.map((post) => (
-                <article key={post.id} className="p-4 hover:bg-white/10 dark:hover:bg-gray-800/20 cursor-pointer transition-all duration-200 group">
-                  <Link href={`/blog/${post.slug}`} className="block">
+                <Link key={post.id} href={`/blog/${post.slug}`}>
+                  <div className="bg-white/20 dark:bg-gray-800/20 rounded-2xl p-4 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 hover:bg-white/30 dark:hover:bg-gray-700/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg cursor-pointer group">
                     <div className="flex gap-3">
                       {post.coverImage && (
                         <div className="flex-shrink-0">
@@ -135,18 +146,18 @@ const BlogWidget = React.memo(function BlogWidget() {
                             alt={post.title}
                             width={60}
                             height={60}
-                            className="rounded-lg object-cover"
+                            className="rounded-xl object-cover"
                           />
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-tight mb-1">
+                        <h4 className="font-semibold text-sm text-gray-900 dark:text-gray-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-2 leading-snug mb-2">
                           {post.title}
                         </h4>
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2 leading-relaxed">
+                        <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 mb-3 leading-relaxed">
                           {post.excerpt}
                         </p>
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-500">
                           <span className="flex items-center gap-1">
                             <FiUser className="h-3 w-3" />
                             {post.author.name || 'Anonymous'}
@@ -158,25 +169,24 @@ const BlogWidget = React.memo(function BlogWidget() {
                         </div>
                       </div>
                     </div>
-                  </Link>
-                </article>
+                  </div>
+                </Link>
               ))}
-            </div>
-            
-            {/* View all link */}
-            <div className="p-3 text-center border-t border-white/10 dark:border-gray-700/30 bg-white/5 backdrop-blur-sm">
-              <Link
-                href="/blog"
-                className="text-indigo-500 hover:text-indigo-400 text-sm font-medium flex items-center justify-center gap-1 hover:bg-white/10 dark:hover:bg-gray-800/20 px-3 py-1 rounded-lg transition-all duration-200"
-              >
-                Bekijk alle posts
-                <FiExternalLink className="h-3 w-3" />
-              </Link>
             </div>
           </>
         )}
-      </CardContent>
-    </Card>
+      </div>
+
+      {/* Footer with Material button */}
+      <div className="px-6 py-4 bg-white/10 dark:bg-gray-800/15 backdrop-blur-sm border-t border-white/20 dark:border-gray-600/20">
+        <Link
+          href="/blog"
+          className="block w-full text-center bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 text-sm font-medium py-3 px-4 rounded-2xl transition-all duration-300 hover:scale-[1.02] border border-indigo-400/30 backdrop-blur-sm"
+        >
+          Bekijk alle posts
+        </Link>
+      </div>
+    </div>
   );
 });
 

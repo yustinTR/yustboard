@@ -75,31 +75,33 @@ const NewsWidget = React.memo(function NewsWidget() {
   }, [fetchNews])
 
   return (
-    <div className="h-[600px] backdrop-blur-md bg-white/10 dark:bg-gray-900/10 border border-white/20 dark:border-gray-700/30 rounded-xl shadow-xl shadow-black/10 overflow-hidden flex flex-col">
-      <div className="p-4 bg-gradient-to-r from-purple-500/80 to-purple-600/80 backdrop-blur-sm text-white flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <h3 className="font-medium flex items-center gap-2">
+    <div className="h-full backdrop-blur-xl bg-white/15 dark:bg-gray-900/15 border border-white/25 dark:border-gray-700/25 rounded-3xl shadow-2xl shadow-black/20 overflow-hidden flex flex-col">
+      {/* Header with purple gradient for news */}
+      <div className="px-6 py-4 bg-gradient-to-r from-purple-500/90 to-violet-500/90 backdrop-blur-sm text-white flex-shrink-0">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-medium tracking-wide flex items-center gap-2">
             <FiFileText className="h-5 w-5" />
             Nieuws
           </h3>
           <button
             onClick={fetchNews}
             disabled={loading}
-            className="text-white/90 hover:text-white hover:bg-white/10 p-1.5 rounded-lg transition-all duration-200 disabled:opacity-50"
+            className="text-white/90 hover:text-white hover:bg-white/20 p-2 rounded-full transition-all duration-300 disabled:opacity-50 cursor-pointer hover:scale-105"
           >
-            <FiRefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            <FiRefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
           </button>
         </div>
-        
-        <div className="space-y-2 mt-3">
-          <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
+
+        {/* Filter Controls */}
+        <div className="space-y-3">
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             {countries.map((country) => (
               <button
                 key={country.value}
-                className={`h-7 px-2 text-xs rounded-lg transition-all duration-200 whitespace-nowrap ${
-                  selectedCountry === country.value 
-                    ? "bg-white/20 text-white" 
-                    : "bg-white/10 text-white/80 hover:bg-white/15 hover:text-white"
+                className={`px-3 py-1.5 text-xs rounded-lg transition-all duration-300 whitespace-nowrap border backdrop-blur-sm ${
+                  selectedCountry === country.value
+                    ? "bg-white/30 text-white border-white/40"
+                    : "bg-white/10 text-white/80 border-white/20 hover:bg-white/20 hover:text-white"
                 }`}
                 onClick={() => setSelectedCountry(country.value)}
               >
@@ -107,15 +109,15 @@ const NewsWidget = React.memo(function NewsWidget() {
               </button>
             ))}
           </div>
-          
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             {categories.map((cat) => (
               <button
                 key={cat.value}
-                className={`px-2 py-1 text-xs rounded-full transition-all duration-200 whitespace-nowrap ${
+                className={`px-3 py-1.5 text-xs rounded-full transition-all duration-300 whitespace-nowrap border backdrop-blur-sm ${
                   selectedCategory === cat.value
-                    ? "bg-white/20 text-white border border-white/30"
-                    : "bg-white/10 text-white/80 border border-white/20 hover:bg-white/15 hover:text-white"
+                    ? "bg-white/30 text-white border-white/40"
+                    : "bg-white/10 text-white/80 border-white/20 hover:bg-white/20 hover:text-white"
                 }`}
                 onClick={() => setSelectedCategory(cat.value)}
               >
@@ -125,82 +127,84 @@ const NewsWidget = React.memo(function NewsWidget() {
           </div>
         </div>
       </div>
-      
-      <div className="flex-1 overflow-y-auto p-4 bg-white/5 backdrop-blur-sm space-y-3">
+
+      {/* Content Area */}
+      <div className="flex-1 overflow-y-auto px-6 py-4 bg-white/5 dark:bg-gray-900/5 backdrop-blur-sm space-y-4">
         {loading && (
-          <div className="flex items-center justify-center h-32">
-            <FiRefreshCw className="h-6 w-6 animate-spin text-purple-500" />
+          <div className="flex items-center justify-center py-12">
+            <FiRefreshCw className="h-8 w-8 animate-spin text-purple-500 mr-3" />
+            <span className="text-gray-600 dark:text-gray-400 text-sm">Loading news...</span>
           </div>
         )}
-        
+
         {error && (
-          <div className="text-center text-sm text-gray-600 dark:text-gray-400 py-8">
+          <div className="bg-red-500/15 border border-red-400/30 text-red-600 dark:text-red-400 p-4 rounded-2xl backdrop-blur-sm">
             {error}
           </div>
         )}
-        
+
         {!loading && !error && articles.length === 0 && (
           <div className="text-center py-8 space-y-3">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Geen nieuws gevonden
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-500">
-              Voeg NEWS_API_KEY toe aan je .env bestand
-            </p>
-            <a 
-              href="https://newsapi.org" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-xs text-purple-500 hover:text-purple-400 underline"
-            >
-              Gratis API key verkrijgen →
-            </a>
+            <div className="bg-yellow-500/15 border border-yellow-400/30 text-yellow-600 dark:text-yellow-400 p-4 rounded-2xl backdrop-blur-sm">
+              <p className="text-sm font-medium mb-2">Geen nieuws gevonden</p>
+              <p className="text-xs mb-3">Voeg NEWS_API_KEY toe aan je .env bestand</p>
+              <a
+                href="https://newsapi.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-purple-500 hover:text-purple-400 underline font-medium"
+              >
+                Gratis API key verkrijgen →
+              </a>
+            </div>
           </div>
         )}
-        
-        {!loading && !error && articles.map((article, index) => (
-          <div 
-            key={index} 
-            className="space-y-2 pb-3 border-b border-white/10 dark:border-gray-700/30 last:border-0 hover:bg-white/5 dark:hover:bg-gray-800/20 p-2 rounded-lg transition-all duration-200 cursor-pointer"
+
+        {!loading && !error && articles.slice(0, 3).map((article, index) => (
+          <div
+            key={index}
+            className="bg-white/20 dark:bg-gray-800/20 rounded-2xl p-4 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 hover:bg-white/30 dark:hover:bg-gray-700/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg cursor-pointer"
             onClick={() => setSelectedArticle(article)}
           >
             {article.urlToImage && (
-              <Image
-                src={article.urlToImage}
-                alt={article.title}
-                width={400}
-                height={128}
-                className="w-full h-32 object-cover rounded-md"
-                unoptimized={true}
-              />
+              <div className="mb-3">
+                <Image
+                  src={article.urlToImage}
+                  alt={article.title}
+                  width={400}
+                  height={200}
+                  className="w-full h-32 object-cover rounded-xl"
+                  unoptimized={true}
+                />
+              </div>
             )}
-            
-            <div className="space-y-1">
-              <h3 className="font-medium text-sm line-clamp-2 leading-tight text-gray-900 dark:text-gray-100">
+
+            <div className="space-y-2">
+              <h3 className="font-semibold text-sm line-clamp-2 leading-snug text-gray-900 dark:text-gray-100">
                 {article.title}
               </h3>
-              
+
               {article.description && (
-                <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
+                <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed">
                   {article.description}
                 </p>
               )}
-              
-              <div className="flex items-center justify-between pt-1">
+
+              <div className="flex items-center justify-between pt-2">
                 <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-500">
                   <span className="font-medium">{article.source.name}</span>
                   <span>•</span>
                   <span className="flex items-center gap-1">
                     <FiCalendar className="h-3 w-3" />
-                    {formatDistanceToNow(new Date(article.publishedAt), { 
+                    {formatDistanceToNow(new Date(article.publishedAt), {
                       addSuffix: true,
-                      locale: nl 
+                      locale: nl
                     })}
                   </span>
                 </div>
-                
+
                 <button
-                  className="h-7 w-7 hover:bg-white/10 dark:hover:bg-gray-800/20 rounded-lg transition-all duration-200 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-purple-500"
+                  className="bg-white/20 dark:bg-gray-700/20 hover:bg-white/30 dark:hover:bg-gray-600/30 p-2 rounded-lg transition-all duration-300 text-gray-600 dark:text-gray-400 hover:text-purple-500 border border-white/30 dark:border-gray-600/30"
                   onClick={(e) => {
                     e.stopPropagation();
                     window.open(article.url, '_blank');
@@ -213,14 +217,14 @@ const NewsWidget = React.memo(function NewsWidget() {
           </div>
         ))}
       </div>
-      
-      <div className="p-3 bg-white/5 dark:bg-gray-800/20 backdrop-blur-sm border-t border-white/10 dark:border-gray-700/30 text-center flex-shrink-0">
-        <Link 
-          href="/dashboard/news" 
-          className="text-purple-500 hover:text-purple-400 text-sm font-medium flex items-center justify-center hover:bg-white/10 dark:hover:bg-gray-800/20 px-3 py-1 rounded-lg transition-all duration-200"
+
+      {/* Footer with Material button */}
+      <div className="px-6 py-4 bg-white/10 dark:bg-gray-800/15 backdrop-blur-sm border-t border-white/20 dark:border-gray-600/20">
+        <Link
+          href="/dashboard/news"
+          className="block w-full text-center bg-purple-500/20 hover:bg-purple-500/30 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 text-sm font-medium py-3 px-4 rounded-2xl transition-all duration-300 hover:scale-[1.02] border border-purple-400/30 backdrop-blur-sm"
         >
           Alle nieuws bekijken
-          <FiExternalLink className="ml-1 h-3 w-3" />
         </Link>
       </div>
 

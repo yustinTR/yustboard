@@ -124,17 +124,17 @@ export default function EventModal({ event, isOpen, onClose }: EventModalProps) 
   if (!mounted || !isOpen || !event) return null;
 
   const modalContent = (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="backdrop-blur-md bg-white/90 dark:bg-gray-900/90 rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl border border-white/20 dark:border-gray-700/30 animate-in slide-in-from-bottom-4 duration-300">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999]  flex items-center justify-center p-4 animate-in fade-in duration-200">
+      <div className="backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 rounded-3xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl shadow-black/20 border overflow-hidden border-white/25 dark:border-gray-700/25 animate-in slide-in-from-bottom-4 duration-300">
         {/* Header */}
-        <div className="relative p-6 border-b border-white/20 dark:border-gray-700/30 bg-gradient-to-r from-green-500/10 to-green-600/10 backdrop-blur-sm">
+        <div className="relative p-6 border-b border-white/20 dark:border-gray-700/30 bg-gradient-to-r from-green-500/80 to-green-600/80 backdrop-blur-sm text-white rounded-t-3xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
                 <FiCalendar className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                <h2 className="text-lg font-semibold text-white/80 dark:text-gray-100">
                   Event Details
                 </h2>
                 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${getStatusColor()}`}>
@@ -146,23 +146,23 @@ export default function EventModal({ event, isOpen, onClose }: EventModalProps) 
             <div className="flex items-center space-x-2">
               <button
                 onClick={handleShare}
-                className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                className="p-2 text-white/80 hover:text-white hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg transition-all duration-300 hover:scale-105"
                 title="Share event"
               >
                 <FiShare2 className="w-5 h-5" />
               </button>
-              
+
               <button
                 onClick={openInCalendar}
-                className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                className="p-2 text-white/80 hover:text-white hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg transition-all duration-300 hover:scale-105"
                 title="Open in calendar"
               >
                 <FiExternalLink className="w-5 h-5" />
               </button>
-              
+
               <button
                 onClick={onClose}
-                className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                className="p-2 text-white/80 hover:text-white hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg transition-all duration-300 hover:scale-105"
               >
                 <FiX className="w-6 h-6" />
               </button>
@@ -171,7 +171,7 @@ export default function EventModal({ event, isOpen, onClose }: EventModalProps) 
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-auto p-6">
+        <div className="flex-1 overflow-auto p-6 bg-white/5 dark:bg-gray-900/5 backdrop-blur-sm">
           <div className="space-y-6">
             {/* Event title */}
             <div>
@@ -288,20 +288,20 @@ export default function EventModal({ event, isOpen, onClose }: EventModalProps) 
         </div>
 
         {/* Footer actions */}
-        <div className="p-4 border-t border-white/20 dark:border-gray-700/30 bg-white/10 dark:bg-gray-800/20 backdrop-blur-sm flex-shrink-0">
+        <div className="p-4 border-t border-white/20 dark:border-gray-700/30 bg-white/5 dark:bg-gray-800/15 backdrop-blur-sm flex-shrink-0">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center space-x-3 w-full sm:w-auto">
-              <button 
+              <button
                 onClick={handleShare}
-                className="flex items-center justify-center space-x-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors flex-1 sm:flex-none"
+                className="flex items-center justify-center space-x-2 px-4 py-2 bg-white/20 dark:bg-gray-800/20 hover:bg-white/30 dark:hover:bg-gray-700/30 text-gray-700 dark:text-gray-300 rounded-2xl transition-all duration-300 hover:scale-[1.02] backdrop-blur-sm border border-white/30 dark:border-gray-600/30 flex-1 sm:flex-none"
               >
                 <FiShare2 className="w-4 h-4" />
                 <span>Delen</span>
               </button>
-              
-              <button 
+
+              <button
                 onClick={openInCalendar}
-                className="flex items-center justify-center space-x-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors flex-1 sm:flex-none"
+                className="flex items-center justify-center space-x-2 px-4 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 rounded-2xl transition-all duration-300 hover:scale-[1.02] backdrop-blur-sm border border-green-400/30 flex-1 sm:flex-none"
               >
                 <FiEdit className="w-4 h-4" />
                 <span className="hidden sm:inline">Openen in agenda</span>

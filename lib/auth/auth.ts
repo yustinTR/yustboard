@@ -253,19 +253,21 @@ export const authConfig: NextAuthConfig = {
         session.accessToken = token.accessToken as string;
         session.user.id = (token.userId || token.sub) as string;
         session.error = undefined; // Clear any previous errors
-        
-        // Fetch user role from database
-        if (session.user.id) {
+
+        // Fetch current user role from database
+        if (session.user.id && typeof window === 'undefined') {
           try {
             const user = await prisma.user.findUnique({
               where: { id: session.user.id },
               select: { role: true }
             });
             session.user.role = user?.role || 'USER';
-          } catch (dbError) {
-            logger.error("Failed to fetch user role:", dbError as Error);
+          } catch (error) {
+            logger.error("Failed to fetch user role:", error as Error);
             session.user.role = 'USER';
           }
+        } else {
+          session.user.role = 'USER';
         }
       }
       
@@ -276,7 +278,7 @@ export const authConfig: NextAuthConfig = {
     signIn: "/login",
     error: "/login", // Error page
   },
-  debug: process.env.NODE_ENV === "development",
+  debug: false, // Disable debug warnings in development
   secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: "jwt" as const, // Important: use JWT strategy to make the token available

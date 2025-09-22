@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { FiArrowUp, FiArrowDown, FiRefreshCw } from 'react-icons/fi';
 import { format } from 'date-fns';
 import { useSession } from 'next-auth/react';
@@ -17,12 +17,14 @@ const BankingWidget = React.memo(function BankingWidget({ initialTransactions = 
   const [balance, setBalance] = useState<number>(initialBalance);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const hasFetchedRef = useRef(false);
 
   const fetchTransactions = useCallback(async () => {
     if (!session?.accessToken) return;
-    
+
     setIsLoading(true);
     setError('');
+    hasFetchedRef.current = true;
     
     try {
       const response = await fetch('/api/banking/transactions?days=30&statsOnly=false');
@@ -54,10 +56,11 @@ const BankingWidget = React.memo(function BankingWidget({ initialTransactions = 
   }, [session?.accessToken, initialTransactions, initialBalance]);
 
   useEffect(() => {
-    if (session?.accessToken) {
+    if (session?.accessToken && transactions.length === 0 && !isLoading && !hasFetchedRef.current) {
+      hasFetchedRef.current = true;
       fetchTransactions();
     }
-  }, [session?.accessToken, fetchTransactions]);
+  }, [session?.accessToken]); // Only depend on accessToken to prevent infinite loops
 
   // Sort and limit transactions for display
   const recentTransactions = transactions
@@ -65,63 +68,90 @@ const BankingWidget = React.memo(function BankingWidget({ initialTransactions = 
     .slice(0, 5);
 
   return (
-    <div className="backdrop-blur-md bg-white/10 dark:bg-gray-900/10 border border-white/20 dark:border-gray-700/30 rounded-xl shadow-xl shadow-black/10 overflow-hidden">
-      <div className="p-4 bg-gradient-to-r from-green-500/80 to-green-600/80 backdrop-blur-sm text-white flex justify-between items-center">
-        <h3 className="font-medium">Banking</h3>
-        <button 
-          onClick={fetchTransactions} 
+    <div className="h-full backdrop-blur-xl bg-white/15 dark:bg-gray-900/15 border border-white/25 dark:border-gray-700/25 rounded-3xl shadow-2xl shadow-black/20 overflow-hidden flex flex-col">
+      {/* Header with emerald gradient for banking */}
+      <div className="px-6 py-4 bg-gradient-to-r from-emerald-500/90 to-green-500/90 backdrop-blur-sm text-white flex justify-between items-center">
+        <h3 className="text-lg font-medium tracking-wide flex items-center gap-2">
+          <FiArrowUp className="h-5 w-5" />
+          Banking
+        </h3>
+        <button
+          onClick={fetchTransactions}
           disabled={isLoading}
-          className="text-white hover:text-gray-200 dark:hover:text-gray-300 disabled:opacity-50 cursor-pointer"
+          className="text-white/90 hover:text-white hover:bg-white/20 p-2 rounded-full transition-all duration-300 disabled:opacity-50 cursor-pointer hover:scale-105"
           aria-label="Refresh transactions"
         >
-          <FiRefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+          <FiRefreshCw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
         </button>
       </div>
-      <div className="p-4 bg-white/5 backdrop-blur-sm">
-        <div className="mb-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Current Balance</p>
-          <p className="text-2xl font-bold">${balance.toFixed(2)}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Based on Gmail transaction analysis</p>
+
+      {/* Content Area */}
+      <div className="flex-1 px-6 py-4 bg-white/5 dark:bg-gray-900/5 backdrop-blur-sm space-y-6">
+        {/* Balance Card */}
+        <div className="bg-white/20 dark:bg-gray-800/20 rounded-2xl p-4 backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
+          <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">Current Balance</p>
+          <p className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">
+            ${balance.toFixed(2)}
+          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Based on Gmail transaction analysis
+          </p>
         </div>
-        
+
         {error && (
-          <div className="mb-4 p-2 bg-red-50 text-red-600 rounded-md text-sm">
+          <div className="bg-red-500/15 border border-red-400/30 text-red-600 dark:text-red-400 p-4 rounded-2xl backdrop-blur-sm">
             {error}
           </div>
         )}
-        
+
+        {/* Recent Transactions */}
         <div>
-          <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Recent Transactions</h4>
+          <h4 className="text-sm font-semibold mb-3 text-gray-900 dark:text-gray-100">
+            Recent Transactions
+          </h4>
           {isLoading ? (
-            <div className="py-4 flex justify-center">
-              <FiRefreshCw className="animate-spin text-green-500" />
+            <div className="py-8 flex justify-center items-center">
+              <FiRefreshCw className="animate-spin h-6 w-6 text-emerald-500 mr-3" />
+              <span className="text-gray-600 dark:text-gray-400 text-sm">Loading transactions...</span>
             </div>
           ) : recentTransactions.length === 0 ? (
-            <p className="text-gray-500 dark:text-gray-400 text-center py-2">No recent transactions found</p>
+            <p className="text-gray-500 dark:text-gray-400 text-center py-8 text-sm">No recent transactions found</p>
           ) : (
-            <ul className="divide-y divide-white/10 dark:divide-gray-700/30">
+            <div className="space-y-3">
               {recentTransactions.map((transaction) => (
-                <li key={transaction.id} className="py-2 flex justify-between items-center">
-                  <div className="min-w-0 flex-1 pr-2">
-                    <p className="font-medium truncate">{transaction.description}</p>
-                    <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
-                      <span className="truncate">{transaction.merchant}</span>
-                      <span className="mx-1">•</span>
-                      <span>{format(new Date(transaction.date), 'MMM d, yyyy')}</span>
+                <div
+                  key={transaction.id}
+                  className="bg-white/20 dark:bg-gray-800/20 rounded-2xl p-4 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 hover:bg-white/30 dark:hover:bg-gray-700/30 transition-all duration-300 hover:scale-[1.02]"
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="min-w-0 flex-1 pr-3">
+                      <p className="font-semibold text-sm text-gray-900 dark:text-gray-100 mb-1 leading-snug">
+                        {transaction.description}
+                      </p>
+                      <div className="flex items-center text-xs text-gray-600 dark:text-gray-400">
+                        <span className="truncate">{transaction.merchant}</span>
+                        <span className="mx-2">•</span>
+                        <span>{format(new Date(transaction.date), 'MMM d, yyyy')}</span>
+                      </div>
+                    </div>
+                    <div className={`flex items-center whitespace-nowrap font-semibold ${transaction.amount < 0 ? 'text-red-500' : 'text-emerald-500'}`}>
+                      {transaction.amount < 0 ? <FiArrowDown className="mr-1 h-4 w-4" /> : <FiArrowUp className="mr-1 h-4 w-4" />}
+                      <span>{transaction.currency === 'USD' ? '$' : transaction.currency}{Math.abs(transaction.amount).toFixed(2)}</span>
                     </div>
                   </div>
-                  <div className={`flex items-center whitespace-nowrap ${transaction.amount < 0 ? 'text-red-500' : 'text-green-500'}`}>
-                    {transaction.amount < 0 ? <FiArrowDown className="mr-1" /> : <FiArrowUp className="mr-1" />}
-                    <span className="font-medium">{transaction.currency === 'USD' ? '$' : transaction.currency}{Math.abs(transaction.amount).toFixed(2)}</span>
-                  </div>
-                </li>
+                </div>
               ))}
-            </ul>
+            </div>
           )}
         </div>
       </div>
-      <div className="p-3 bg-white/5 dark:bg-gray-800/20 backdrop-blur-sm border-t border-white/10 dark:border-gray-700/30 text-center">
-        <a href="/dashboard/banking" className="text-green-500 hover:text-green-400 text-sm font-medium flex items-center justify-center hover:bg-white/10 dark:hover:bg-gray-800/20 px-3 py-1 rounded-lg transition-all duration-200">
+
+      {/* Footer with Material button */}
+      <div className="px-6 py-4 bg-white/10 dark:bg-gray-800/15 backdrop-blur-sm border-t border-white/20 dark:border-gray-600/20">
+        <a
+          href="/dashboard/banking"
+          className="block w-full text-center bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 text-sm font-medium py-3 px-4 rounded-2xl transition-all duration-300 hover:scale-[1.02] border border-emerald-400/30 backdrop-blur-sm"
+        >
           View all transactions
         </a>
       </div>

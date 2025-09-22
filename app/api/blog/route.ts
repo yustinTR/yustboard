@@ -92,17 +92,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get user from database to check role
+    // Get user from database to check role and organization
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { role: true }
+      select: { role: true, organizationId: true }
     });
 
-    // Check if user has author or admin role
+    // Check if user has author or admin role and belongs to an organization
     if (!user || (user.role !== 'AUTHOR' && user.role !== 'ADMIN')) {
       return NextResponse.json(
         { error: 'Forbidden: Only authors and admins can create blog posts' },
         { status: 403 }
+      );
+    }
+
+    if (!user.organizationId) {
+      return NextResponse.json(
+        { error: 'User must belong to an organization' },
+        { status: 400 }
       );
     }
 
@@ -158,6 +165,7 @@ export async function POST(request: NextRequest) {
         published: published || false,
         publishedAt: published ? new Date() : null,
         authorId: session.user.id,
+        organizationId: user.organizationId,
       },
       include: {
         author: {
