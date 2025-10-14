@@ -9,7 +9,7 @@ import { Switch } from '@/components/atoms/switch'
 import { Label } from '@/components/atoms/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/molecules/tabs'
 import { Badge } from '@/components/atoms/badge'
-import { FiMenu, FiShield, FiSave, FiRefreshCw, FiCalendar, FiSettings, FiLayout, FiGrid, FiUser, FiMail } from 'react-icons/fi'
+import { FiMenu, FiShield, FiSave, FiRefreshCw, FiCalendar, FiSettings, FiLayout, FiGrid, FiUser, FiMail, FiUsers, FiUserPlus, FiTrash2 } from 'react-icons/fi'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 import { toast } from 'sonner'
 
@@ -37,6 +37,32 @@ interface UserData {
   image: string | null
   role: string
   createdAt: string
+}
+
+interface OrganizationData {
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  plan: string
+  createdAt: string
+}
+
+interface OrganizationMember {
+  id: string
+  name: string | null
+  email: string
+  image: string | null
+  organizationRole: string
+  createdAt: string
+}
+
+interface PendingInvite {
+  id: string
+  email: string
+  role: string
+  createdAt: string
+  expiresAt: string
 }
 
 // Currently not used
@@ -69,20 +95,35 @@ export default function SettingsPage() {
   const [widgets, setWidgets] = useState<Widget[]>([])
   const [menuItems, setMenuItems] = useState<MenuItem[]>(defaultMenuItems)
   const [users, setUsers] = useState<UserData[]>([])
+  const [organization, setOrganization] = useState<OrganizationData | null>(null)
+  const [orgMembers, setOrgMembers] = useState<OrganizationMember[]>([])
+  const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([])
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteRole, setInviteRole] = useState<'MEMBER' | 'ADMIN'>('MEMBER')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [updatingUser, setUpdatingUser] = useState<string | null>(null)
+  const [sendingInvite, setSendingInvite] = useState(false)
   const isAdmin = session?.user?.role === 'ADMIN'
 
   const fetchSettings = useCallback(async () => {
     if (!session) return
-    
+
     try {
       // Fetch user widget preferences
       const widgetRes = await fetch('/api/settings/widgets')
       if (widgetRes.ok) {
         const data = await widgetRes.json()
         setWidgets(data.widgets)
+      }
+
+      // Fetch organization data
+      const orgRes = await fetch('/api/organization')
+      if (orgRes.ok) {
+        const data = await orgRes.json()
+        setOrganization(data.organization)
+        setOrgMembers(data.members || [])
+        setPendingInvites(data.invites || [])
       }
 
       // Fetch global menu settings (if admin)
@@ -92,7 +133,7 @@ export default function SettingsPage() {
           const data = await menuRes.json()
           setMenuItems(data.menuItems)
         }
-        
+
         // Fetch users list
         const usersRes = await fetch('/api/admin/users')
         if (usersRes.ok) {
@@ -156,9 +197,99 @@ export default function SettingsPage() {
     setMenuItems(updatedItems)
   }
 
+  const sendInvite = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!inviteEmail || !organization) return
+
+    setSendingInvite(true)
+    try {
+      const response = await fetch('/api/organization/invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: inviteEmail,
+          role: inviteRole
+        })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to send invite')
+      }
+
+      const data = await response.json()
+      setPendingInvites(prev => [...prev, data.invite])
+      setInviteEmail('')
+      toast.success(`Uitnodiging verzonden naar ${inviteEmail}`)
+    } catch (error) {
+      console.error('Error sending invite:', error)
+      toast.error(error instanceof Error ? error.message : 'Fout bij het verzenden van uitnodiging')
+    } finally {
+      setSendingInvite(false)
+    }
+  }
+
+  const cancelInvite = async (inviteId: string) => {
+    try {
+      const response = await fetch(`/api/organization/invite/${inviteId}`, {
+        method: 'DELETE'
+      })
+
+      if (!response.ok) throw new Error('Failed to cancel invite')
+
+      setPendingInvites(prev => prev.filter(inv => inv.id !== inviteId))
+      toast.success('Uitnodiging ingetrokken')
+    } catch (error) {
+      console.error('Error canceling invite:', error)
+      toast.error('Fout bij het intrekken van uitnodiging')
+    }
+  }
+
+  const updateMemberRole = async (memberId: string, newRole: string) => {
+    setUpdatingUser(memberId)
+
+    try {
+      const response = await fetch('/api/organization/members', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberId, role: newRole })
+      })
+
+      if (!response.ok) throw new Error('Failed to update member role')
+
+      setOrgMembers(prev => prev.map(m => m.id === memberId ? { ...m, organizationRole: newRole } : m))
+
+      const roleText = newRole === 'OWNER' ? 'eigenaar' : newRole === 'ADMIN' ? 'beheerder' : newRole === 'VIEWER' ? 'kijker' : 'lid'
+      toast.success(`Gebruikersrol bijgewerkt naar ${roleText}`)
+    } catch (error) {
+      console.error('Error updating member role:', error)
+      toast.error('Fout bij het updaten van gebruikersrol')
+    } finally {
+      setUpdatingUser(null)
+    }
+  }
+
+  const removeMember = async (memberId: string) => {
+    if (!confirm('Weet je zeker dat je dit teamlid wilt verwijderen?')) return
+
+    try {
+      const response = await fetch(`/api/organization/members/${memberId}`, {
+        method: 'DELETE'
+      })
+
+      if (!response.ok) throw new Error('Failed to remove member')
+
+      setOrgMembers(prev => prev.filter(m => m.id !== memberId))
+      toast.success('Teamlid verwijderd')
+    } catch (error) {
+      console.error('Error removing member:', error)
+      toast.error('Fout bij het verwijderen van teamlid')
+    }
+  }
+
   const updateUserRole = async (userId: string, newRole: string) => {
     setUpdatingUser(userId)
-    
+
     try {
       const response = await fetch('/api/admin/users', {
         method: 'PATCH',
@@ -170,7 +301,7 @@ export default function SettingsPage() {
 
       const data = await response.json()
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u))
-      
+
       const roleText = newRole === 'ADMIN' ? 'admin' : newRole === 'AUTHOR' ? 'redacteur' : 'gebruiker'
       toast.success(`Gebruiker ${data.user.email} is nu ${roleText}`)
     } catch (error) {
@@ -244,14 +375,18 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="widgets" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="widgets" className="flex items-center gap-2">
             <FiLayout className="h-4 w-4" />
             Widgets
           </TabsTrigger>
+          <TabsTrigger value="organization" className="flex items-center gap-2">
+            <FiUsers className="h-4 w-4" />
+            Team
+          </TabsTrigger>
           <TabsTrigger value="menu" disabled={!isAdmin} className="flex items-center gap-2">
             <FiMenu className="h-4 w-4" />
-            FiMenu {!isAdmin && <Badge variant="secondary" className="ml-2">Admin</Badge>}
+            Menu {!isAdmin && <Badge variant="secondary" className="ml-2">Admin</Badge>}
           </TabsTrigger>
           <TabsTrigger value="roles" disabled={!isAdmin} className="flex items-center gap-2">
             <FiShield className="h-4 w-4" />
@@ -307,6 +442,218 @@ export default function SettingsPage() {
                   )}
                 </Droppable>
               </DragDropContext>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="organization" className="space-y-4">
+          {/* Organization Info Card */}
+          {organization && (
+            <Card className="backdrop-blur-md bg-white/80 dark:bg-gray-900/80 border-white/20 dark:border-gray-700/30 shadow-xl shadow-black/5">
+              <CardHeader>
+                <CardTitle>Organisatie Informatie</CardTitle>
+                <CardDescription>
+                  Overzicht van je organisatie
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div>
+                  <Label className="text-sm font-medium">Naam</Label>
+                  <p className="text-base mt-1">{organization.name}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Plan</Label>
+                  <div className="mt-1">
+                    <Badge variant={organization.plan === 'FREE' ? 'secondary' : 'default'}>
+                      {organization.plan}
+                    </Badge>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Aangemaakt op</Label>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {new Date(organization.createdAt).toLocaleDateString('nl-NL', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Invite Team Members Card */}
+          <Card className="backdrop-blur-md bg-white/80 dark:bg-gray-900/80 border-white/20 dark:border-gray-700/30 shadow-xl shadow-black/5">
+            <CardHeader>
+              <CardTitle>Teamleden Uitnodigen</CardTitle>
+              <CardDescription>
+                Nodig nieuwe teamleden uit voor je organisatie
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={sendInvite} className="flex gap-2">
+                <input
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  placeholder="email@example.com"
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm"
+                  required
+                />
+                <select
+                  value={inviteRole}
+                  onChange={(e) => setInviteRole(e.target.value as 'MEMBER' | 'ADMIN')}
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm"
+                >
+                  <option value="MEMBER">Lid</option>
+                  <option value="ADMIN">Beheerder</option>
+                </select>
+                <Button type="submit" disabled={sendingInvite} className="flex items-center gap-2">
+                  {sendingInvite ? (
+                    <FiRefreshCw className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FiUserPlus className="h-4 w-4" />
+                  )}
+                  Uitnodigen
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* Pending Invites */}
+          {pendingInvites.length > 0 && (
+            <Card className="backdrop-blur-md bg-white/80 dark:bg-gray-900/80 border-white/20 dark:border-gray-700/30 shadow-xl shadow-black/5">
+              <CardHeader>
+                <CardTitle>Openstaande Uitnodigingen</CardTitle>
+                <CardDescription>
+                  Uitnodigingen die nog niet geaccepteerd zijn
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {pendingInvites.map((invite) => (
+                    <div
+                      key={invite.id}
+                      className="flex items-center justify-between p-3 rounded-lg border border-white/20 dark:border-gray-700/30 backdrop-blur-sm bg-white/10 dark:bg-gray-900/10"
+                    >
+                      <div>
+                        <p className="font-medium">{invite.email}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Rol: {invite.role === 'ADMIN' ? 'Beheerder' : 'Lid'}
+                        </p>
+                      </div>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => cancelInvite(invite.id)}
+                        className="flex items-center gap-1"
+                      >
+                        <FiTrash2 className="h-3 w-3" />
+                        Intrekken
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Team Members Card */}
+          <Card className="backdrop-blur-md bg-white/80 dark:bg-gray-900/80 border-white/20 dark:border-gray-700/30 shadow-xl shadow-black/5">
+            <CardHeader>
+              <CardTitle>Teamleden</CardTitle>
+              <CardDescription>
+                Beheer teamleden en hun rollen
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {orgMembers.map((member) => (
+                  <div
+                    key={member.id}
+                    className="flex items-center justify-between p-4 rounded-lg border border-white/20 dark:border-gray-700/30 backdrop-blur-sm bg-white/10 dark:bg-gray-900/10"
+                  >
+                    <div className="flex items-center gap-4">
+                      {member.image ? (
+                        <Image
+                          src={member.image}
+                          alt={member.name || member.email}
+                          width={40}
+                          height={40}
+                          className="h-10 w-10 rounded-full object-cover"
+                          unoptimized={true}
+                        />
+                      ) : (
+                        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                          <FiUser className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                      )}
+
+                      <div>
+                        <div className="font-medium">{member.name || 'Geen naam'}</div>
+                        <div className="text-sm text-muted-foreground flex items-center gap-2">
+                          <FiMail className="h-3 w-3" />
+                          {member.email}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <Badge
+                        variant={
+                          member.organizationRole === 'OWNER'
+                            ? 'default'
+                            : member.organizationRole === 'ADMIN'
+                            ? 'default'
+                            : 'secondary'
+                        }
+                      >
+                        {member.organizationRole === 'OWNER'
+                          ? 'Eigenaar'
+                          : member.organizationRole === 'ADMIN'
+                          ? 'Beheerder'
+                          : member.organizationRole === 'VIEWER'
+                          ? 'Kijker'
+                          : 'Lid'}
+                      </Badge>
+
+                      {member.id !== session?.user?.id && member.organizationRole !== 'OWNER' && (
+                        <div className="flex gap-2">
+                          <select
+                            value={member.organizationRole}
+                            onChange={(e) => updateMemberRole(member.id, e.target.value)}
+                            disabled={updatingUser === member.id}
+                            className="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800"
+                          >
+                            <option value="VIEWER">Kijker</option>
+                            <option value="MEMBER">Lid</option>
+                            <option value="ADMIN">Beheerder</option>
+                          </select>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeMember(member.id)}
+                            disabled={updatingUser === member.id}
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          >
+                            <FiTrash2 className="h-4 w-4" />
+                          </Button>
+                          {updatingUser === member.id && (
+                            <FiRefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+
+                {orgMembers.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Geen teamleden gevonden
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

@@ -9,6 +9,7 @@ import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import UniversalSearch from './UniversalSearch';
 import MobileSidebar from './MobileSidebar';
+import OrganizationSwitcher from '@/components/molecules/OrganizationSwitcher';
 
 export default function Header() {
   const { data: session } = useSession();
@@ -91,6 +92,9 @@ export default function Header() {
       
       {/* Right section - only visible on desktop */}
       <div className="hidden lg:flex items-center gap-2 flex-1 justify-end">
+        {/* Organization Switcher */}
+        <OrganizationSwitcher />
+
         {/* Hide these on mobile - they're in the mobile sidebar */}
         <button className="hidden lg:flex relative w-10 h-10 rounded-full items-center justify-center hover:bg-white/20 dark:hover:bg-gray-800/20 transition-colors backdrop-blur-sm">
           <FiBell className="h-5 w-5 text-gray-700 dark:text-gray-300" />
