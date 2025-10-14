@@ -5,9 +5,19 @@ import prisma from '@/lib/database/prisma';
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession();
-    
+
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Get user's current organization
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { organizationId: true }
+    });
+
+    if (!user?.organizationId) {
+      return NextResponse.json({ error: 'User must belong to an organization' }, { status: 400 });
     }
 
     const searchParams = request.nextUrl.searchParams;
@@ -15,6 +25,9 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
 
     const posts = await prisma.post.findMany({
+      where: {
+        organizationId: user.organizationId // Filter by current organization
+      },
       take: limit + 1,
       ...(cursor && {
         cursor: {
