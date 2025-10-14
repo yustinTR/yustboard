@@ -26,23 +26,31 @@ export async function GET() {
       return NextResponse.json({ error: 'No organization found' }, { status: 404 })
     }
 
-    // Get organization members
-    const members = await prisma.user.findMany({
+    // Get organization members via memberships
+    const memberships = await prisma.organizationMembership.findMany({
       where: {
         organizationId: user.organizationId
       },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        image: true,
-        organizationRole: true,
-        createdAt: true
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+            createdAt: true
+          }
+        }
       },
       orderBy: {
         createdAt: 'asc'
       }
     })
+
+    const members = memberships.map(m => ({
+      ...m.user,
+      organizationRole: m.role
+    }))
 
     // Get pending invites
     const invites = await prisma.organizationInvite.findMany({

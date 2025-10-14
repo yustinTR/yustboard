@@ -31,18 +31,31 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Member ID and role are required' }, { status: 400 })
     }
 
-    // Verify member belongs to same organization
-    const member = await prisma.user.findUnique({
-      where: { id: memberId },
-      select: { organizationId: true, organizationRole: true }
+    // Verify member has membership in same organization
+    const membership = await prisma.organizationMembership.findUnique({
+      where: {
+        userId_organizationId: {
+          userId: memberId,
+          organizationId: user.organizationId
+        }
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
+      }
     })
 
-    if (!member || member.organizationId !== user.organizationId) {
+    if (!membership) {
       return NextResponse.json({ error: 'Member not found' }, { status: 404 })
     }
 
     // Cannot change OWNER role
-    if (member.organizationRole === 'OWNER') {
+    if (membership.role === 'OWNER') {
       return NextResponse.json({ error: 'Cannot change owner role' }, { status: 400 })
     }
 
@@ -51,17 +64,30 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Only owner can promote to owner' }, { status: 403 })
     }
 
-    // Update member role
-    const updatedMember = await prisma.user.update({
-      where: { id: memberId },
-      data: { organizationRole: role },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        organizationRole: true
+    // Update member role in membership
+    const updatedMembership = await prisma.organizationMembership.update({
+      where: {
+        userId_organizationId: {
+          userId: memberId,
+          organizationId: user.organizationId
+        }
+      },
+      data: { role },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
       }
     })
+
+    const updatedMember = {
+      ...updatedMembership.user,
+      organizationRole: updatedMembership.role
+    }
 
     return NextResponse.json({ member: updatedMember })
   } catch (error) {

@@ -24,6 +24,7 @@ model Organization {
 
   // Relations
   users             User[]
+  memberships       OrganizationMembership[]
   posts             Post[]
   tasks             Task[]
   transactions      Transaction[]
@@ -34,6 +35,23 @@ model Organization {
 
   @@index([slug])
   @@index([plan])
+}
+
+model OrganizationMembership {
+  id             String           @id @default(cuid())
+  userId         String
+  organizationId String
+  role           OrganizationRole @default(MEMBER)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([userId])
+  @@index([organizationId])
+  @@index([role])
 }
 
 model OrganizationSettings {
@@ -77,12 +95,13 @@ model User {
   role              UserRole               @default(USER)
   updatedAt         DateTime               @default(now()) @updatedAt
 
-  // Multi-tenant fields
+  // Multi-tenant fields - keep for backwards compatibility and current active org
   organizationId    String?
   organizationRole  OrganizationRole       @default(MEMBER)
 
   // Relations
   organization      Organization?          @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  memberships       OrganizationMembership[]
   accounts          Account[]
   posts             Post[]
   comments          PostComment[]

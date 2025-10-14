@@ -30,33 +30,32 @@ export async function GET() {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // For now, we only return the user's current organization
-    // In the future, users might be members of multiple organizations
-    const organizations = user.organization ? [user.organization] : []
-
-    // Get all organizations where this user is a member
-    // This will be used when we implement multi-org membership
-    const allOrganizations = await prisma.organization.findMany({
+    // Get all organizations where this user has a membership
+    const memberships = await prisma.organizationMembership.findMany({
       where: {
-        users: {
-          some: {
-            id: session.user.id
+        userId: session.user.id
+      },
+      include: {
+        organization: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            plan: true
           }
         }
       },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        plan: true
-      },
       orderBy: {
-        name: 'asc'
+        organization: {
+          name: 'asc'
+        }
       }
     })
 
+    const organizations = memberships.map(m => m.organization)
+
     return NextResponse.json({
-      organizations: allOrganizations.length > 0 ? allOrganizations : organizations,
+      organizations,
       current: user.organization
     })
   } catch (error) {

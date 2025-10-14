@@ -28,29 +28,50 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Verify member belongs to same organization
-    const member = await prisma.user.findUnique({
-      where: { id: memberId },
-      select: { organizationId: true, organizationRole: true }
+    // Verify member has membership in same organization
+    const membership = await prisma.organizationMembership.findUnique({
+      where: {
+        userId_organizationId: {
+          userId: memberId,
+          organizationId: user.organizationId
+        }
+      }
     })
 
-    if (!member || member.organizationId !== user.organizationId) {
+    if (!membership) {
       return NextResponse.json({ error: 'Member not found' }, { status: 404 })
     }
 
     // Cannot remove OWNER
-    if (member.organizationRole === 'OWNER') {
+    if (membership.role === 'OWNER') {
       return NextResponse.json({ error: 'Cannot remove owner' }, { status: 400 })
     }
 
-    // Remove member from organization (set organizationId to null)
-    await prisma.user.update({
-      where: { id: memberId },
-      data: {
-        organizationId: null,
-        organizationRole: 'MEMBER' // Reset to default
+    // Remove membership
+    await prisma.organizationMembership.delete({
+      where: {
+        userId_organizationId: {
+          userId: memberId,
+          organizationId: user.organizationId
+        }
       }
     })
+
+    // If this was the user's current organization, unset it
+    const targetUser = await prisma.user.findUnique({
+      where: { id: memberId },
+      select: { organizationId: true }
+    })
+
+    if (targetUser?.organizationId === user.organizationId) {
+      await prisma.user.update({
+        where: { id: memberId },
+        data: {
+          organizationId: null,
+          organizationRole: 'MEMBER'
+        }
+      })
+    }
 
     return NextResponse.json({ message: 'Member removed successfully' })
   } catch (error) {

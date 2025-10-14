@@ -17,30 +17,34 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Organization ID is required' }, { status: 400 })
     }
 
-    // Verify user is a member of the target organization
-    const organization = await prisma.organization.findFirst({
+    // Verify user has a membership in the target organization
+    const membership = await prisma.organizationMembership.findUnique({
       where: {
-        id: organizationId,
-        users: {
-          some: {
-            id: session.user.id
-          }
+        userId_organizationId: {
+          userId: session.user.id,
+          organizationId: organizationId
         }
       },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        plan: true
+      include: {
+        organization: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            plan: true
+          }
+        }
       }
     })
 
-    if (!organization) {
+    if (!membership) {
       return NextResponse.json(
         { error: 'Organization not found or you are not a member' },
         { status: 404 }
       )
     }
+
+    const organization = membership.organization
 
     // Update user's current organization
     await prisma.user.update({
