@@ -30,6 +30,8 @@ model Organization {
   transactions      Transaction[]
   widgetPreferences UserWidgetPreference[]
   blogPosts         BlogPost[]
+  announcements     Announcement[]
+  mediaFiles        MediaFile[]
   settings          OrganizationSettings?
   invites           OrganizationInvite[]
 
@@ -111,6 +113,8 @@ model User {
   transactions      Transaction[]
   widgetPreferences UserWidgetPreference[]
   blogPosts         BlogPost[]
+  announcements     Announcement[]
+  mediaFiles        MediaFile[]
 
   @@index([organizationId])
   @@index([email])
@@ -288,6 +292,42 @@ model BlogPost {
   @@index([published, publishedAt])
   @@index([authorId])
   @@index([organizationId])
+}
+
+model Announcement {
+  id             String       @id @default(cuid())
+  title          String
+  content        String       @db.Text
+  coverImage     String?
+  published      Boolean      @default(false)
+  authorId       String
+  organizationId String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  publishedAt    DateTime?
+  author         User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, published, publishedAt])
+  @@index([authorId])
+}
+
+model MediaFile {
+  id             String       @id @default(cuid())
+  filename       String
+  originalName   String
+  mimeType       String
+  size           Int
+  url            String
+  userId         String
+  organizationId String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([userId])
 }
 
 enum UserRole {
