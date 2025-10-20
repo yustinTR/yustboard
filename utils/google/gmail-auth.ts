@@ -2,20 +2,29 @@ import { google } from 'googleapis';
 import { getServerSession } from '@/lib/auth/server';
 import prisma from '@/lib/database/prisma';
 
+// Extended session type to include OAuth properties
+interface ExtendedSession {
+  user?: {
+    email?: string | null;
+  };
+  error?: string;
+  accessToken?: string;
+}
+
 export async function getGmailClient() {
-  const session = await getServerSession();
-  
+  const session = (await getServerSession()) as ExtendedSession | null;
+
   if (!session?.user?.email) {
     throw new Error('Unauthorized');
   }
 
   // Check if session has error (like RefreshAccessTokenError)
-  if ((session as any).error) {
+  if (session.error) {
     throw new Error('Unauthorized');
   }
 
   // First try to use access token from session (which might be refreshed)
-  const sessionAccessToken = (session as any).accessToken;
+  const sessionAccessToken = session.accessToken;
 
   // Get user with Google tokens as fallback
   const user = await prisma.user.findUnique({
@@ -79,7 +88,7 @@ export async function getGmailClient() {
           },
         });
         }
-      } catch (error) {
+      } catch {
         // Failed to update access token in database
       }
     }

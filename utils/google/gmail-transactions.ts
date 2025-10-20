@@ -749,7 +749,7 @@ function extractMerchant(email: EmailMessage): string {
 let DEBUG_TRANSACTIONS = false;
 
 // Helper to log debug information
-function debugLog(...args: any[]) {
+function debugLog(...args: unknown[]) {
   if (DEBUG_TRANSACTIONS) {
     console.log('[TRANSACTION-DEBUG]', ...args);
   }
@@ -764,13 +764,6 @@ export async function fetchTransactionsFromGmail(
 ): Promise<Transaction[]> {
   // Set debug mode based on parameter
   DEBUG_TRANSACTIONS = debug;
-  // Calculate date range
-  const endDate = new Date();
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - daysBack);
-  
-  // Format dates for Gmail query
-  const after = startDate.toISOString().split('T')[0];
   
   // Create Gmail search query for specific providers like Uber and American Express
   // This query is more targeted to find emails that users are expecting

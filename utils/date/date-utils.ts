@@ -1,4 +1,4 @@
-import { format, isToday, isYesterday, parseISO } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 
 /**
  * Format email date consistently for both server and client

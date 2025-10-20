@@ -91,7 +91,7 @@ export function usePostInteractions() {
       try {
         await navigator.clipboard.writeText(url);
         return { success: true, message: 'Link copied to clipboard' };
-      } catch (err) {
+      } catch {
         return { success: false, error: 'Failed to copy link' };
       }
     }

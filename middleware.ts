@@ -1,8 +1,18 @@
 import { auth } from "@/lib/auth/server";
 import { NextResponse } from "next/server";
 
+// Extended token type to include error property
+interface ExtendedToken {
+  error?: string;
+  user?: {
+    id: string;
+    email?: string | null;
+    authMethod?: string;
+  };
+}
+
 export default auth((req) => {
-  const token = req.auth;
+  const token = req.auth as ExtendedToken | null;
   const pathname = req.nextUrl.pathname;
 
   console.log('🔍 Middleware check:', {
@@ -27,8 +37,8 @@ export default auth((req) => {
     return NextResponse.redirect(signInUrl);
   }
 
-  // Check for refresh token errors (using type assertion for extended session)
-  if ((token as any)?.error === "RefreshAccessTokenError") {
+  // Check for refresh token errors
+  if (token?.error === "RefreshAccessTokenError") {
     console.log('❌ Refresh token error, redirecting to login');
     // Redirect to sign in page if refresh failed
     const signInUrl = new URL("/login", req.url);
