@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from '@/lib/auth/server'
+import { requirePermission } from '@/lib/permissions'
 import prisma from '@/lib/database/prisma'
 
 export async function DELETE(
@@ -7,33 +7,22 @@ export async function DELETE(
   { params }: { params: Promise<{ memberId: string }> }
 ) {
   try {
-    const session = await getServerSession()
+    // Require permission to remove members
+    const authResult = await requirePermission('members:remove')
+
+    if ('error' in authResult) {
+      return authResult.error
+    }
+
+    const { context } = authResult
     const { memberId } = await params
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { organizationId: true, organizationRole: true }
-    })
-
-    if (!user?.organizationId) {
-      return NextResponse.json({ error: 'No organization found' }, { status: 404 })
-    }
-
-    // Only OWNER and ADMIN can remove members
-    if (user.organizationRole !== 'OWNER' && user.organizationRole !== 'ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
 
     // Verify member has membership in same organization
     const membership = await prisma.organizationMembership.findUnique({
       where: {
         userId_organizationId: {
           userId: memberId,
-          organizationId: user.organizationId
+          organizationId: context.organizationId
         }
       }
     })
@@ -52,7 +41,7 @@ export async function DELETE(
       where: {
         userId_organizationId: {
           userId: memberId,
-          organizationId: user.organizationId
+          organizationId: context.organizationId
         }
       }
     })
@@ -63,7 +52,7 @@ export async function DELETE(
       select: { organizationId: true }
     })
 
-    if (targetUser?.organizationId === user.organizationId) {
+    if (targetUser?.organizationId === context.organizationId) {
       await prisma.user.update({
         where: { id: memberId },
         data: {

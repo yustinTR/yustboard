@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from '@/lib/auth/server';
+import { requireAuth, requireResourceOwnership } from '@/lib/permissions';
 import prisma from '@/lib/database/prisma';
 
 // PATCH - Update task (toggle completed, edit title/description)
@@ -8,22 +8,14 @@ export async function PATCH(
   { params }: { params: Promise<{ taskId: string }> }
 ) {
   try {
-    const session = await getServerSession();
+    const authResult = await requireAuth();
+
+    if ('error' in authResult) {
+      return authResult.error;
+    }
+
+    const { context } = authResult;
     const { taskId } = await params;
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Get user's current organization
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { organizationId: true }
-    });
-
-    if (!user?.organizationId) {
-      return NextResponse.json({ error: 'User must belong to an organization' }, { status: 400 });
-    }
 
     // Verify task belongs to user's organization
     const existingTask = await prisma.task.findUnique({
@@ -35,8 +27,15 @@ export async function PATCH(
       return NextResponse.json({ error: 'Task not found' }, { status: 404 });
     }
 
-    if (existingTask.organizationId !== user.organizationId) {
+    if (existingTask.organizationId !== context.organizationId) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    // Check if user owns the task or is admin
+    const ownershipResult = await requireResourceOwnership(existingTask.userId);
+
+    if ('error' in ownershipResult) {
+      return ownershipResult.error;
     }
 
     const body = await request.json();
@@ -78,22 +77,14 @@ export async function DELETE(
   { params }: { params: Promise<{ taskId: string }> }
 ) {
   try {
-    const session = await getServerSession();
+    const authResult = await requireAuth();
+
+    if ('error' in authResult) {
+      return authResult.error;
+    }
+
+    const { context } = authResult;
     const { taskId } = await params;
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Get user's current organization
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { organizationId: true }
-    });
-
-    if (!user?.organizationId) {
-      return NextResponse.json({ error: 'User must belong to an organization' }, { status: 400 });
-    }
 
     // Verify task belongs to user's organization
     const existingTask = await prisma.task.findUnique({
@@ -105,8 +96,15 @@ export async function DELETE(
       return NextResponse.json({ error: 'Task not found' }, { status: 404 });
     }
 
-    if (existingTask.organizationId !== user.organizationId) {
+    if (existingTask.organizationId !== context.organizationId) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    // Check if user owns the task or is admin
+    const ownershipResult = await requireResourceOwnership(existingTask.userId);
+
+    if ('error' in ownershipResult) {
+      return ownershipResult.error;
     }
 
     await prisma.task.delete({
