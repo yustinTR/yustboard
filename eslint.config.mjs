@@ -26,7 +26,17 @@ const eslintConfig = [
       "*.config.mjs",
       "scripts/**",
       "jest.config.js",
-      "next-env.d.ts"
+      "next-env.d.ts",
+      "**/*.test.ts",
+      "**/*.test.tsx",
+      "**/*.spec.ts",
+      "**/*.spec.tsx",
+      "vitest.config.ts",
+      "vitest.setup.ts",
+      "e2e/**",
+      "playwright-report/**",
+      "test-results/**",
+      "coverage/**"
     ]
   },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
