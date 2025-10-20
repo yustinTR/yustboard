@@ -10,17 +10,20 @@ datasource db {
 
 // Multi-tenant Organization model
 model Organization {
-  id                String                 @id @default(cuid())
-  name              String
-  slug              String                 @unique
-  description       String?
-  logo              String?
-  plan              Plan                   @default(FREE)
-  stripeCustomerId  String?                @unique
-  stripeSubscriptionId String?             @unique
-  trialEndsAt       DateTime?
-  createdAt         DateTime               @default(now())
-  updatedAt         DateTime               @updatedAt
+  id                   String                 @id @default(cuid())
+  name                 String
+  slug                 String                 @unique
+  description          String?
+  logo                 String?
+  plan                 Plan                   @default(FREE)
+  stripeCustomerId     String?                @unique
+  stripeSubscriptionId String?                @unique
+  subscriptionStatus   SubscriptionStatus?    @default(ACTIVE)
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean                @default(false)
+  trialEndsAt          DateTime?
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
 
   // Relations
   users             User[]
@@ -344,6 +347,15 @@ enum Plan {
   STARTER
   PRO
   ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  TRIALING
+  PAST_DUE
+  CANCELED
+  UNPAID
+  INCOMPLETE
 }
 
 enum OrganizationRole {
