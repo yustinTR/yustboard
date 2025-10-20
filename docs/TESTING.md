@@ -376,35 +376,83 @@ const testData = {
 
 ### GitHub Actions
 
-```yaml
-name: E2E Tests
+YustBoard has comprehensive CI/CD workflows for automated testing. See `.github/workflows/README.md` for complete documentation.
 
-on: [push, pull_request]
+#### Available Workflows
 
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-      - run: npm install
-      - run: npx playwright install --with-deps
-      - run: npm run test:e2e
-      - uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: playwright-report
-          path: playwright-report/
+**E2E Tests** (`.github/workflows/e2e-tests.yml`)
+- Runs on push to `main`/`develop` and PRs
+- PostgreSQL database automatically provisioned
+- Playwright tests with full browser support
+- Uploads reports and screenshots on failure
+- Comments on PRs when tests fail
+
+**Full Test Suite** (`.github/workflows/test-all.yml`)
+- Comprehensive testing (build, lint, typecheck, E2E, Storybook)
+- Parallel execution with sharding (3x faster)
+- Runs on push to `main` and PRs
+- Merges test reports from all shards
+
+**Storybook Tests** (`.github/workflows/storybook-tests.yml`)
+- Component interaction tests
+- Runs on all branches
+
+**Chromatic** (`.github/workflows/chromatic.yml`)
+- Visual regression testing
+- Requires `CHROMATIC_PROJECT_TOKEN` secret
+
+#### Viewing Test Results
+
+1. Go to GitHub Actions tab
+2. Click on workflow run
+3. Download artifacts (playwright-report, test-results)
+4. Run locally:
+   ```bash
+   npx playwright show-report path/to/playwright-report
+   ```
+
+#### Status Badges
+
+Add to README:
+```markdown
+[![E2E Tests](https://github.com/YOUR_ORG/yustboard/actions/workflows/e2e-tests.yml/badge.svg)](https://github.com/YOUR_ORG/yustboard/actions/workflows/e2e-tests.yml)
 ```
+
+#### Required Secrets
+
+| Secret | Workflow | Description |
+|--------|----------|-------------|
+| `CHROMATIC_PROJECT_TOKEN` | chromatic.yml | Chromatic project token |
+
+No secrets needed for E2E tests - they use test database credentials.
 
 ### Chromatic (Visual Regression)
 
 ```bash
-# Run Chromatic build
+# Run Chromatic build locally
 npm run chromatic
 
 # Environment variable needed
 CHROMATIC_PROJECT_TOKEN=your-token
+```
+
+### Local CI Simulation
+
+Run tests exactly as CI does:
+
+```bash
+# Simulate E2E workflow
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/yustboard_test" \
+NEXTAUTH_URL="http://localhost:3000" \
+NEXTAUTH_SECRET="test-secret" \
+CI=true \
+npm run test:e2e
+
+# Simulate Storybook workflow
+npm run build-storybook
+npx http-server storybook-static --port 6006 &
+npx wait-on tcp:6006
+npm run test-storybook
 ```
 
 ---
