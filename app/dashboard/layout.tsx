@@ -7,6 +7,7 @@ import Sidebar from '@/components/organisms/Sidebar';
 import Header from '@/components/organisms/Header';
 import { SidebarProvider } from '@/contexts/SidebarContext';
 import { pollingManager } from '@/lib/api/polling-manager';
+import { OnboardingCheck } from '@/components/providers/OnboardingCheck';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -110,28 +111,30 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   return (
-    <SidebarProvider>
-      <div className="flex h-screen bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-pink-50/50 dark:from-gray-900/50 dark:via-gray-800/30 dark:to-gray-900/50 backdrop-blur-3xl overflow-hidden">
-        {/* Mobile sidebar backdrop */}
-        {isSidebarOpen && (
-          <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-            onClick={() => setIsSidebarOpen(false)}
-          />
-        )}
-        
-        {/* Sidebar - hidden on mobile, visible on desktop */}
-        <div className={`fixed lg:static inset-y-0 left-0 z-50 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out`}>
-          <Sidebar onClose={() => setIsSidebarOpen(false)} />
+    <OnboardingCheck>
+      <SidebarProvider>
+        <div className="flex h-screen bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-pink-50/50 dark:from-gray-900/50 dark:via-gray-800/30 dark:to-gray-900/50 backdrop-blur-3xl overflow-hidden">
+          {/* Mobile sidebar backdrop */}
+          {isSidebarOpen && (
+            <div
+              className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+              onClick={() => setIsSidebarOpen(false)}
+            />
+          )}
+
+          {/* Sidebar - hidden on mobile, visible on desktop */}
+          <div className={`fixed lg:static inset-y-0 left-0 z-50 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out`}>
+            <Sidebar onClose={() => setIsSidebarOpen(false)} />
+          </div>
+
+          <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+            <Header />
+            <main className="flex-1 relative overflow-y-auto overflow-x-hidden bg-gradient-to-br from-transparent via-white/5 to-transparent backdrop-blur-sm">
+              {children}
+            </main>
+          </div>
         </div>
-        
-        <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-          <Header />
-          <main className="flex-1 relative overflow-y-auto overflow-x-hidden bg-gradient-to-br from-transparent via-white/5 to-transparent backdrop-blur-sm">
-            {children}
-          </main>
-        </div>
-      </div>
-    </SidebarProvider>
+      </SidebarProvider>
+    </OnboardingCheck>
   );
 }
