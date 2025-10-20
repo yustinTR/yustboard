@@ -322,10 +322,10 @@ const metrics = {
 
 ### **Phase 2: Core SaaS Features (Weeks 5-8)**
 - [x] Organization branding (logo, colors) ✅ (2025-10-20)
-- [ ] Basic billing integration (Stripe) 🔄 **SUGGESTED NEXT**
-- [ ] Subscription management
-- [ ] Usage tracking & limits
-- [ ] Team collaboration features
+- [x] Basic billing integration (Stripe) ✅ (2025-10-20)
+- [x] Subscription management ✅ (2025-10-20)
+- [x] Usage tracking & limits ✅ (2025-10-20)
+- [ ] Team collaboration features 🔄 **SUGGESTED NEXT**
 - [ ] Admin dashboard enhancements
 
 ### **Phase 3: Go-to-Market (Weeks 9-12)**
@@ -556,30 +556,101 @@ const metrics = {
      - Respecteert brandingEnabled toggle
      - Werkt met organization switching
 
+#### **Phase 2.2: Billing Integration (Stripe)** (20 Oktober 2025)
+   - ✅ Database schema updates
+     - `Organization.subscriptionStatus` enum field (ACTIVE, TRIALING, PAST_DUE, CANCELED, UNPAID, INCOMPLETE)
+     - `Organization.currentPeriodEnd` DateTime field
+     - `Organization.cancelAtPeriodEnd` Boolean field
+   - ✅ Stripe SDK integration
+     - Dependencies: `stripe`, `@stripe/stripe-js`, `lucide-react`
+     - Lazy initialization pattern voor build-time errors
+     - Proxy pattern voor convenient stripe export
+   - ✅ Stripe configuration (`lib/stripe/config.ts`)
+     - Plan configuratie met pricing en features:
+       - FREE: €0, 1 user, 3 widgets, 30 dagen retention
+       - STARTER: €9/maand, 3 users, 10 widgets, 90 dagen retention
+       - PRO: €29/maand, 10 users, unlimited widgets, 365 dagen retention
+       - ENTERPRISE: €99/maand, unlimited users/widgets/retention
+     - Type-safe helpers (getPlanConfig, isValidPlan)
+     - 14-day trial configuration
+   - ✅ Billing API routes
+     - `/api/billing/status` - GET billing status, plan, usage, limits
+     - `/api/billing/create-checkout` - POST create Stripe Checkout session
+     - `/api/billing/customer-portal` - POST open Stripe Customer Portal
+     - Alle routes met OWNER-only RBAC protection
+   - ✅ Stripe webhook handler (`/api/webhooks/stripe`)
+     - Webhook signature verification
+     - Event handlers:
+       - customer.subscription.created/updated - Update org subscription
+       - customer.subscription.deleted - Auto-downgrade to FREE
+       - invoice.payment_succeeded - Mark subscription ACTIVE
+       - invoice.payment_failed - Mark subscription PAST_DUE
+     - Price ID to plan mapping
+   - ✅ Billing types & interfaces (`types/billing.ts`)
+     - PlanType, SubscriptionStatus types
+     - BillingOrganization, PlanConfig interfaces
+     - UsageInfo, SubscriptionDetails interfaces
+   - ✅ Billing custom hook (`hooks/useBillingStatus.ts`)
+     - fetchBillingStatus() - Ophalen huidige status
+     - createCheckoutSession(plan) - Stripe Checkout redirect
+     - openCustomerPortal() - Stripe Portal redirect
+   - ✅ Billing UI components
+     - `components/billing/PlanCard.tsx` - Plan card met glass morphism
+     - `components/billing/BillingDashboard.tsx` - Complete billing dashboard
+   - ✅ Billing Dashboard features
+     - Current plan overview met pricing
+     - Status badges (Trial actief, Betaling mislukt, Geannuleerd)
+     - Renewal/trial expiry date display
+     - Usage indicators met progress bars:
+       - Users: current vs limit met color-coding (groen → geel → rood)
+       - Widgets: current vs limit met color-coding
+     - Plan selection grid (4 plans)
+     - "Aanbevolen" badge voor PRO plan
+     - Manage billing button (Stripe Customer Portal)
+     - OWNER-only access met permission guards
+   - ✅ Settings integration
+     - Nieuwe "Billing" tab in `/dashboard/settings`
+     - FiCreditCard icon voor tab
+     - Fully integrated met bestaande settings UI
+   - ✅ Payment features
+     - 14-day trial voor nieuwe subscriptions
+     - Nederlandse betaalmethodes (card, iDEAL)
+     - Promotion codes support
+     - Success/cancel redirect URLs
+     - Stripe Customer auto-creation
+   - ✅ Usage tracking & limits
+     - Real-time user count (OrganizationMembership)
+     - Real-time widget count (UserWidgetPreference)
+     - Plan-based limits enforcing
+     - Visual indicators bij 70% en 90% usage
+
 ### 🔄 **Volgende Stappen (Prioriteit)**
 
 **🎉 Phase 1 (Foundation) is VOLLEDIG AFGEROND! 🎉**
 **🎉 Phase 2.1 (Organization Branding) is VOLLEDIG AFGEROND! 🎉**
+**🎉 Phase 2.2 (Billing Integration) is VOLLEDIG AFGEROND! 🎉**
 
 Aanbevolen volgorde voor Phase 2 (vervolg):
 
-1. **Basic Billing Integration** - Week 6-7 🔄 **SUGGESTED NEXT**
-   - [ ] Stripe account setup en API keys
-   - [ ] Stripe webhooks implementatie
-   - [ ] Subscription model (FREE, STARTER, PRO, ENTERPRISE)
-   - [ ] Plan upgrade/downgrade flow met prorating
-   - [ ] Usage limits enforcing (maxUsers, maxWidgets)
-   - [ ] Billing dashboard voor organization owners
-   - [ ] Payment method management
-   - [ ] Invoice history
-   - [ ] Subscription cancellation flow
-
-2. **Team Collaboration Features** - Week 8
+1. **Team Collaboration Features** - Week 8 🔄 **SUGGESTED NEXT**
    - [ ] Real-time collaborative editing
-   - [ ] Comments op timeline posts
+   - [ ] Comments op timeline posts (already partially implemented)
    - [ ] @mentions in comments
    - [ ] Activity feed voor team acties
    - [ ] Shared widgets configuratie
+
+2. **Admin Dashboard Enhancements** - Week 8-9
+   - [ ] Organization analytics dashboard
+   - [ ] User activity monitoring
+   - [ ] System health dashboard
+   - [ ] Advanced reporting
+
+3. **Marketing Website** - Week 9-10
+   - [ ] Landing page
+   - [ ] Pricing page
+   - [ ] Features showcase
+   - [ ] Blog/documentation
+   - [ ] Contact/support forms
 
 ### 🔧 **Technische Details & Notities**
 

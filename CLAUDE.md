@@ -422,15 +422,63 @@ return createPortal(
   - ✅ Vervangt "YustBoard" text wanneer actief
   - ✅ Glass morphism containers
 
+#### **Phase 2.2: Billing Integration (Stripe)** (20 Oktober 2025)
+- ✅ Database & Schema
+  - ✅ Organization.subscriptionStatus enum (6 states)
+  - ✅ Organization.currentPeriodEnd DateTime
+  - ✅ Organization.cancelAtPeriodEnd Boolean
+- ✅ Stripe Backend (`lib/stripe/config.ts`)
+  - ✅ Lazy initialization pattern
+  - ✅ 4 plan tiers (FREE €0, STARTER €9, PRO €29, ENTERPRISE €99)
+  - ✅ Feature limits per plan
+  - ✅ 14-day trial configuratie
+- ✅ API Routes
+  - ✅ `/api/billing/status` - GET status, plan, usage
+  - ✅ `/api/billing/create-checkout` - POST Stripe Checkout
+  - ✅ `/api/billing/customer-portal` - POST Customer Portal
+  - ✅ `/api/webhooks/stripe` - Stripe event handler
+  - ✅ OWNER-only RBAC protection
+- ✅ Webhook Handlers
+  - ✅ subscription.created/updated - Update org
+  - ✅ subscription.deleted - Downgrade to FREE
+  - ✅ payment_succeeded/failed - Status updates
+- ✅ Types & Hooks
+  - ✅ `types/billing.ts` - TypeScript interfaces
+  - ✅ `hooks/useBillingStatus.ts` - Billing state management
+- ✅ UI Components
+  - ✅ `components/billing/PlanCard.tsx` - Plan cards
+  - ✅ `components/billing/BillingDashboard.tsx` - Complete dashboard
+  - ✅ Billing tab in `/dashboard/settings`
+- ✅ Dashboard Features
+  - ✅ Current plan overview met pricing
+  - ✅ Status badges (trial, past_due, canceled)
+  - ✅ Usage tracking (users, widgets) met progress bars
+  - ✅ Color-coded limits (groen → geel → rood)
+  - ✅ 4-plan selection grid
+  - ✅ Stripe Checkout integration
+  - ✅ Customer Portal access
+  - ✅ 14-day trial support
+  - ✅ Nederlandse betaalmethodes (card, iDEAL)
+
 ### 🔄 **VOLGENDE PRIORITEITEN**
 **Referentie**: Zie `SAAS-ROADMAP.md` voor volledige details
 
-1. **Basic Billing Integration** (Week 6-7) 🔄 **SUGGESTED NEXT**
-   - [ ] Stripe account & webhooks
-   - [ ] Subscription model (4 plans)
-   - [ ] Plan upgrade/downgrade flow
-   - [ ] Usage limits enforcing
-   - [ ] Billing dashboard
+1. **Team Collaboration Features** (Week 8) 🔄 **SUGGESTED NEXT**
+   - [ ] Real-time collaborative editing
+   - [ ] Comments op timeline posts
+   - [ ] @mentions in comments
+   - [ ] Activity feed voor team acties
+   - [ ] Shared widgets configuratie
+
+2. **Admin Dashboard Enhancements** (Week 8-9)
+   - [ ] Organization analytics dashboard
+   - [ ] User activity monitoring
+   - [ ] System health dashboard
+
+3. **Marketing Website** (Week 9-10)
+   - [ ] Landing page
+   - [ ] Pricing page
+   - [ ] Features showcase
 
 ### 🔧 **Technical Implementation Notes**
 - **Database**: Multi-tenant schema met organizationId
