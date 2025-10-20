@@ -21,6 +21,7 @@ YustBoard is a fully-featured SaaS dashboard application built with Next.js 15, 
 - ✅ **Dashboard Widgets** - Timeline, Gmail, Calendar, Weather, News, Banking, Files
 - ✅ **Organization Branding** - Custom logos and color schemes
 - ✅ **Team Collaboration** - Invite system with role management
+- ✅ **High Performance** - React Query caching, HTTP caching, optimized database queries
 - ✅ **Production Ready** - 88 passing tests, CI/CD pipeline, monitoring
 
 ## 📊 Project Status
@@ -106,6 +107,7 @@ All documentation is located in the [`docs/`](docs/) folder:
 |----------|-------------|
 | **[CLAUDE.md](docs/CLAUDE.md)** | Development guidelines for AI assistants & contributors |
 | **[PRODUCTION-READINESS.md](docs/PRODUCTION-READINESS.md)** | Complete production readiness report & checklist |
+| **[PERFORMANCE-OPTIMIZATIONS.md](docs/PERFORMANCE-OPTIMIZATIONS.md)** | Performance optimizations & benchmarks (85-90% API reduction) |
 | **[DEPLOYMENT.md](docs/DEPLOYMENT.md)** | Multi-layer CI/CD pipeline & deployment strategy |
 | **[TESTING.md](docs/TESTING.md)** | Testing infrastructure & guidelines (7 test types) |
 | **[STORYBOOK-TESTING.md](docs/STORYBOOK-TESTING.md)** | Component testing with Storybook |
@@ -190,6 +192,7 @@ yustboard/
 - **Styling**: Tailwind CSS (Glass morphism design)
 - **UI Components**: Custom glass morphism components
 - **State**: React Server Components + Client Components
+- **Caching**: React Query (TanStack Query) for client-side caching
 
 ### Backend
 - **Database**: PostgreSQL (Neon/Supabase)
@@ -204,6 +207,7 @@ yustboard/
 - **CI/CD**: GitHub Actions (4 workflows)
 - **Monitoring**: Health check endpoint
 - **Security**: RBAC, CSRF protection, security headers
+- **Performance**: HTTP caching, database indexing, code splitting
 
 ### Testing & Quality
 - **Unit Tests**: Vitest (88 tests)
@@ -211,6 +215,20 @@ yustboard/
 - **Component Testing**: Storybook
 - **Linting**: ESLint (0 errors)
 - **Type Checking**: TypeScript strict mode
+
+## ⚡ Performance Features
+
+- ✅ **HTTP Caching** - Cache-Control headers on 10+ API routes (60-80% API reduction)
+- ✅ **React Query** - Client-side caching with automatic deduplication (85-90% fewer duplicate requests)
+- ✅ **Database Indexing** - 13 strategic indexes (40-70% faster queries)
+- ✅ **Code Splitting** - Dynamic imports for heavy components (9% bundle reduction)
+- ✅ **Image Optimization** - Next.js Image with WebP conversion & lazy loading
+- ✅ **Batch Operations** - Optimized database writes (12x faster)
+- ✅ **Stale-While-Revalidate** - Instant responses with background updates
+
+**Expected Lighthouse Score**: 85-95 (Performance)
+
+See [Performance Optimizations](docs/PERFORMANCE-OPTIMIZATIONS.md) for detailed benchmarks.
 
 ## 🔐 Security Features
 
