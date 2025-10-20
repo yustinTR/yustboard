@@ -108,15 +108,15 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    const uploadType = formData.get('type') as string; // 'avatar' or undefined (default to blog/media)
+    const uploadType = formData.get('type') as string; // 'avatar', 'logo', or undefined (default to blog/media)
 
-    // Get user's current organization (only required for non-avatar uploads)
+    // Get user's current organization (only required for non-avatar/non-logo uploads)
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { organizationId: true }
     });
 
-    if (uploadType !== 'avatar' && !user?.organizationId) {
+    if (uploadType !== 'avatar' && uploadType !== 'logo' && !user?.organizationId) {
       return NextResponse.json({ error: 'User must belong to an organization' }, { status: 400 });
     }
 
@@ -156,7 +156,9 @@ export async function POST(request: NextRequest) {
       // Create unique filename with type prefix
       const fileExtension = file.name.split('.').pop();
       uniqueFilename = `${uuidv4()}.${fileExtension}`;
-      const prefix = uploadType === 'avatar' ? 'avatars' : 'uploads';
+      let prefix = 'uploads'; // default
+      if (uploadType === 'avatar') prefix = 'avatars';
+      else if (uploadType === 'logo') prefix = 'logos';
       const filePath = `${prefix}/${uniqueFilename}`;
 
       // Upload to Supabase Storage
@@ -211,9 +213,9 @@ export async function POST(request: NextRequest) {
       fileUrl = `/uploads/blog/${uniqueFilename}`;
     }
 
-    // Save to database (skip for avatars as they're stored on user directly)
+    // Save to database (skip for avatars and logos as they're stored on user/organization directly)
     let mediaFile;
-    if (uploadType !== 'avatar' && user?.organizationId) {
+    if (uploadType !== 'avatar' && uploadType !== 'logo' && user?.organizationId) {
       mediaFile = await prisma.mediaFile.create({
         data: {
           filename: uniqueFilename,

@@ -66,7 +66,8 @@ model OrganizationSettings {
   customDomain     String?
   brandingEnabled  Boolean      @default(false)
   logoUrl          String?
-  primaryColor     String?
+  primaryColor     String?      // Hex color code (e.g., #3B82F6)
+  secondaryColor   String?      // Hex color code for accents
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
   organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)

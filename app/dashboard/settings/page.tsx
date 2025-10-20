@@ -9,9 +9,10 @@ import { Switch } from '@/components/atoms/switch'
 import { Label } from '@/components/atoms/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/molecules/tabs'
 import { Badge } from '@/components/atoms/badge'
-import { FiMenu, FiShield, FiSave, FiRefreshCw, FiCalendar, FiSettings, FiLayout, FiGrid, FiUser, FiMail, FiUsers, FiUserPlus, FiTrash2 } from 'react-icons/fi'
+import { FiMenu, FiShield, FiSave, FiRefreshCw, FiCalendar, FiSettings, FiLayout, FiGrid, FiUser, FiMail, FiUsers, FiUserPlus, FiTrash2, FiDroplet, FiUpload, FiCamera } from 'react-icons/fi'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 import { toast } from 'sonner'
+import ColorPicker from '@/components/ui/ColorPicker'
 
 interface Widget {
   id: string
@@ -108,6 +109,15 @@ export default function SettingsPage() {
   const [orgName, setOrgName] = useState('')
   const [orgDescription, setOrgDescription] = useState('')
   const [savingOrg, setSavingOrg] = useState(false)
+
+  // Branding state
+  const [brandingEnabled, setBrandingEnabled] = useState(false)
+  const [logoUrl, setLogoUrl] = useState('')
+  const [primaryColor, setPrimaryColor] = useState('#3B82F6')
+  const [secondaryColor, setSecondaryColor] = useState('#8B5CF6')
+  const [savingBranding, setSavingBranding] = useState(false)
+  const [uploadingLogo, setUploadingLogo] = useState(false)
+
   const isAdmin = session?.user?.role === 'ADMIN'
 
   const fetchSettings = useCallback(async () => {
@@ -130,6 +140,16 @@ export default function SettingsPage() {
         setOrgDescription(data.organization?.description || '')
         setOrgMembers(data.members || [])
         setPendingInvites(data.invites || [])
+      }
+
+      // Fetch organization settings (branding)
+      const settingsRes = await fetch('/api/organization/settings')
+      if (settingsRes.ok) {
+        const data = await settingsRes.json()
+        setBrandingEnabled(data.settings?.brandingEnabled || false)
+        setLogoUrl(data.settings?.logoUrl || '')
+        setPrimaryColor(data.settings?.primaryColor || '#3B82F6')
+        setSecondaryColor(data.settings?.secondaryColor || '#8B5CF6')
       }
 
       // Fetch global menu settings (if admin)
@@ -330,6 +350,74 @@ export default function SettingsPage() {
     setEditingOrg(false)
   }
 
+  const saveBranding = async () => {
+    setSavingBranding(true)
+    try {
+      const response = await fetch('/api/organization/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          brandingEnabled,
+          logoUrl,
+          primaryColor,
+          secondaryColor
+        })
+      })
+
+      if (!response.ok) throw new Error('Failed to update branding')
+
+      toast.success('Branding instellingen bijgewerkt')
+
+      // Reload page to apply new branding
+      if (brandingEnabled) {
+        setTimeout(() => window.location.reload(), 1000)
+      }
+    } catch (error) {
+      console.error('Error updating branding:', error)
+      toast.error('Fout bij het bijwerken van branding')
+    } finally {
+      setSavingBranding(false)
+    }
+  }
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Selecteer een afbeelding')
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Logo moet kleiner dan 5MB zijn')
+      return
+    }
+
+    setUploadingLogo(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('type', 'logo')
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (!response.ok) throw new Error('Upload failed')
+
+      const data = await response.json()
+      setLogoUrl(data.url)
+      toast.success('Logo geüpload')
+    } catch (error) {
+      console.error('Error uploading logo:', error)
+      toast.error('Fout bij uploaden van logo')
+    } finally {
+      setUploadingLogo(false)
+    }
+  }
+
   const updateUserRole = async (userId: string, newRole: string) => {
     setUpdatingUser(userId)
 
@@ -418,7 +506,7 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="widgets" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="widgets" className="flex items-center gap-2">
             <FiLayout className="h-4 w-4" />
             Widgets
@@ -426,6 +514,10 @@ export default function SettingsPage() {
           <TabsTrigger value="organization" className="flex items-center gap-2">
             <FiUsers className="h-4 w-4" />
             Team
+          </TabsTrigger>
+          <TabsTrigger value="branding" className="flex items-center gap-2">
+            <FiDroplet className="h-4 w-4" />
+            Branding
           </TabsTrigger>
           <TabsTrigger value="menu" disabled={!isAdmin} className="flex items-center gap-2">
             <FiMenu className="h-4 w-4" />
@@ -771,6 +863,192 @@ export default function SettingsPage() {
                     Geen teamleden gevonden
                   </div>
                 )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="branding" className="space-y-4">
+          <Card className="backdrop-blur-md bg-white/80 dark:bg-gray-900/80 border-white/20 dark:border-gray-700/30 shadow-xl shadow-black/5">
+            <CardHeader>
+              <CardTitle>Organisatie Branding</CardTitle>
+              <CardDescription>
+                Pas het uiterlijk van je organisatie aan met een eigen logo en kleuren
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Enable Branding Toggle */}
+              <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white/50 dark:bg-gray-800/50">
+                <div className="space-y-0.5">
+                  <Label htmlFor="branding-enabled" className="text-base font-medium">
+                    Custom Branding Inschakelen
+                  </Label>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Gebruik je eigen logo en kleuren in de hele applicatie
+                  </p>
+                </div>
+                <Switch
+                  id="branding-enabled"
+                  checked={brandingEnabled}
+                  onCheckedChange={setBrandingEnabled}
+                />
+              </div>
+
+              {/* Logo Upload */}
+              <div className="space-y-3">
+                <Label className="text-base font-medium">Organisatie Logo</Label>
+                <div className="flex gap-4 items-start">
+                  {/* Logo Preview */}
+                  <div className="relative w-32 h-32 rounded-lg border-2 border-white/20 dark:border-gray-700/30 shadow-lg overflow-hidden bg-white dark:bg-gray-800">
+                    {logoUrl ? (
+                      <Image
+                        src={logoUrl}
+                        alt="Organization logo"
+                        width={128}
+                        height={128}
+                        className="w-full h-full object-contain p-2"
+                        unoptimized={true}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        <FiCamera className="h-12 w-12" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Upload Controls */}
+                  <div className="flex-1 space-y-3">
+                    <input
+                      type="file"
+                      id="logo-upload"
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      onClick={() => document.getElementById('logo-upload')?.click()}
+                      disabled={uploadingLogo}
+                      className="w-full"
+                    >
+                      {uploadingLogo ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                          Uploaden...
+                        </>
+                      ) : (
+                        <>
+                          <FiUpload className="h-4 w-4 mr-2" />
+                          Logo Uploaden
+                        </>
+                      )}
+                    </Button>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Aanbevolen: Vierkant formaat, PNG of SVG, max 5MB
+                    </p>
+                    {logoUrl && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setLogoUrl('')}
+                        className="w-full"
+                      >
+                        <FiTrash2 className="h-4 w-4 mr-2" />
+                        Logo Verwijderen
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Color Pickers */}
+              <div className="space-y-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <ColorPicker
+                  label="Primaire Kleur"
+                  value={primaryColor}
+                  onChange={setPrimaryColor}
+                  defaultColor="#3B82F6"
+                />
+
+                <ColorPicker
+                  label="Secundaire Kleur"
+                  value={secondaryColor}
+                  onChange={setSecondaryColor}
+                  defaultColor="#8B5CF6"
+                />
+              </div>
+
+              {/* Preview Section */}
+              <div className="space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <Label className="text-base font-medium">Voorbeeld</Label>
+                <div className="p-6 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
+                  <div className="space-y-4">
+                    {/* Preview Header */}
+                    <div
+                      className="p-4 rounded-lg text-white shadow-lg"
+                      style={{ background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)` }}
+                    >
+                      <div className="flex items-center gap-3">
+                        {logoUrl && (
+                          <div className="w-10 h-10 bg-white rounded-lg p-1">
+                            <Image
+                              src={logoUrl}
+                              alt="Logo preview"
+                              width={40}
+                              height={40}
+                              className="w-full h-full object-contain"
+                              unoptimized={true}
+                            />
+                          </div>
+                        )}
+                        <div>
+                          <div className="font-semibold">{organization?.name || 'Organisatie'}</div>
+                          <div className="text-sm opacity-90">Dashboard Header</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Preview Button */}
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        className="px-4 py-2 rounded-lg text-white font-medium shadow-md transition-transform hover:scale-105"
+                        style={{ backgroundColor: primaryColor }}
+                      >
+                        Primaire Actie
+                      </button>
+                      <button
+                        type="button"
+                        className="px-4 py-2 rounded-lg text-white font-medium shadow-md transition-transform hover:scale-105"
+                        style={{ backgroundColor: secondaryColor }}
+                      >
+                        Secundaire Actie
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Save Button */}
+              <div className="flex gap-3 pt-4">
+                <Button
+                  type="button"
+                  onClick={saveBranding}
+                  disabled={savingBranding}
+                  className="flex-1"
+                >
+                  {savingBranding ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                      Opslaan...
+                    </>
+                  ) : (
+                    <>
+                      <FiSave className="h-4 w-4 mr-2" />
+                      Branding Opslaan
+                    </>
+                  )}
+                </Button>
               </div>
             </CardContent>
           </Card>
