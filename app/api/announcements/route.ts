@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from '@/lib/auth/server';
 import prisma from '@/lib/database/prisma';
+import { createBulkNotifications } from '@/lib/notifications/create';
 
 // GET - Fetch announcements for current organization
 export async function GET(request: NextRequest) {
@@ -114,6 +115,35 @@ export async function POST(request: NextRequest) {
         }
       }
     });
+
+    // Notify all org members if published
+    if (published) {
+      try {
+        const members = await prisma.organizationMembership.findMany({
+          where: {
+            organizationId: user.organizationId,
+            userId: { not: session.user.id } // Don't notify the author
+          },
+          select: { userId: true }
+        });
+
+        if (members.length > 0) {
+          await createBulkNotifications(
+            members.map((m) => m.userId),
+            {
+              organizationId: user.organizationId,
+              type: 'ANNOUNCEMENT_CREATED',
+              title: 'Nieuwe aankondiging',
+              message: title.length > 100 ? title.substring(0, 100) + '...' : title,
+              link: '/dashboard/announcements'
+            }
+          );
+        }
+      } catch (notifError) {
+        console.error('Failed to create announcement notifications:', notifError);
+        // Continue - announcement was already created
+      }
+    }
 
     return NextResponse.json(announcement);
   } catch (error) {
