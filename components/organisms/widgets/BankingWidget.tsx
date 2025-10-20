@@ -60,6 +60,7 @@ const BankingWidget = React.memo(function BankingWidget({ initialTransactions = 
       hasFetchedRef.current = true;
       fetchTransactions();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.accessToken]); // Only depend on accessToken to prevent infinite loops
 
   // Sort and limit transactions for display

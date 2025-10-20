@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { format } from 'date-fns';
 import { FiPlus, FiEdit2, FiTrash2, FiEye, FiEyeOff, FiLoader } from 'react-icons/fi';
 
@@ -170,10 +171,13 @@ export default function AnnouncementsPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center">
                         {announcement.coverImage && (
-                          <img
+                          <Image
                             src={announcement.coverImage}
                             alt={announcement.title}
+                            width={64}
+                            height={48}
                             className="w-16 h-12 object-cover rounded mr-3"
+                            unoptimized={true}
                           />
                         )}
                         <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
