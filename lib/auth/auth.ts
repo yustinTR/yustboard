@@ -254,20 +254,30 @@ export const authConfig: NextAuthConfig = {
         session.user.id = (token.userId || token.sub) as string;
         session.error = undefined; // Clear any previous errors
 
-        // Fetch current user role from database
+        // Fetch current user role and organization info from database
         if (session.user.id && typeof window === 'undefined') {
           try {
             const user = await prisma.user.findUnique({
               where: { id: session.user.id },
-              select: { role: true }
+              select: {
+                role: true,
+                organizationId: true,
+                organizationRole: true
+              }
             });
             session.user.role = user?.role || 'USER';
+            session.user.organizationId = user?.organizationId || undefined;
+            session.user.organizationRole = user?.organizationRole || undefined;
           } catch (error) {
-            logger.error("Failed to fetch user role:", error as Error);
+            logger.error("Failed to fetch user info:", error as Error);
             session.user.role = 'USER';
+            session.user.organizationId = undefined;
+            session.user.organizationRole = undefined;
           }
         } else {
           session.user.role = 'USER';
+          session.user.organizationId = undefined;
+          session.user.organizationRole = undefined;
         }
       }
       
