@@ -346,10 +346,66 @@ return createPortal(
 - ✅ RBAC protectie op alle management functies
 - ✅ Glass morphism design consistency
 
+#### **Phase 1.6: Email Notification System** (20 Oktober 2025)
+- ✅ Resend integration met lazy initialization
+- ✅ React Email templates met glass morphism design
+- ✅ Email templates:
+  - ✅ InviteEmail - Team invite met magic link
+  - ✅ WelcomeEmail - Welcome email voor nieuwe members
+- ✅ Email utilities (`lib/email/`)
+  - ✅ `send-invite.ts` - Invite email functionaliteit
+  - ✅ `send-welcome.ts` - Welcome email functionaliteit
+  - ✅ `resend.ts` - Resend client met graceful degradation
+- ✅ Automated email triggers
+  - ✅ Invite email bij team invite
+  - ✅ Welcome email bij invite acceptance
+- ✅ Environment configuration (RESEND_API_KEY, RESEND_FROM_EMAIL)
+
+#### **Phase 1.7: Notification Center** (20 Oktober 2025)
+- ✅ Notification database model met NotificationType enum
+- ✅ Notification API routes (`/api/notifications`)
+  - ✅ GET - List notifications met unread count
+  - ✅ POST - Mark all as read
+  - ✅ PATCH - Mark single notification as read
+- ✅ NotificationBell component (`components/molecules/NotificationBell.tsx`)
+  - ✅ Real-time polling (30 sec intervals)
+  - ✅ Unread count badge
+  - ✅ Portal-based dropdown
+  - ✅ Glass morphism design
+  - ✅ Dutch relative time formatting
+- ✅ Notification triggers voor alle key events:
+  - ✅ MEMBER_JOINED - Admins notified when member accepts invite
+  - ✅ ROLE_CHANGED - User notified on role update
+  - ✅ MEMBER_REMOVED - User notified when removed
+  - ✅ ANNOUNCEMENT_CREATED - All members notified on new announcement
+- ✅ Bulk notification support voor organization-wide events
+
+#### **Phase 1.8: User Profile Management** (20 Oktober 2025)
+- ✅ User Profile Page (`/app/dashboard/profile`)
+  - ✅ Avatar upload met camera button
+  - ✅ Name editing met validation
+  - ✅ Email display (read-only)
+  - ✅ Account info (organization, role)
+  - ✅ Glass morphism design
+- ✅ Profile Update API (`/api/user/profile`)
+  - ✅ PATCH route voor name en image updates
+  - ✅ Session synchronization
+  - ✅ RBAC protected
+- ✅ Avatar Upload Enhancement
+  - ✅ Avatar-specific upload type
+  - ✅ Separate avatars/ folder
+  - ✅ No organization required voor avatars
+  - ✅ Image validation (type, size max 5MB)
+
 ### 🔄 **VOLGENDE PRIORITEITEN**
 **Referentie**: Zie `SAAS-ROADMAP.md` voor volledige details
 
-1. **Basic Billing Integration** (Week 5-6)
+1. **Organization Branding** (Week 5)
+   - [ ] Logo upload
+   - [ ] Custom colors/theme picker
+   - [ ] Theme preview
+
+2. **Basic Billing Integration** (Week 5-6)
    - [ ] Stripe setup en webhooks
    - [ ] Subscription management
    - [ ] Plan upgrade/downgrade flow
