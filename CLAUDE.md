@@ -4,27 +4,40 @@ This document contains important development guidelines and standards for the Yu
 
 ## 🚀 Pre-Commit Requirements
 
-### Build Verification
-**CRITICAL**: Before any commit, always run and ensure these commands pass without errors:
+### CRITICAL: Test, Lint, and Build Verification
+**MANDATORY**: Before ANY commit, you MUST run and ensure ALL these commands pass without errors:
 
 ```bash
+# 1. Run unit tests - ALL must pass
+npm run test:unit
+
+# 2. Run linting - 0 errors, 0 warnings
+npm run lint
+
+# 3. Run type checking - no type errors
+npm run typecheck
+
+# 4. Build the application - must complete successfully
 npm run build
 ```
 
-- The build must complete successfully with zero errors
-- Type checking must pass without issues
-- All imports and dependencies must be resolved
-- No unused variables or dead code should remain
+### Pre-Commit Checklist
+Before committing, verify:
+- ✅ **All 88 unit tests pass** (`npm run test:unit`)
+- ✅ **0 lint errors, 0 lint warnings** (`npm run lint`)
+- ✅ **No TypeScript errors** (`npm run typecheck`)
+- ✅ **Build completes successfully** (`npm run build`)
+- ✅ **No console.log statements in production code** (except in catch blocks for errors)
+- ✅ **No TODO/FIXME comments in critical API routes**
+- ✅ **All imports are used, no unused variables**
 
-### Linting and Type Checking
-Run these commands to ensure code quality:
+### Why These Checks Matter
+- **Unit Tests**: Ensure functionality works correctly and regressions are caught
+- **Lint**: Maintain code quality and consistency
+- **Type Check**: Prevent runtime errors from type mismatches
+- **Build**: Verify the application can be deployed to production
 
-```bash
-npm run lint
-npm run typecheck
-```
-
-If these commands are not available, ask the user for the correct commands and update this file.
+**If any check fails, DO NOT commit. Fix the issues first.**
 
 ## 📚 Storybook Requirements
 
