@@ -14,12 +14,6 @@ export async function POST(request: Request) {
 
     const { context } = authResult
 
-    // Get organization name for email (if we send emails later)
-    const organization = await prisma.organization.findUnique({
-      where: { id: context.organizationId },
-      select: { name: true }
-    })
-
     const body = await request.json()
     const { email, role } = body
 
@@ -73,7 +67,8 @@ export async function POST(request: Request) {
 
     // TODO: Send email with invite link
     // const inviteLink = `${process.env.NEXTAUTH_URL}/invite/${token}`
-    // await sendInviteEmail(email, organization?.name, inviteLink)
+    // const org = await prisma.organization.findUnique({ where: { id: context.organizationId }, select: { name: true } })
+    // await sendInviteEmail(email, org?.name, inviteLink)
 
     return NextResponse.json({
       invite: {

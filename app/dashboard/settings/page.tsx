@@ -104,6 +104,10 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [updatingUser, setUpdatingUser] = useState<string | null>(null)
   const [sendingInvite, setSendingInvite] = useState(false)
+  const [editingOrg, setEditingOrg] = useState(false)
+  const [orgName, setOrgName] = useState('')
+  const [orgDescription, setOrgDescription] = useState('')
+  const [savingOrg, setSavingOrg] = useState(false)
   const isAdmin = session?.user?.role === 'ADMIN'
 
   const fetchSettings = useCallback(async () => {
@@ -122,6 +126,8 @@ export default function SettingsPage() {
       if (orgRes.ok) {
         const data = await orgRes.json()
         setOrganization(data.organization)
+        setOrgName(data.organization?.name || '')
+        setOrgDescription(data.organization?.description || '')
         setOrgMembers(data.members || [])
         setPendingInvites(data.invites || [])
       }
@@ -285,6 +291,43 @@ export default function SettingsPage() {
       console.error('Error removing member:', error)
       toast.error('Fout bij het verwijderen van teamlid')
     }
+  }
+
+  const saveOrganization = async () => {
+    if (!orgName.trim()) {
+      toast.error('Organisatie naam is verplicht')
+      return
+    }
+
+    setSavingOrg(true)
+    try {
+      const response = await fetch('/api/organization', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: orgName,
+          description: orgDescription || null
+        })
+      })
+
+      if (!response.ok) throw new Error('Failed to update organization')
+
+      const data = await response.json()
+      setOrganization(data.organization)
+      setEditingOrg(false)
+      toast.success('Organisatie bijgewerkt')
+    } catch (error) {
+      console.error('Error updating organization:', error)
+      toast.error('Fout bij het bijwerken van organisatie')
+    } finally {
+      setSavingOrg(false)
+    }
+  }
+
+  const cancelEditOrg = () => {
+    setOrgName(organization?.name || '')
+    setOrgDescription(organization?.description || '')
+    setEditingOrg(false)
   }
 
   const updateUserRole = async (userId: string, newRole: string) => {
@@ -451,34 +494,109 @@ export default function SettingsPage() {
           {organization && (
             <Card className="backdrop-blur-md bg-white/80 dark:bg-gray-900/80 border-white/20 dark:border-gray-700/30 shadow-xl shadow-black/5">
               <CardHeader>
-                <CardTitle>Organisatie Informatie</CardTitle>
-                <CardDescription>
-                  Overzicht van je organisatie
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Organisatie Informatie</CardTitle>
+                    <CardDescription>
+                      {editingOrg ? 'Bewerk je organisatie gegevens' : 'Overzicht van je organisatie'}
+                    </CardDescription>
+                  </div>
+                  {!editingOrg && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setEditingOrg(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <FiSettings className="h-4 w-4" />
+                      Bewerken
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div>
-                  <Label className="text-sm font-medium">Naam</Label>
-                  <p className="text-base mt-1">{organization.name}</p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Plan</Label>
-                  <div className="mt-1">
-                    <Badge variant={organization.plan === 'FREE' ? 'secondary' : 'default'}>
-                      {organization.plan}
-                    </Badge>
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Aangemaakt op</Label>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {new Date(organization.createdAt).toLocaleDateString('nl-NL', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </p>
-                </div>
+                {editingOrg ? (
+                  <>
+                    <div>
+                      <Label htmlFor="org-name" className="text-sm font-medium">Naam</Label>
+                      <input
+                        id="org-name"
+                        type="text"
+                        value={orgName}
+                        onChange={(e) => setOrgName(e.target.value)}
+                        className="w-full mt-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm"
+                        placeholder="Organisatie naam"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="org-description" className="text-sm font-medium">Beschrijving (optioneel)</Label>
+                      <textarea
+                        id="org-description"
+                        value={orgDescription}
+                        onChange={(e) => setOrgDescription(e.target.value)}
+                        rows={3}
+                        className="w-full mt-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm"
+                        placeholder="Een korte beschrijving van je organisatie..."
+                      />
+                    </div>
+                    <div className="flex gap-2 pt-2">
+                      <Button
+                        onClick={saveOrganization}
+                        disabled={savingOrg || !orgName.trim()}
+                        className="flex items-center gap-2"
+                      >
+                        {savingOrg ? (
+                          <FiRefreshCw className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <FiSave className="h-4 w-4" />
+                        )}
+                        Opslaan
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={cancelEditOrg}
+                        disabled={savingOrg}
+                      >
+                        Annuleren
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <Label className="text-sm font-medium">Naam</Label>
+                      <p className="text-base mt-1">{organization.name}</p>
+                    </div>
+                    {organization.description && (
+                      <div>
+                        <Label className="text-sm font-medium">Beschrijving</Label>
+                        <p className="text-sm text-muted-foreground mt-1">{organization.description}</p>
+                      </div>
+                    )}
+                    <div>
+                      <Label className="text-sm font-medium">Slug</Label>
+                      <p className="text-sm text-muted-foreground mt-1">{organization.slug}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium">Plan</Label>
+                      <div className="mt-1">
+                        <Badge variant={organization.plan === 'FREE' ? 'secondary' : 'default'}>
+                          {organization.plan}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium">Aangemaakt op</Label>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {new Date(organization.createdAt).toLocaleDateString('nl-NL', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           )}

@@ -46,11 +46,12 @@ export async function POST(request: Request) {
 
     const organization = membership.organization
 
-    // Update user's current organization
+    // Update user's current organization and role
     await prisma.user.update({
       where: { id: session.user.id },
       data: {
-        organizationId: organizationId
+        organizationId: organizationId,
+        organizationRole: membership.role
       }
     })
 

@@ -18,6 +18,10 @@ import {
   hasHigherRole,
 } from '@/lib/permissions'
 
+interface SessionUser {
+  organizationRole?: OrganizationRole
+}
+
 interface UsePermissionsReturn {
   role: OrganizationRole | null
   permissions: Permission[]
@@ -40,8 +44,8 @@ interface UsePermissionsReturn {
 export function usePermissions(): UsePermissionsReturn {
   const { data: session, status } = useSession()
 
-  // Get role from session (we'll need to add this to the session type)
-  const role = (session?.user as any)?.organizationRole as OrganizationRole | null
+  // Get role from session
+  const role = (session?.user as SessionUser)?.organizationRole ?? null
 
   const isLoading = status === 'loading'
 

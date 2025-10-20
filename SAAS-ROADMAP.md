@@ -315,8 +315,8 @@ const metrics = {
 - [x] Organization onboarding system ✅ (2025-10-20)
 - [x] User roles & permissions (RBAC) ✅ (2025-10-20)
 - [x] Team invite system ✅ (2025-10-20)
-- [ ] Organization management UI 🔄 **NEXT**
-- [ ] Basic billing integration
+- [x] Organization management UI ✅ (2025-10-20)
+- [ ] Basic billing integration 🔄 **NEXT**
 
 ### **Phase 2: Core SaaS Features (Weeks 5-8)**
 - [ ] Subscription management
@@ -420,24 +420,36 @@ const metrics = {
      - Duplicate acceptance prevention
      - Organization membership creation in transaction
 
+#### **Phase 1.5: Organization Management UI** (20 Oktober 2025)
+   - ✅ Organization Management UI volledig geïmplementeerd
+     - `/app/dashboard/settings` - Team tab met complete management interface
+     - Organization info editing (naam, beschrijving)
+     - Member list met avatar, email, en role badges
+     - Role management dropdown met RBAC protectie
+     - Member removal met confirmatie
+     - Team invite form (email + role selector)
+     - Pending invites overview met cancel functionaliteit
+   - ✅ Organization Switcher component
+     - `components/molecules/OrganizationSwitcher.tsx` - Header dropdown
+     - Auto-hide bij single organization
+     - Portal-based dropdown voor z-index management
+     - Page reload na switch voor data consistency
+   - ✅ Organization Switch API
+     - `/api/user/organizations` - GET: List user's organizations
+     - `/api/user/organizations/switch` - POST: Switch active org + sync role
+     - Membership verification en validation
+   - ✅ RBAC enforcement
+     - Organization editing: OWNER/ADMIN only
+     - Member role updates: Permission-based
+     - Member removal: Cannot remove OWNER
+     - Invite management: Permission-based
+   - ✅ Glass morphism design met backdrop-blur
+   - ✅ Toast notifications voor alle acties
+   - ✅ Loading states en error handling
+
 ### 🔄 **Volgende Stappen (Prioriteit)**
 
-1. **Organization Management UI** - Week 4
-   - [ ] Organization settings pagina
-     - Org name/slug editing
-     - Member list met roles
-     - Pending invites overview
-     - Branding/theme settings
-   - [ ] User management binnen organizatie
-     - Member role updates (RBAC protected)
-     - Member removal
-     - Invite management (resend, cancel)
-   - [ ] Organization switcher voor users met meerdere orgs
-     - Header component met org selector
-     - `/api/user/organizations` - List user's orgs
-     - `/api/user/organizations/switch` - Switch active org
-
-2. **Basic Billing Integration** - Week 5-6
+1. **Basic Billing Integration** - Week 5-6
    - [ ] Stripe setup en webhooks
    - [ ] Subscription model implementeren
    - [ ] Plan upgrade/downgrade flow

@@ -333,16 +333,23 @@ return createPortal(
 - ✅ Email notification placeholders
 - ✅ Documentatie: `app/invite/README.md`
 
+#### **Phase 1.5: Organization Management UI** (20 Oktober 2025)
+- ✅ Organization Switcher component (`components/molecules/OrganizationSwitcher.tsx`)
+- ✅ Switch API route (`/api/user/organizations/switch`) met organizationRole sync
+- ✅ Organization Settings pagina (`/app/dashboard/settings` - Team tab)
+  - ✅ Organization info met edit functionaliteit (naam, beschrijving)
+  - ✅ Member list met role badges
+  - ✅ Role management dropdown (OWNER/ADMIN/MEMBER/VIEWER)
+  - ✅ Member removal functionaliteit
+  - ✅ Team invite form met role selector
+  - ✅ Pending invites overview met cancel optie
+- ✅ RBAC protectie op alle management functies
+- ✅ Glass morphism design consistency
+
 ### 🔄 **VOLGENDE PRIORITEITEN**
 **Referentie**: Zie `SAAS-ROADMAP.md` voor volledige details
 
-1. **Organization Management UI** (Week 4)
-   - [ ] Organization settings pagina (name, slug, branding)
-   - [ ] Member list met role management
-   - [ ] Pending invites overview
-   - [ ] Organization switcher component
-
-2. **Basic Billing Integration** (Week 5-6)
+1. **Basic Billing Integration** (Week 5-6)
    - [ ] Stripe setup en webhooks
    - [ ] Subscription management
    - [ ] Plan upgrade/downgrade flow
