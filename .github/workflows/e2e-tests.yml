@@ -46,6 +46,7 @@ jobs:
           npx prisma db push --skip-generate
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/yustboard_test
+          DIRECT_URL: postgresql://postgres:postgres@localhost:5432/yustboard_test
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
@@ -54,6 +55,7 @@ jobs:
         run: npm run build
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/yustboard_test
+          DIRECT_URL: postgresql://postgres:postgres@localhost:5432/yustboard_test
           NEXTAUTH_URL: http://localhost:3000
           NEXTAUTH_SECRET: test-secret-key-for-ci-only
 
@@ -61,6 +63,7 @@ jobs:
         run: npm run test:e2e
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/yustboard_test
+          DIRECT_URL: postgresql://postgres:postgres@localhost:5432/yustboard_test
           NEXTAUTH_URL: http://localhost:3000
           NEXTAUTH_SECRET: test-secret-key-for-ci-only
           CI: true
