@@ -78,19 +78,24 @@ export async function POST(request: NextRequest) {
     // Delete existing settings
     await prisma.globalMenuSetting.deleteMany({})
 
-    // Create new settings
-    for (const item of menuItems) {
-      await prisma.globalMenuSetting.create({
-        data: {
-          menuItem: item.id,
-          label: item.label,
-          path: item.path,
-          icon: item.icon,
-          enabled: item.enabled,
-          position: item.position
-        }
-      })
-    }
+    // Create new settings in batch (performance optimization)
+    await prisma.globalMenuSetting.createMany({
+      data: menuItems.map((item: {
+        id: string;
+        label: string;
+        path: string;
+        icon: string;
+        enabled: boolean;
+        position: number;
+      }) => ({
+        menuItem: item.id,
+        label: item.label,
+        path: item.path,
+        icon: item.icon,
+        enabled: item.enabled,
+        position: item.position
+      }))
+    })
 
     return NextResponse.json({ success: true })
   } catch (error) {
