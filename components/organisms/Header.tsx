@@ -11,9 +11,11 @@ import UniversalSearch from './UniversalSearch';
 import MobileSidebar from './MobileSidebar';
 import OrganizationSwitcher from '@/components/molecules/OrganizationSwitcher';
 import NotificationBell from '@/components/molecules/NotificationBell';
+import { useBranding } from '@/contexts/BrandingContext';
 
 export default function Header() {
   const { data: session } = useSession();
+  const { branding } = useBranding();
   const pathname = usePathname();
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
@@ -80,6 +82,21 @@ export default function Header() {
         >
           <FiMenu className="h-5 w-5 text-gray-700 dark:text-gray-300" />
         </button>
+
+        {/* Organization Logo - shown when branding is enabled */}
+        {branding.brandingEnabled && branding.logoUrl && (
+          <div className="hidden lg:block relative w-10 h-10 rounded-lg overflow-hidden bg-white dark:bg-gray-800 p-1">
+            <Image
+              src={branding.logoUrl}
+              alt="Organization logo"
+              width={40}
+              height={40}
+              className="w-full h-full object-contain"
+              unoptimized={true}
+            />
+          </div>
+        )}
+
         <h2 className="text-xl font-normal text-foreground">{getPageTitle()}</h2>
       </div>
       
