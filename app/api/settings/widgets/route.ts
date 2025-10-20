@@ -19,7 +19,8 @@ export async function GET() {
     // Define all available widgets
     const allWidgets = [
       { id: 'timeline', name: 'Timeline', description: 'Sociale tijdlijn met posts' },
-      { id: 'tasks', name: 'Taken', description: 'Google Calendar evenementen' },
+      { id: 'tasks', name: 'Taken', description: 'Team taken en to-dos' },
+      { id: 'calendar', name: 'Agenda', description: 'Google Calendar evenementen' },
       { id: 'banking', name: 'Banking', description: 'Financiële transacties' },
       { id: 'gmail', name: 'Gmail', description: 'Recente emails' },
       { id: 'files', name: 'Bestanden', description: 'Google Drive bestanden' },
@@ -27,7 +28,8 @@ export async function GET() {
       { id: 'social', name: 'Sociaal', description: 'Social media feeds' },
       { id: 'news', name: 'Nieuws', description: 'Laatste nieuws' },
       { id: 'fitness', name: 'Fitness', description: 'Google Fit data' },
-      { id: 'blog', name: 'Blog', description: 'Laatste blog posts' }
+      { id: 'blog', name: 'Blog', description: 'Laatste blog posts' },
+      { id: 'announcements', name: 'Aankondigingen', description: 'Organisatie aankondigingen' }
     ]
 
     // Merge preferences with widget definitions

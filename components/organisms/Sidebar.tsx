@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FiHome, FiCalendar, FiDollarSign, FiCloud, FiUsers, FiMail, FiMessageSquare, FiSettings, FiGlobe, FiX, FiFileText, FiChevronLeft, FiChevronRight, FiShield, FiLayout } from 'react-icons/fi';
+import { FiHome, FiCalendar, FiDollarSign, FiCloud, FiUsers, FiMail, FiMessageSquare, FiSettings, FiGlobe, FiX, FiFileText, FiChevronLeft, FiChevronRight, FiShield, FiLayout, FiBell, FiCheckSquare } from 'react-icons/fi';
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { useSidebar } from '@/contexts/SidebarContext';
@@ -28,7 +28,9 @@ const iconMap: { [key: string]: React.ComponentType<{ className?: string }> } = 
   'Globe': FiGlobe,
   'FileText': FiFileText,
   'Shield': FiShield,
-  'Layout': FiLayout
+  'Layout': FiLayout,
+  'Bell': FiBell,
+  'CheckSquare': FiCheckSquare
 };
 
 const defaultNavItems = [
@@ -189,7 +191,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
                       isCollapsed ? 'px-3 justify-center' : 'px-3'
                     } rounded-full transition-all duration-200 ${
                       pathname.startsWith('/dashboard/admin/blog')
-                        ? 'bg-white/20 dark:bg-gray-800/20 text-primary backdrop-blur-sm border border-white/10 dark:border-gray-700/20 font-medium shadow-lg shadow-black/5' 
+                        ? 'bg-white/20 dark:bg-gray-800/20 text-primary backdrop-blur-sm border border-white/10 dark:border-gray-700/20 font-medium shadow-lg shadow-black/5'
                         : 'text-secondary-foreground hover:bg-white/10 dark:hover:bg-gray-800/10 hover:backdrop-blur-sm'
                     }`}
                     title={isCollapsed ? "Blog Management" : undefined}
@@ -209,6 +211,70 @@ export default function Sidebar({ onClose }: SidebarProps) {
               )}
             </>
           )}
+
+          {/* Organization section - available to all users */}
+          <li className="mb-1 mt-4">
+            {!isCollapsed && (
+              <div className="px-3 py-2 text-xs font-semibold text-secondary-foreground/60 uppercase tracking-wider">
+                Organisatie
+              </div>
+            )}
+            {isCollapsed && <hr className="my-2 border-border" />}
+          </li>
+
+          {/* Announcements */}
+          <li className="mb-1">
+            <Link
+              href="/dashboard/announcements"
+              onClick={onClose}
+              className={`relative flex items-center h-12 ${
+                isCollapsed ? 'px-3 justify-center' : 'px-3'
+              } rounded-full transition-all duration-200 ${
+                pathname.startsWith('/dashboard/announcements')
+                  ? 'bg-white/20 dark:bg-gray-800/20 text-primary backdrop-blur-sm border border-white/10 dark:border-gray-700/20 font-medium shadow-lg shadow-black/5'
+                  : 'text-secondary-foreground hover:bg-white/10 dark:hover:bg-gray-800/10 hover:backdrop-blur-sm'
+              }`}
+              title={isCollapsed ? "Aankondigingen" : undefined}
+            >
+              <FiBell className={`h-5 w-5 ${!isCollapsed ? 'mr-3' : ''}`} />
+              {!isCollapsed && (
+                <span className="text-sm">Aankondigingen</span>
+              )}
+              {pathname.startsWith('/dashboard/announcements') && !isCollapsed && (
+                <div className="absolute inset-y-0 left-0 w-1 bg-primary rounded-r-full" />
+              )}
+              {pathname.startsWith('/dashboard/announcements') && isCollapsed && (
+                <div className="absolute inset-y-0 right-0 w-1 bg-primary rounded-l-full" />
+              )}
+            </Link>
+          </li>
+
+          {/* Tasks */}
+          <li className="mb-1">
+            <Link
+              href="/dashboard/tasks"
+              onClick={onClose}
+              className={`relative flex items-center h-12 ${
+                isCollapsed ? 'px-3 justify-center' : 'px-3'
+              } rounded-full transition-all duration-200 ${
+                pathname.startsWith('/dashboard/tasks')
+                  ? 'bg-white/20 dark:bg-gray-800/20 text-primary backdrop-blur-sm border border-white/10 dark:border-gray-700/20 font-medium shadow-lg shadow-black/5'
+                  : 'text-secondary-foreground hover:bg-white/10 dark:hover:bg-gray-800/10 hover:backdrop-blur-sm'
+              }`}
+              title={isCollapsed ? "Taken" : undefined}
+            >
+              <FiCheckSquare className={`h-5 w-5 ${!isCollapsed ? 'mr-3' : ''}`} />
+              {!isCollapsed && (
+                <span className="text-sm">Taken</span>
+              )}
+              {pathname.startsWith('/dashboard/tasks') && !isCollapsed && (
+                <div className="absolute inset-y-0 left-0 w-1 bg-primary rounded-r-full" />
+              )}
+              {pathname.startsWith('/dashboard/tasks') && isCollapsed && (
+                <div className="absolute inset-y-0 right-0 w-1 bg-primary rounded-l-full" />
+              )}
+            </Link>
+          </li>
         </ul>
       </nav>
     </div>

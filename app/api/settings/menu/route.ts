@@ -33,11 +33,15 @@ export async function GET() {
         { id: 'mail', label: 'Mail', path: '/dashboard/mail', icon: 'Mail', enabled: true, position: 2 },
         { id: 'agenda', label: 'Agenda', path: '/dashboard/agenda', icon: 'Calendar', enabled: true, position: 3 },
         { id: 'banking', label: 'Banking', path: '/dashboard/banking', icon: 'DollarSign', enabled: true, position: 4 },
-        { id: 'social', label: 'Social', path: '/dashboard/social', icon: 'Users', enabled: true, position: 5 },
-        { id: 'weather', label: 'Weather', path: '/dashboard/weather', icon: 'Cloud', enabled: true, position: 6 },
-        { id: 'settings', label: 'Instellingen', path: '/dashboard/settings', icon: 'Settings', enabled: true, position: 7 }
+        { id: 'blog', label: 'Blog', path: '/dashboard/blog', icon: 'FileText', enabled: true, position: 5 },
+        { id: 'news', label: 'Nieuws', path: '/dashboard/news', icon: 'Globe', enabled: true, position: 6 },
+        { id: 'social', label: 'Social', path: '/dashboard/social', icon: 'Users', enabled: true, position: 7 },
+        { id: 'weather', label: 'Weather', path: '/dashboard/weather', icon: 'Cloud', enabled: true, position: 8 },
+        { id: 'announcements', label: 'Aankondigingen', path: '/dashboard/announcements', icon: 'Bell', enabled: true, position: 9 },
+        { id: 'tasks', label: 'Taken', path: '/dashboard/tasks', icon: 'CheckSquare', enabled: true, position: 10 },
+        { id: 'settings', label: 'Instellingen', path: '/dashboard/settings', icon: 'Settings', enabled: true, position: 11 }
       ]
-      
+
       return NextResponse.json({ menuItems: defaultMenuItems })
     }
 

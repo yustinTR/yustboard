@@ -28,10 +28,18 @@ export default function CoverImageSelector({ value, onChange }: CoverImageSelect
   const fetchMediaItems = async () => {
     try {
       setLoadingMedia(true);
-      const response = await fetch('/api/upload?type=list');
+      const response = await fetch('/api/media');
       if (response.ok) {
         const data = await response.json();
-        setMediaItems(data.files || []);
+        // Transform the response to match expected format
+        const items = (data.files || []).map((file: { id: string; url: string; originalName: string; size: number; createdAt: string }) => ({
+          id: file.id,
+          url: file.url,
+          filename: file.originalName,
+          size: file.size,
+          uploadedAt: new Date(file.createdAt)
+        }));
+        setMediaItems(items);
       }
     } catch (error) {
       console.error('Error fetching media items:', error);
@@ -87,6 +95,31 @@ export default function CoverImageSelector({ value, onChange }: CoverImageSelect
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+    }
+  };
+
+  // Delete media file
+  const handleDeleteMedia = async (mediaId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent selecting the image when deleting
+
+    if (!confirm('Are you sure you want to delete this image?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/media/${mediaId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Delete failed');
+      }
+
+      // Refresh media items
+      fetchMediaItems();
+    } catch (error) {
+      console.error('Error deleting file:', error);
+      alert('Failed to delete image');
     }
   };
 
@@ -225,9 +258,17 @@ export default function CoverImageSelector({ value, onChange }: CoverImageSelect
                             </div>
                           </div>
                         )}
+                        {/* Delete button - only show on hover */}
+                        <button
+                          onClick={(e) => handleDeleteMedia(item.id, e)}
+                          className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all opacity-0 group-hover:opacity-100"
+                          title="Delete image"
+                        >
+                          <FiTrash2 size={16} />
+                        </button>
                       </div>
-                      <div className="p-2 bg-gray-50">
-                        <p className="text-xs truncate">{item.filename}</p>
+                      <div className="p-2 bg-gray-50 dark:bg-gray-800">
+                        <p className="text-xs truncate text-gray-900 dark:text-gray-100">{item.filename}</p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">{formatFileSize(item.size)}</p>
                       </div>
                     </div>

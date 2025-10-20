@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from '@/lib/auth/server';
 import { supabaseAdmin } from '@/lib/database/supabase';
+import prisma from '@/lib/database/prisma';
 import { writeFile, readdir, stat, mkdir } from 'fs/promises';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
@@ -100,14 +101,24 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession();
-    
+
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Get user's current organization
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { organizationId: true }
+    });
+
+    if (!user?.organizationId) {
+      return NextResponse.json({ error: 'User must belong to an organization' }, { status: 400 });
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    
+
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
@@ -136,11 +147,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    let fileUrl: string;
+    let uniqueFilename: string;
+
     // Check if Supabase is configured
     if (supabaseAdmin) {
       // Create unique filename
       const fileExtension = file.name.split('.').pop();
-      const uniqueFilename = `${uuidv4()}.${fileExtension}`;
+      uniqueFilename = `${uuidv4()}.${fileExtension}`;
       const filePath = `uploads/${uniqueFilename}`;
 
       // Upload to Supabase Storage
@@ -160,39 +174,56 @@ export async function POST(request: NextRequest) {
           .from(STORAGE_BUCKET)
           .getPublicUrl(filePath);
 
-        return NextResponse.json({
-          url: publicUrlData.publicUrl,
-          filename: file.name,
-          size: file.size,
-          mimeType: file.type,
-          type: 'image',
-        });
+        fileUrl = publicUrlData.publicUrl;
       } else {
         console.error('Error uploading to Supabase:', error);
         // Fall back to local storage
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        const fileExtension = path.extname(file.name);
+        uniqueFilename = `${uuidv4()}${fileExtension}`;
+        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'blog');
+        const localFilePath = path.join(uploadDir, uniqueFilename);
+        await mkdir(uploadDir, { recursive: true });
+        await writeFile(localFilePath, buffer);
+        fileUrl = `/uploads/blog/${uniqueFilename}`;
       }
+    } else {
+      // Fallback to local file system
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+
+      // Create unique filename
+      const fileExtension = path.extname(file.name);
+      uniqueFilename = `${uuidv4()}${fileExtension}`;
+      const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'blog');
+      const localFilePath = path.join(uploadDir, uniqueFilename);
+
+      // Ensure upload directory exists
+      await mkdir(uploadDir, { recursive: true });
+
+      // Save file
+      await writeFile(localFilePath, buffer);
+
+      // Set file URL
+      fileUrl = `/uploads/blog/${uniqueFilename}`;
     }
-    
-    // Fallback to local file system
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
 
-    // Create unique filename
-    const fileExtension = path.extname(file.name);
-    const uniqueFilename = `${uuidv4()}${fileExtension}`;
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'blog');
-    const localFilePath = path.join(uploadDir, uniqueFilename);
-
-    // Ensure upload directory exists
-    await mkdir(uploadDir, { recursive: true });
-
-    // Save file
-    await writeFile(localFilePath, buffer);
-
-    // Return file info
-    const fileUrl = `/uploads/blog/${uniqueFilename}`;
+    // Save to database
+    const mediaFile = await prisma.mediaFile.create({
+      data: {
+        filename: uniqueFilename,
+        originalName: file.name,
+        mimeType: file.type,
+        size: file.size,
+        url: fileUrl,
+        userId: session.user.id,
+        organizationId: user.organizationId
+      }
+    });
 
     return NextResponse.json({
+      id: mediaFile.id,
       url: fileUrl,
       filename: file.name,
       size: file.size,

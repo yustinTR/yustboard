@@ -17,6 +17,8 @@ const TimelineWidget = dynamic(() => import('@/components/organisms/widgets/Time
 const NewsWidget = dynamic(() => import('@/components/organisms/widgets/NewsWidget'));
 const FitnessWidget = dynamic(() => import('@/components/organisms/widgets/FitnessWidget'));
 const BlogWidget = dynamic(() => import('@/components/organisms/widgets/BlogWidget'));
+const AnnouncementsWidget = dynamic(() => import('@/components/organisms/widgets/AnnouncementsWidget'));
+const CalendarWidget = dynamic(() => import('@/components/organisms/widgets/CalendarWidget'));
 
 // Widget component map
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -30,7 +32,9 @@ const widgetComponents: { [key: string]: React.ComponentType<any> } = {
   social: SocialWidget,
   news: NewsWidget,
   fitness: FitnessWidget,
-  blog: BlogWidget
+  blog: BlogWidget,
+  announcements: AnnouncementsWidget,
+  calendar: CalendarWidget
 };
 
 
