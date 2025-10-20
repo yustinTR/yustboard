@@ -26,7 +26,8 @@
       "Bash(npm update:*)",
       "Bash(git restore --staged PR_DESCRIPTION.md)",
       "Bash(git restore --staged PR_DESCRIPTION.md .claude/settings.local.json)",
-      "Bash(npm run test:unit)"
+      "Bash(npm run test:unit)",
+      "Bash(npm run test:coverage)"
     ],
     "deny": []
   },
