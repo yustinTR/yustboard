@@ -47,7 +47,11 @@ export async function GET(request: NextRequest) {
       ]
     });
 
-    return NextResponse.json({ announcements });
+    return NextResponse.json({ announcements }, {
+      headers: {
+        'Cache-Control': 'private, max-age=180, stale-while-revalidate=360'
+      }
+    });
   } catch (error) {
     console.error('Error fetching announcements:', error);
     return NextResponse.json(

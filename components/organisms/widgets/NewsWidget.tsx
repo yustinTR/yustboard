@@ -174,7 +174,6 @@ const NewsWidget = React.memo(function NewsWidget() {
                   width={400}
                   height={200}
                   className="w-full h-32 object-cover rounded-xl"
-                  unoptimized={true}
                 />
               </div>
             )}

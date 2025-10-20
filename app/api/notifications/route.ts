@@ -37,6 +37,10 @@ export async function GET(request: Request) {
     return NextResponse.json({
       notifications,
       unreadCount,
+    }, {
+      headers: {
+        'Cache-Control': 'private, max-age=30, stale-while-revalidate=60'
+      }
     });
   } catch (error) {
     console.error('Error fetching notifications:', error);
