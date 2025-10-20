@@ -34,6 +34,7 @@ model Organization {
   mediaFiles        MediaFile[]
   settings          OrganizationSettings?
   invites           OrganizationInvite[]
+  notifications     Notification[]
 
   @@index([slug])
   @@index([plan])
@@ -115,6 +116,7 @@ model User {
   blogPosts         BlogPost[]
   announcements     Announcement[]
   mediaFiles        MediaFile[]
+  notifications     Notification[]
 
   @@index([organizationId])
   @@index([email])
@@ -401,4 +403,38 @@ model LandingContact {
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// Notification System
+model Notification {
+  id             String           @id @default(cuid())
+  userId         String
+  organizationId String?
+  type           NotificationType
+  title          String
+  message        String           @db.Text
+  link           String?
+  read           Boolean          @default(false)
+  readAt         DateTime?
+  createdAt      DateTime         @default(now())
+
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization?    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@index([organizationId])
+  @@index([createdAt])
+}
+
+enum NotificationType {
+  TEAM_INVITE
+  INVITE_ACCEPTED
+  MEMBER_JOINED
+  MEMBER_REMOVED
+  ROLE_CHANGED
+  ANNOUNCEMENT_CREATED
+  TASK_ASSIGNED
+  TASK_COMPLETED
+  COMMENT_MENTION
+  GENERAL
 }
