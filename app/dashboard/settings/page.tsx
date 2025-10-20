@@ -9,7 +9,8 @@ import { Switch } from '@/components/atoms/switch'
 import { Label } from '@/components/atoms/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/molecules/tabs'
 import { Badge } from '@/components/atoms/badge'
-import { FiMenu, FiShield, FiSave, FiRefreshCw, FiCalendar, FiSettings, FiLayout, FiGrid, FiUser, FiMail, FiUsers, FiUserPlus, FiTrash2, FiDroplet, FiUpload, FiCamera } from 'react-icons/fi'
+import { FiMenu, FiShield, FiSave, FiRefreshCw, FiCalendar, FiSettings, FiLayout, FiGrid, FiUser, FiMail, FiUsers, FiUserPlus, FiTrash2, FiDroplet, FiUpload, FiCamera, FiCreditCard } from 'react-icons/fi'
+import { BillingDashboard } from '@/components/billing/BillingDashboard'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 import { toast } from 'sonner'
 import ColorPicker from '@/components/ui/ColorPicker'
@@ -506,7 +507,7 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="widgets" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="widgets" className="flex items-center gap-2">
             <FiLayout className="h-4 w-4" />
             Widgets
@@ -514,6 +515,10 @@ export default function SettingsPage() {
           <TabsTrigger value="organization" className="flex items-center gap-2">
             <FiUsers className="h-4 w-4" />
             Team
+          </TabsTrigger>
+          <TabsTrigger value="billing" className="flex items-center gap-2">
+            <FiCreditCard className="h-4 w-4" />
+            Billing
           </TabsTrigger>
           <TabsTrigger value="branding" className="flex items-center gap-2">
             <FiDroplet className="h-4 w-4" />
@@ -866,6 +871,10 @@ export default function SettingsPage() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="billing" className="space-y-4">
+          <BillingDashboard />
         </TabsContent>
 
         <TabsContent value="branding" className="space-y-4">
