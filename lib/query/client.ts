@@ -43,8 +43,8 @@ export const queryKeys = {
   // Calendar widget
   calendar: {
     all: ['calendar'] as const,
-    events: (timeMin?: string, timeMax?: string) =>
-      ['calendar', 'events', { timeMin, timeMax }] as const,
+    events: (params?: { maxResults?: number; timeMin?: string; timeMax?: string }) =>
+      ['calendar', 'events', params] as const,
   },
 
   // Drive widget
@@ -77,14 +77,15 @@ export const queryKeys = {
   // Tasks widget
   tasks: {
     all: ['tasks'] as const,
-    list: () => ['tasks', 'list'] as const,
+    list: (params?: { completed?: boolean }) => ['tasks', 'list', params] as const,
     task: (id: string) => ['tasks', 'task', id] as const,
   },
 
   // Banking widget
   banking: {
     all: ['banking'] as const,
-    transactions: () => ['banking', 'transactions'] as const,
+    transactions: (params?: { days?: number; max?: number; statsOnly?: boolean }) =>
+      ['banking', 'transactions', params] as const,
   },
 
   // Fitness widget
@@ -96,7 +97,7 @@ export const queryKeys = {
   // Announcements widget
   announcements: {
     all: ['announcements'] as const,
-    list: () => ['announcements', 'list'] as const,
+    list: (params?: { published?: boolean }) => ['announcements', 'list', params] as const,
     announcement: (id: string) => ['announcements', 'announcement', id] as const,
   },
 };
