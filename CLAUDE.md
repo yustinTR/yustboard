@@ -397,19 +397,40 @@ return createPortal(
   - ✅ No organization required voor avatars
   - ✅ Image validation (type, size max 5MB)
 
+#### **Phase 2.1: Organization Branding** (20 Oktober 2025)
+- ✅ Database & API
+  - ✅ OrganizationSettings.secondaryColor field
+  - ✅ `/api/organization/settings` - GET/PATCH endpoints
+  - ✅ Hex color validation (#RRGGBB)
+  - ✅ Logo upload via `/api/upload` (type: 'logo')
+- ✅ UI Components
+  - ✅ ColorPicker component (`components/ui/ColorPicker.tsx`)
+  - ✅ Native color picker + hex input
+  - ✅ Live preview & reset functionality
+  - ✅ Branding tab in organization settings
+  - ✅ Logo upload met preview (5MB limit)
+  - ✅ Primary & secondary color pickers
+  - ✅ Enable/disable toggle
+- ✅ BrandingContext Provider
+  - ✅ `contexts/BrandingContext.tsx`
+  - ✅ Fetches settings on mount
+  - ✅ CSS custom properties (--branding-primary, --branding-secondary)
+  - ✅ useBranding() hook
+- ✅ Logo Display
+  - ✅ Header: Logo naast page title (40x40px)
+  - ✅ Sidebar: Logo in expanded/collapsed mode (32x32px)
+  - ✅ Vervangt "YustBoard" text wanneer actief
+  - ✅ Glass morphism containers
+
 ### 🔄 **VOLGENDE PRIORITEITEN**
 **Referentie**: Zie `SAAS-ROADMAP.md` voor volledige details
 
-1. **Organization Branding** (Week 5)
-   - [ ] Logo upload
-   - [ ] Custom colors/theme picker
-   - [ ] Theme preview
-
-2. **Basic Billing Integration** (Week 5-6)
-   - [ ] Stripe setup en webhooks
-   - [ ] Subscription management
+1. **Basic Billing Integration** (Week 6-7) 🔄 **SUGGESTED NEXT**
+   - [ ] Stripe account & webhooks
+   - [ ] Subscription model (4 plans)
    - [ ] Plan upgrade/downgrade flow
    - [ ] Usage limits enforcing
+   - [ ] Billing dashboard
 
 ### 🔧 **Technical Implementation Notes**
 - **Database**: Multi-tenant schema met organizationId

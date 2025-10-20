@@ -321,8 +321,8 @@ const metrics = {
 - [x] User profile management ✅ (2025-10-20)
 
 ### **Phase 2: Core SaaS Features (Weeks 5-8)**
-- [ ] Organization branding (logo, colors) 🔄 **SUGGESTED NEXT**
-- [ ] Basic billing integration (Stripe)
+- [x] Organization branding (logo, colors) ✅ (2025-10-20)
+- [ ] Basic billing integration (Stripe) 🔄 **SUGGESTED NEXT**
 - [ ] Subscription management
 - [ ] Usage tracking & limits
 - [ ] Team collaboration features
@@ -512,25 +512,74 @@ const metrics = {
      - Toast notifications voor feedback
      - Session synchronisatie na updates
 
+#### **Phase 2.1: Organization Branding** (20 Oktober 2025)
+   - ✅ Database schema updates
+     - `OrganizationSettings.secondaryColor` field toegevoegd
+     - Support voor logo, primary, en secondary colors
+   - ✅ Branding settings API
+     - `/api/organization/settings` - GET/PATCH voor branding
+     - Hex color validatie (#RRGGBB format)
+     - Auto-create settings indien niet bestaat
+   - ✅ Logo upload systeem
+     - Enhanced `/api/upload` met 'logo' type support
+     - Aparte 'logos/' prefix in Supabase storage
+     - 5MB file size limit
+     - Image type validation
+   - ✅ ColorPicker component
+     - `components/ui/ColorPicker.tsx`
+     - Native HTML5 color picker integration
+     - Hex code input met validation
+     - Live preview box
+     - Reset to default functionaliteit
+   - ✅ Branding settings UI
+     - Nieuwe "Branding" tab in organization settings
+     - Logo upload met preview (vierkant formaat aanbevolen)
+     - Primary & secondary color pickers
+     - Enable/disable branding toggle
+     - Live preview sectie met gradient showcase
+     - Preview buttons met custom colors
+   - ✅ BrandingContext provider
+     - `contexts/BrandingContext.tsx`
+     - Fetches settings on mount
+     - Sets CSS custom properties (--branding-primary, --branding-secondary)
+     - useBranding() hook voor alle components
+     - Auto-update bij session changes
+   - ✅ Logo display integration
+     - Header: Logo naast page title (desktop only, 40x40px)
+     - Sidebar: Logo in expanded mode (32x32px)
+     - Sidebar: Logo in collapsed mode
+     - Vervangt "YustBoard" text wanneer logo aanwezig
+     - Glass morphism containers
+   - ✅ Branding application
+     - CSS variabelen op document root
+     - Beschikbaar voor alle UI components
+     - Respecteert brandingEnabled toggle
+     - Werkt met organization switching
+
 ### 🔄 **Volgende Stappen (Prioriteit)**
 
 **🎉 Phase 1 (Foundation) is VOLLEDIG AFGEROND! 🎉**
+**🎉 Phase 2.1 (Organization Branding) is VOLLEDIG AFGEROND! 🎉**
 
-Aanbevolen volgorde voor Phase 2:
+Aanbevolen volgorde voor Phase 2 (vervolg):
 
-1. **Organization Branding** - Week 5 🔄 **SUGGESTED NEXT**
-   - [ ] Logo upload systeem (similar to avatar upload)
-   - [ ] Custom color picker (primary, secondary colors)
-   - [ ] Theme preview in real-time
-   - [ ] Branding settings API
-   - [ ] Apply branding across dashboard
+1. **Basic Billing Integration** - Week 6-7 🔄 **SUGGESTED NEXT**
+   - [ ] Stripe account setup en API keys
+   - [ ] Stripe webhooks implementatie
+   - [ ] Subscription model (FREE, STARTER, PRO, ENTERPRISE)
+   - [ ] Plan upgrade/downgrade flow met prorating
+   - [ ] Usage limits enforcing (maxUsers, maxWidgets)
+   - [ ] Billing dashboard voor organization owners
+   - [ ] Payment method management
+   - [ ] Invoice history
+   - [ ] Subscription cancellation flow
 
-2. **Basic Billing Integration** - Week 6-7
-   - [ ] Stripe setup en webhooks
-   - [ ] Subscription model implementeren
-   - [ ] Plan upgrade/downgrade flow
-   - [ ] Usage limits enforcing
-   - [ ] Billing dashboard
+2. **Team Collaboration Features** - Week 8
+   - [ ] Real-time collaborative editing
+   - [ ] Comments op timeline posts
+   - [ ] @mentions in comments
+   - [ ] Activity feed voor team acties
+   - [ ] Shared widgets configuratie
 
 ### 🔧 **Technische Details & Notities**
 
