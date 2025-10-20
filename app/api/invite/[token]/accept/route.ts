@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/permissions';
+import { requireAuthOnly } from '@/lib/permissions';
 import prisma from '@/lib/database/prisma';
 import { sendWelcomeEmail } from '@/lib/email/send-welcome';
 import { createBulkNotifications } from '@/lib/notifications/create';
@@ -10,14 +10,18 @@ export async function POST(
   { params }: { params: Promise<{ token: string }> }
 ) {
   try {
-    const authResult = await requireAuth();
+    // Use requireAuthOnly since user may not have an organization yet
+    const authResult = await requireAuthOnly();
 
     if ('error' in authResult) {
+      console.log('❌ Auth failed in invite accept:', authResult.error);
       return authResult.error;
     }
 
-    const { context } = authResult;
+    const { userId } = authResult;
     const { token } = await params;
+
+    console.log('✅ Accepting invite:', { userId, token });
 
     // Find the invite
     const invite = await prisma.organizationInvite.findUnique({
@@ -85,7 +89,7 @@ export async function POST(
       // Create organization membership
       const membership = await tx.organizationMembership.create({
         data: {
-          userId: context.userId,
+          userId,
           organizationId,
           role
         }
@@ -93,7 +97,7 @@ export async function POST(
 
       // Update user's current organization
       await tx.user.update({
-        where: { id: context.userId },
+        where: { id: userId },
         data: {
           organizationId,
           organizationRole: role
@@ -113,7 +117,7 @@ export async function POST(
 
     // Get user details for welcome email
     const user = await prisma.user.findUnique({
-      where: { id: context.userId },
+      where: { id: userId },
       select: { name: true, email: true }
     });
 

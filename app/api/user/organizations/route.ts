@@ -6,7 +6,15 @@ export async function GET() {
   try {
     const session = await getServerSession()
 
+    console.log('🔐 /api/user/organizations session check:', {
+      hasSession: !!session,
+      hasUser: !!session?.user,
+      userId: session?.user?.id,
+      userKeys: session?.user ? Object.keys(session.user) : []
+    });
+
     if (!session?.user?.id) {
+      console.log('❌ No session.user.id, returning 401');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

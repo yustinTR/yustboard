@@ -93,14 +93,20 @@ model OrganizationInvite {
 }
 
 model User {
-  id                String                 @id @default(cuid())
-  name              String?
-  email             String?                @unique
-  emailVerified     DateTime?
-  image             String?
-  createdAt         DateTime               @default(now())
-  role              UserRole               @default(USER)
-  updatedAt         DateTime               @default(now()) @updatedAt
+  id                      String                 @id @default(cuid())
+  name                    String?
+  email                   String?                @unique
+  emailVerified           DateTime?
+  image                   String?
+  password                String?                // For email/password authentication
+  authMethod              AuthMethod             @default(OAUTH) // Track authentication method
+  emailVerificationToken  String?                @unique // For email verification
+  emailVerificationExpiry DateTime?              // Token expiry
+  passwordResetToken      String?                @unique // For password reset
+  passwordResetExpiry     DateTime?              // Token expiry
+  createdAt               DateTime               @default(now())
+  role                    UserRole               @default(USER)
+  updatedAt               DateTime               @default(now()) @updatedAt
 
   // Multi-tenant fields - keep for backwards compatibility and current active org
   organizationId    String?
@@ -363,6 +369,11 @@ enum OrganizationRole {
   ADMIN
   MEMBER
   VIEWER
+}
+
+enum AuthMethod {
+  OAUTH      // Google OAuth
+  CREDENTIALS // Email/password
 }
 
 // Landing Page Content Models

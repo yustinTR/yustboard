@@ -32,8 +32,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         redirect: true
       });
     }
-    // Check if we have a session but no user or accessToken (might indicate an error)
-    if (status === 'authenticated' && session && (!session.user || !session.accessToken)) {
+    // Check if we have a session but no user (might indicate an error)
+    // Note: accessToken is only for OAuth users, so don't check it for credentials users
+    if (status === 'authenticated' && session && !session.user) {
+      console.log('❌ Session has no user, signing out');
       signOut({
         callbackUrl: '/login?error=SessionInvalid',
         redirect: true

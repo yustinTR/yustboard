@@ -62,6 +62,13 @@ export default function Sidebar({ onClose }: SidebarProps) {
   const isAdmin = session?.user?.role === 'ADMIN';
   const canManageContent = session?.user?.role === 'ADMIN' || session?.user?.role === 'AUTHOR';
 
+  // Check if user has Google OAuth access
+  const authMethod = session?.user?.authMethod || 'CREDENTIALS';
+  const hasGoogleAccess = authMethod === 'OAUTH';
+
+  // Google-dependent menu items that should only be shown to OAuth users
+  const googleDependentItems = ['mail', 'agenda'];
+
   useEffect(() => {
     fetchMenuSettings();
   }, []);
@@ -80,7 +87,17 @@ export default function Sidebar({ onClose }: SidebarProps) {
     }
   };
 
-  const enabledItems = menuItems.filter(item => item.enabled).sort((a, b) => a.position - b.position);
+  // Filter menu items based on auth method
+  const enabledItems = menuItems
+    .filter(item => item.enabled)
+    .filter(item => {
+      // Filter out Google-dependent items for credentials users
+      if (!hasGoogleAccess && googleDependentItems.includes(item.id)) {
+        return false;
+      }
+      return true;
+    })
+    .sort((a, b) => a.position - b.position);
 
   return (
     <div className={`backdrop-blur-md bg-white/80 dark:bg-gray-900/80 h-screen ${isCollapsed ? 'w-16' : 'w-72'} flex flex-col border-r border-white/20 dark:border-gray-700/30 transition-all duration-300`}>
@@ -154,10 +171,13 @@ export default function Sidebar({ onClose }: SidebarProps) {
                   className={`relative flex items-center h-12 ${
                     isCollapsed ? 'px-3 justify-center' : 'px-3'
                   } rounded-full transition-all duration-200 ${
-                    isActive 
-                      ? 'bg-white/20 dark:bg-gray-800/20 text-primary backdrop-blur-sm border border-white/10 dark:border-gray-700/20 font-medium shadow-lg shadow-black/5' 
+                    isActive
+                      ? 'bg-white/20 dark:bg-gray-800/20 backdrop-blur-sm border border-white/10 dark:border-gray-700/20 font-medium shadow-lg shadow-black/5'
                       : 'text-secondary-foreground hover:bg-white/10 dark:hover:bg-gray-800/10 hover:backdrop-blur-sm'
                   }`}
+                  style={isActive && branding.brandingEnabled && branding.primaryColor ? {
+                    color: branding.primaryColor
+                  } : undefined}
                   title={isCollapsed ? item.label : undefined}
                 >
                   <Icon className={`h-5 w-5 ${!isCollapsed ? 'mr-3' : ''}`} />
@@ -165,10 +185,22 @@ export default function Sidebar({ onClose }: SidebarProps) {
                     <span className="text-sm">{item.label}</span>
                   )}
                   {isActive && !isCollapsed && (
-                    <div className="absolute inset-y-0 left-0 w-1 bg-primary rounded-r-full" />
+                    <div
+                      className="absolute inset-y-0 left-0 w-1 rounded-r-full"
+                      style={branding.brandingEnabled && branding.primaryColor ? {
+                        backgroundColor: branding.primaryColor
+                      } : undefined}
+                      {...(!branding.brandingEnabled || !branding.primaryColor) && { className: "absolute inset-y-0 left-0 w-1 bg-primary rounded-r-full" }}
+                    />
                   )}
                   {isActive && isCollapsed && (
-                    <div className="absolute inset-y-0 right-0 w-1 bg-primary rounded-l-full" />
+                    <div
+                      className="absolute inset-y-0 right-0 w-1 rounded-l-full"
+                      style={branding.brandingEnabled && branding.primaryColor ? {
+                        backgroundColor: branding.primaryColor
+                      } : undefined}
+                      {...(!branding.brandingEnabled || !branding.primaryColor) && { className: "absolute inset-y-0 right-0 w-1 bg-primary rounded-l-full" }}
+                    />
                   )}
                 </Link>
               </li>
@@ -196,9 +228,12 @@ export default function Sidebar({ onClose }: SidebarProps) {
                       isCollapsed ? 'px-3 justify-center' : 'px-3'
                     } rounded-full transition-all duration-200 ${
                       pathname === '/dashboard/admin/landing'
-                        ? 'bg-white/20 dark:bg-gray-800/20 text-primary backdrop-blur-sm border border-white/10 dark:border-gray-700/20 font-medium shadow-lg shadow-black/5' 
+                        ? 'bg-white/20 dark:bg-gray-800/20 backdrop-blur-sm border border-white/10 dark:border-gray-700/20 font-medium shadow-lg shadow-black/5'
                         : 'text-secondary-foreground hover:bg-white/10 dark:hover:bg-gray-800/10 hover:backdrop-blur-sm'
                     }`}
+                    style={pathname === '/dashboard/admin/landing' && branding.brandingEnabled && branding.primaryColor ? {
+                      color: branding.primaryColor
+                    } : undefined}
                     title={isCollapsed ? "Landing Page" : undefined}
                   >
                     <FiLayout className={`h-5 w-5 ${!isCollapsed ? 'mr-3' : ''}`} />
@@ -206,10 +241,22 @@ export default function Sidebar({ onClose }: SidebarProps) {
                       <span className="text-sm">Landing Page</span>
                     )}
                     {pathname === '/dashboard/admin/landing' && !isCollapsed && (
-                      <div className="absolute inset-y-0 left-0 w-1 bg-primary rounded-r-full" />
+                      <div
+                        className="absolute inset-y-0 left-0 w-1 rounded-r-full"
+                        style={branding.brandingEnabled && branding.primaryColor ? {
+                          backgroundColor: branding.primaryColor
+                        } : undefined}
+                        {...(!branding.brandingEnabled || !branding.primaryColor) && { className: "absolute inset-y-0 left-0 w-1 bg-primary rounded-r-full" }}
+                      />
                     )}
                     {pathname === '/dashboard/admin/landing' && isCollapsed && (
-                      <div className="absolute inset-y-0 right-0 w-1 bg-primary rounded-l-full" />
+                      <div
+                        className="absolute inset-y-0 right-0 w-1 rounded-l-full"
+                        style={branding.brandingEnabled && branding.primaryColor ? {
+                          backgroundColor: branding.primaryColor
+                        } : undefined}
+                        {...(!branding.brandingEnabled || !branding.primaryColor) && { className: "absolute inset-y-0 right-0 w-1 bg-primary rounded-l-full" }}
+                      />
                     )}
                   </Link>
                 </li>
@@ -224,9 +271,12 @@ export default function Sidebar({ onClose }: SidebarProps) {
                       isCollapsed ? 'px-3 justify-center' : 'px-3'
                     } rounded-full transition-all duration-200 ${
                       pathname.startsWith('/dashboard/admin/blog')
-                        ? 'bg-white/20 dark:bg-gray-800/20 text-primary backdrop-blur-sm border border-white/10 dark:border-gray-700/20 font-medium shadow-lg shadow-black/5'
+                        ? 'bg-white/20 dark:bg-gray-800/20 backdrop-blur-sm border border-white/10 dark:border-gray-700/20 font-medium shadow-lg shadow-black/5'
                         : 'text-secondary-foreground hover:bg-white/10 dark:hover:bg-gray-800/10 hover:backdrop-blur-sm'
                     }`}
+                    style={pathname.startsWith('/dashboard/admin/blog') && branding.brandingEnabled && branding.primaryColor ? {
+                      color: branding.primaryColor
+                    } : undefined}
                     title={isCollapsed ? "Blog Management" : undefined}
                   >
                     <FiFileText className={`h-5 w-5 ${!isCollapsed ? 'mr-3' : ''}`} />
@@ -234,10 +284,22 @@ export default function Sidebar({ onClose }: SidebarProps) {
                       <span className="text-sm">Blog Management</span>
                     )}
                     {pathname.startsWith('/dashboard/admin/blog') && !isCollapsed && (
-                      <div className="absolute inset-y-0 left-0 w-1 bg-primary rounded-r-full" />
+                      <div
+                        className="absolute inset-y-0 left-0 w-1 rounded-r-full"
+                        style={branding.brandingEnabled && branding.primaryColor ? {
+                          backgroundColor: branding.primaryColor
+                        } : undefined}
+                        {...(!branding.brandingEnabled || !branding.primaryColor) && { className: "absolute inset-y-0 left-0 w-1 bg-primary rounded-r-full" }}
+                      />
                     )}
                     {pathname.startsWith('/dashboard/admin/blog') && isCollapsed && (
-                      <div className="absolute inset-y-0 right-0 w-1 bg-primary rounded-l-full" />
+                      <div
+                        className="absolute inset-y-0 right-0 w-1 rounded-l-full"
+                        style={branding.brandingEnabled && branding.primaryColor ? {
+                          backgroundColor: branding.primaryColor
+                        } : undefined}
+                        {...(!branding.brandingEnabled || !branding.primaryColor) && { className: "absolute inset-y-0 right-0 w-1 bg-primary rounded-l-full" }}
+                      />
                     )}
                   </Link>
                 </li>
@@ -264,9 +326,12 @@ export default function Sidebar({ onClose }: SidebarProps) {
                 isCollapsed ? 'px-3 justify-center' : 'px-3'
               } rounded-full transition-all duration-200 ${
                 pathname.startsWith('/dashboard/announcements')
-                  ? 'bg-white/20 dark:bg-gray-800/20 text-primary backdrop-blur-sm border border-white/10 dark:border-gray-700/20 font-medium shadow-lg shadow-black/5'
+                  ? 'bg-white/20 dark:bg-gray-800/20 backdrop-blur-sm border border-white/10 dark:border-gray-700/20 font-medium shadow-lg shadow-black/5'
                   : 'text-secondary-foreground hover:bg-white/10 dark:hover:bg-gray-800/10 hover:backdrop-blur-sm'
               }`}
+              style={pathname.startsWith('/dashboard/announcements') && branding.brandingEnabled && branding.primaryColor ? {
+                color: branding.primaryColor
+              } : undefined}
               title={isCollapsed ? "Aankondigingen" : undefined}
             >
               <FiBell className={`h-5 w-5 ${!isCollapsed ? 'mr-3' : ''}`} />
@@ -274,10 +339,22 @@ export default function Sidebar({ onClose }: SidebarProps) {
                 <span className="text-sm">Aankondigingen</span>
               )}
               {pathname.startsWith('/dashboard/announcements') && !isCollapsed && (
-                <div className="absolute inset-y-0 left-0 w-1 bg-primary rounded-r-full" />
+                <div
+                  className="absolute inset-y-0 left-0 w-1 rounded-r-full"
+                  style={branding.brandingEnabled && branding.primaryColor ? {
+                    backgroundColor: branding.primaryColor
+                  } : undefined}
+                  {...(!branding.brandingEnabled || !branding.primaryColor) && { className: "absolute inset-y-0 left-0 w-1 bg-primary rounded-r-full" }}
+                />
               )}
               {pathname.startsWith('/dashboard/announcements') && isCollapsed && (
-                <div className="absolute inset-y-0 right-0 w-1 bg-primary rounded-l-full" />
+                <div
+                  className="absolute inset-y-0 right-0 w-1 rounded-l-full"
+                  style={branding.brandingEnabled && branding.primaryColor ? {
+                    backgroundColor: branding.primaryColor
+                  } : undefined}
+                  {...(!branding.brandingEnabled || !branding.primaryColor) && { className: "absolute inset-y-0 right-0 w-1 bg-primary rounded-l-full" }}
+                />
               )}
             </Link>
           </li>
@@ -291,9 +368,12 @@ export default function Sidebar({ onClose }: SidebarProps) {
                 isCollapsed ? 'px-3 justify-center' : 'px-3'
               } rounded-full transition-all duration-200 ${
                 pathname.startsWith('/dashboard/tasks')
-                  ? 'bg-white/20 dark:bg-gray-800/20 text-primary backdrop-blur-sm border border-white/10 dark:border-gray-700/20 font-medium shadow-lg shadow-black/5'
+                  ? 'bg-white/20 dark:bg-gray-800/20 backdrop-blur-sm border border-white/10 dark:border-gray-700/20 font-medium shadow-lg shadow-black/5'
                   : 'text-secondary-foreground hover:bg-white/10 dark:hover:bg-gray-800/10 hover:backdrop-blur-sm'
               }`}
+              style={pathname.startsWith('/dashboard/tasks') && branding.brandingEnabled && branding.primaryColor ? {
+                color: branding.primaryColor
+              } : undefined}
               title={isCollapsed ? "Taken" : undefined}
             >
               <FiCheckSquare className={`h-5 w-5 ${!isCollapsed ? 'mr-3' : ''}`} />
@@ -301,10 +381,22 @@ export default function Sidebar({ onClose }: SidebarProps) {
                 <span className="text-sm">Taken</span>
               )}
               {pathname.startsWith('/dashboard/tasks') && !isCollapsed && (
-                <div className="absolute inset-y-0 left-0 w-1 bg-primary rounded-r-full" />
+                <div
+                  className="absolute inset-y-0 left-0 w-1 rounded-r-full"
+                  style={branding.brandingEnabled && branding.primaryColor ? {
+                    backgroundColor: branding.primaryColor
+                  } : undefined}
+                  {...(!branding.brandingEnabled || !branding.primaryColor) && { className: "absolute inset-y-0 left-0 w-1 bg-primary rounded-r-full" }}
+                />
               )}
               {pathname.startsWith('/dashboard/tasks') && isCollapsed && (
-                <div className="absolute inset-y-0 right-0 w-1 bg-primary rounded-l-full" />
+                <div
+                  className="absolute inset-y-0 right-0 w-1 rounded-l-full"
+                  style={branding.brandingEnabled && branding.primaryColor ? {
+                    backgroundColor: branding.primaryColor
+                  } : undefined}
+                  {...(!branding.brandingEnabled || !branding.primaryColor) && { className: "absolute inset-y-0 right-0 w-1 bg-primary rounded-l-full" }}
+                />
               )}
             </Link>
           </li>

@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { FiRefreshCw } from 'react-icons/fi';
 import Masonry from 'react-masonry-css';
+import { useAuthMethod } from '@/hooks/useAuthMethod';
 
 // Dynamically import widgets to support lazy loading
 const TaskWidget = dynamic(() => import('@/components/organisms/widgets/TaskWidget'));
@@ -47,8 +48,12 @@ interface WidgetPreference {
 
 export default function Dashboard() {
   const { data: session } = useSession();
+  const { hasGoogleAccess } = useAuthMethod();
   const [widgetPreferences, setWidgetPreferences] = useState<WidgetPreference[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Google-dependent widgets that require OAuth authentication
+  const googleDependentWidgets = ['gmail', 'calendar', 'fitness', 'files'];
 
   useEffect(() => {
     if (session) {
@@ -78,9 +83,11 @@ export default function Dashboard() {
     );
   }
 
-  // Filter and sort widgets based on user preferences
+  // Filter and sort widgets based on user preferences and auth method
   const enabledWidgets = widgetPreferences
     .filter(w => w.enabled)
+    // Hide Google-dependent widgets for non-Google authenticated users
+    .filter(w => hasGoogleAccess || !googleDependentWidgets.includes(w.id))
     .sort((a, b) => a.position - b.position);
 
   // Find timeline widget if enabled

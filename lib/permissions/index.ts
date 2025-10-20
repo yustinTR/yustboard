@@ -21,6 +21,7 @@ export {
 export type { AuthContext } from './middleware'
 export {
   getAuthContext,
+  requireAuthOnly,
   requireAuth,
   requirePermission,
   requireAnyPermission,

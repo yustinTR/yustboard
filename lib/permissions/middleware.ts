@@ -43,6 +43,25 @@ export async function getAuthContext(): Promise<AuthContext | null> {
 }
 
 /**
+ * Require only authentication (no organization required)
+ * Returns 401 if not authenticated
+ * Useful for endpoints like invite acceptance where user may not have an org yet
+ */
+export async function requireAuthOnly(): Promise<
+  { userId: string } | { error: NextResponse }
+> {
+  const session = await getServerSession()
+
+  if (!session?.user?.id) {
+    return {
+      error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+    }
+  }
+
+  return { userId: session.user.id }
+}
+
+/**
  * Require authentication and organization membership
  * Returns 401 if not authenticated
  * Returns 403 if no organization
