@@ -7,7 +7,7 @@ import { useSession } from 'next-auth/react'
 export function OnboardingCheck({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
-  const { data: session, status } = useSession()
+  const { status } = useSession()
   const [isChecking, setIsChecking] = useState(true)
 
   useEffect(() => {
