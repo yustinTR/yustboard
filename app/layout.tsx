@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import "./globals.css";
 import SessionProvider from "@/components/providers/SessionProvider";
+import { QueryProvider } from "@/components/providers/QueryProvider";
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Toaster } from 'sonner';
@@ -28,22 +29,24 @@ export default function RootLayout({
       <body
         className={`${roboto.variable} font-sans antialiased`}
       >
-        <SessionProvider>
-          {children}
-          <Analytics />
-          <SpeedInsights />
-          <Toaster
-            position="bottom-left"
-            toastOptions={{
-              className: 'shadow-2',
-              style: {
-                background: 'var(--card)',
-                color: 'var(--card-foreground)',
-                border: '1px solid var(--border)',
-              },
-            }}
-          />
-        </SessionProvider>
+        <QueryProvider>
+          <SessionProvider>
+            {children}
+            <Analytics />
+            <SpeedInsights />
+            <Toaster
+              position="bottom-left"
+              toastOptions={{
+                className: 'shadow-2',
+                style: {
+                  background: 'var(--card)',
+                  color: 'var(--card-foreground)',
+                  border: '1px solid var(--border)',
+                },
+              }}
+            />
+          </SessionProvider>
+        </QueryProvider>
       </body>
     </html>
   );

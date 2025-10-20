@@ -1,71 +1,38 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { FiCloud, FiCloudRain, FiCloudSnow, FiSun, FiRefreshCw, FiMapPin, FiThermometer, FiWind, FiDroplet } from 'react-icons/fi'
 import Link from 'next/link'
-
-interface WeatherData {
-  temperature: number
-  condition: string
-  description: string
-  location: string
-  feels_like: number
-  humidity: number
-  wind_speed: number
-  forecast: Array<{
-    day: string
-    temperature: number
-    condition: string
-  }>
-}
+import { useWeather } from '@/hooks/queries/useWeather'
 
 const WeatherWidget = React.memo(function WeatherWidget() {
-  const [weatherData, setWeatherData] = useState<WeatherData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  // Default to Den Haag coordinates, will be updated with user location
+  const [coords, setCoords] = useState({ lat: 52.0705, lon: 4.3007 })
 
-  const fetchWeatherData = async () => {
-    setLoading(true)
-    setError(null)
-    
-    try {
-      // Get user's location
-      if ('geolocation' in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            const { latitude, longitude } = position.coords
-            const response = await fetch(`/api/weather?lat=${latitude}&lon=${longitude}`)
-            
-            if (!response.ok) {
-              throw new Error('Failed to fetch weather data')
-            }
-            
-            const data = await response.json()
-            setWeatherData(data)
-            setLoading(false)
-          },
-          (error) => {
-            console.error('Geolocation error:', error)
-            setError('Locatie toegang geweigerd')
-            setLoading(false)
-          }
-        )
-      } else {
-        setError('Geolocation niet ondersteund')
-        setLoading(false)
-      }
-    } catch (error) {
-      console.error('Error fetching weather:', error)
-      setError('Weer data kon niet worden geladen')
-      setLoading(false)
-    }
-  }
+  // Use React Query hook with user's coordinates
+  const { data: weatherData, isLoading, error, refetch } = useWeather(coords.lat, coords.lon)
 
+  // Get user's geolocation on mount
   useEffect(() => {
-    fetchWeatherData()
-    const interval = setInterval(fetchWeatherData, 30 * 60 * 1000) // Update every 30 minutes
-    return () => clearInterval(interval)
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setCoords({
+            lat: position.coords.latitude,
+            lon: position.coords.longitude,
+          })
+        },
+        (error) => {
+          console.error('Geolocation error:', error)
+          // Keep using default Den Haag coordinates
+        }
+      )
+    }
   }, [])
+
+  const handleRefresh = () => {
+    refetch()
+  }
 
   const getWeatherIcon = (condition: string) => {
     const conditionLower = condition.toLowerCase()
@@ -80,7 +47,7 @@ const WeatherWidget = React.memo(function WeatherWidget() {
     }
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="h-full backdrop-blur-xl bg-white/15 dark:bg-gray-900/15 border border-white/25 dark:border-gray-700/25 rounded-3xl shadow-2xl shadow-black/20 flex items-center justify-center">
         <FiRefreshCw className="h-8 w-8 animate-spin text-blue-500" />
@@ -98,7 +65,7 @@ const WeatherWidget = React.memo(function WeatherWidget() {
             Weer
           </h3>
           <button
-            onClick={fetchWeatherData}
+            onClick={handleRefresh}
             className="text-white/90 hover:text-white hover:bg-white/20 p-2 rounded-full transition-all duration-300 cursor-pointer hover:scale-105"
           >
             <FiRefreshCw className="h-5 w-5" />
@@ -107,7 +74,7 @@ const WeatherWidget = React.memo(function WeatherWidget() {
         <div className="px-6 py-8 bg-white/5 backdrop-blur-sm flex items-center justify-center">
           <div className="text-center space-y-4">
             <div className="bg-red-500/15 border border-red-400/30 text-red-600 dark:text-red-400 p-4 rounded-2xl backdrop-blur-sm">
-              {error || 'Geen weerdata beschikbaar'}
+              {error?.message || 'Geen weerdata beschikbaar'}
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-500">
               Sta locatie toegang toe voor weersinformatie
@@ -127,11 +94,11 @@ const WeatherWidget = React.memo(function WeatherWidget() {
           Weer
         </h3>
         <button
-          onClick={fetchWeatherData}
-          disabled={loading}
+          onClick={handleRefresh}
+          disabled={isLoading}
           className="text-white/90 hover:text-white hover:bg-white/20 p-2 rounded-full transition-all duration-300 disabled:opacity-50 cursor-pointer hover:scale-105"
         >
-          <FiRefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
+          <FiRefreshCw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
         </button>
       </div>
 
