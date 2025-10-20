@@ -1,4 +1,5 @@
 import { DefaultSession } from "next-auth";
+import { OrganizationRole } from "@prisma/client";
 
 declare module "next-auth" {
   /**
@@ -10,8 +11,12 @@ declare module "next-auth" {
       id: string;
       /** The user's role. */
       role?: string;
+      /** The user's organization ID. */
+      organizationId?: string;
+      /** The user's organization role. */
+      organizationRole?: OrganizationRole;
     } & DefaultSession["user"];
-    
+
     /** Access token for Google API or other providers */
     accessToken?: string;
     /** Error message if session has errors */
@@ -25,6 +30,10 @@ declare module "next-auth/jwt" {
     userRole?: string;
     /** The user's ID. */
     userId?: string;
+    /** The user's organization ID. */
+    organizationId?: string;
+    /** The user's organization role. */
+    organizationRole?: OrganizationRole;
     /** The user's access token. */
     accessToken?: string;
     /** The user's refresh token. */

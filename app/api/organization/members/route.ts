@@ -1,28 +1,17 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from '@/lib/auth/server'
+import { requirePermission, isOwner } from '@/lib/permissions'
 import prisma from '@/lib/database/prisma'
 
 export async function PATCH(request: Request) {
   try {
-    const session = await getServerSession()
+    // Require permission to update member roles
+    const authResult = await requirePermission('members:update-role')
 
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if ('error' in authResult) {
+      return authResult.error
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { organizationId: true, organizationRole: true }
-    })
-
-    if (!user?.organizationId) {
-      return NextResponse.json({ error: 'No organization found' }, { status: 404 })
-    }
-
-    // Only OWNER and ADMIN can update member roles
-    if (user.organizationRole !== 'OWNER' && user.organizationRole !== 'ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
+    const { context } = authResult
 
     const body = await request.json()
     const { memberId, role } = body
@@ -36,7 +25,7 @@ export async function PATCH(request: Request) {
       where: {
         userId_organizationId: {
           userId: memberId,
-          organizationId: user.organizationId
+          organizationId: context.organizationId
         }
       },
       include: {
@@ -60,7 +49,7 @@ export async function PATCH(request: Request) {
     }
 
     // Only OWNER can promote to OWNER
-    if (role === 'OWNER' && user.organizationRole !== 'OWNER') {
+    if (role === 'OWNER' && !isOwner(context.organizationRole)) {
       return NextResponse.json({ error: 'Only owner can promote to owner' }, { status: 403 })
     }
 
@@ -69,7 +58,7 @@ export async function PATCH(request: Request) {
       where: {
         userId_organizationId: {
           userId: memberId,
-          organizationId: user.organizationId
+          organizationId: context.organizationId
         }
       },
       data: { role },

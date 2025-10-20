@@ -311,9 +311,11 @@ const metrics = {
 ## 💡 **Implementation Timeline**
 
 ### **Phase 1: Foundation (Weeks 1-4)**
-- [x] Multi-tenant database design ✅ **COMPLETED** (2024-09-22)
-- [ ] Organization management system 🔄 **NEXT**
-- [ ] User roles & permissions
+- [x] Multi-tenant database design ✅ (2024-09-22)
+- [x] Organization onboarding system ✅ (2025-10-20)
+- [x] User roles & permissions (RBAC) ✅ (2025-10-20)
+- [x] Team invite system ✅ (2025-10-20)
+- [ ] Organization management UI 🔄 **NEXT**
 - [ ] Basic billing integration
 
 ### **Phase 2: Core SaaS Features (Weeks 5-8)**
@@ -360,8 +362,9 @@ const metrics = {
 
 ## 📝 **Voortgang & Next Actions**
 
-### ✅ **Voltooid (22 September 2024)**
-1. **Multi-tenant Database Design** - COMPLETED
+### ✅ **Voltooid**
+
+#### **Phase 1.1: Multi-tenant Database Design** (22 September 2024)
    - ✅ Organization, OrganizationSettings, OrganizationInvite models toegevoegd
    - ✅ User model uitgebreid met organizationId en organizationRole
    - ✅ Alle bestaande models (Task, Transaction, Post, UserWidgetPreference, BlogPost) uitgebreid met organizationId
@@ -369,33 +372,77 @@ const metrics = {
    - ✅ API routes aangepast voor multi-tenancy (blog, timeline, widgets)
    - ✅ Migration script gemaakt (scripts/migrate-to-multi-tenant.js)
    - ✅ Prisma schema validates en build slaagt
+   - ✅ Database migratie uitgevoerd
+
+#### **Phase 1.2: Organization Onboarding** (20 Oktober 2025)
+   - ✅ Organization creation & onboarding flow
+     - `/app/onboarding/page.tsx` - 2-step wizard met glass morphism design
+     - `/api/onboarding` - POST/GET endpoints voor org creatie
+     - `components/providers/OnboardingCheck.tsx` - Auto-redirect naar onboarding
+   - ✅ Onboarding wizard features:
+     - Auto-generated organization slugs
+     - Organization name en slug validatie
+     - Default FREE plan setup
+     - User krijgt automatisch OWNER role
+
+#### **Phase 1.3: Role-Based Access Control** (20 Oktober 2025)
+   - ✅ RBAC systeem volledig geïmplementeerd
+     - `lib/permissions/types.ts` - Permission types en ROLE_PERMISSIONS mapping
+     - `lib/permissions/check.ts` - Helper functies (hasPermission, canManageOrganization, etc.)
+     - `lib/permissions/middleware.ts` - API middleware (requireAuth, requirePermission, requireAdmin, etc.)
+     - `lib/permissions/index.ts` - Central exports
+     - `lib/permissions/README.md` - Complete documentatie
+   - ✅ Frontend permission checking
+     - `hooks/usePermissions.ts` - React hook met PermissionGuard en RoleGuard
+     - Session enrichment met organizationRole
+   - ✅ RBAC toegepast op kritieke routes:
+     - Organization invites (POST, DELETE)
+     - Organization members (PATCH, DELETE)
+     - Announcements (GET, PATCH, DELETE)
+     - Tasks (PATCH, DELETE met resource ownership)
+   - ✅ Code reductie: 86 lines boilerplate vervangen door middleware
+
+#### **Phase 1.4: Team Invite System** (20 Oktober 2025)
+   - ✅ Team invite systeem volledig werkend
+     - `/app/invite/[token]/page.tsx` - Invite acceptance UI
+     - `/api/invite/[token]` - GET invite details
+     - `/api/invite/[token]/accept` - POST accept invite
+     - `/api/invite/[token]/decline` - POST decline invite
+   - ✅ Invite acceptance features:
+     - Glass morphism design matching app aesthetic
+     - Complete state handling (loading, expired, accepted, invalid, success)
+     - Auto-redirect naar login voor unauthenticated users
+     - Transaction-based acceptance voor data consistentie
+     - Email notification placeholders voor toekomstige uitbreiding
+   - ✅ Security:
+     - RBAC requireAuth middleware
+     - Expiration checking
+     - Duplicate acceptance prevention
+     - Organization membership creation in transaction
 
 ### 🔄 **Volgende Stappen (Prioriteit)**
-1. **Immediate**: Database migratie uitvoeren
-   ```bash
-   # VOORZICHTIG: Backup database eerst!
-   node scripts/migrate-to-multi-tenant.js
-   npx prisma db push
-   ```
 
-2. **Organization Management System** - Week 2-3
-   - [ ] Organization creation & onboarding flow
-   - [ ] Team invite systeem
+1. **Organization Management UI** - Week 4
    - [ ] Organization settings pagina
+     - Org name/slug editing
+     - Member list met roles
+     - Pending invites overview
+     - Branding/theme settings
    - [ ] User management binnen organizatie
+     - Member role updates (RBAC protected)
+     - Member removal
+     - Invite management (resend, cancel)
    - [ ] Organization switcher voor users met meerdere orgs
+     - Header component met org selector
+     - `/api/user/organizations` - List user's orgs
+     - `/api/user/organizations/switch` - Switch active org
 
-3. **User Roles & Permissions** - Week 2-3
-   - [ ] Role-based access control implementeren
-   - [ ] OWNER/ADMIN/MEMBER/VIEWER permissions
-   - [ ] Middleware voor permission checking
-   - [ ] UI componenten voor role management
-
-4. **Basic Billing Integration** - Week 4-5
+2. **Basic Billing Integration** - Week 5-6
    - [ ] Stripe setup en webhooks
    - [ ] Subscription model implementeren
    - [ ] Plan upgrade/downgrade flow
    - [ ] Usage limits enforcing
+   - [ ] Billing dashboard
 
 ### 🔧 **Technische Details & Notities**
 

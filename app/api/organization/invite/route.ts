@@ -1,46 +1,24 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from '@/lib/auth/server'
+import { requirePermission } from '@/lib/permissions'
 import prisma from '@/lib/database/prisma'
 import { randomBytes } from 'crypto'
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession()
+    // Require permission to invite members
+    const authResult = await requirePermission('members:invite')
 
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if ('error' in authResult) {
+      return authResult.error
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: {
-        organizationId: true,
-        organizationRole: true,
-        organization: {
-          select: {
-            name: true,
-            settings: {
-              select: {
-                allowUserInvites: true
-              }
-            }
-          }
-        }
-      }
+    const { context } = authResult
+
+    // Get organization name for email (if we send emails later)
+    const organization = await prisma.organization.findUnique({
+      where: { id: context.organizationId },
+      select: { name: true }
     })
-
-    if (!user?.organizationId) {
-      return NextResponse.json({ error: 'No organization found' }, { status: 404 })
-    }
-
-    // Check permissions
-    const canInvite = user.organizationRole === 'OWNER' ||
-                      user.organizationRole === 'ADMIN' ||
-                      (user.organization?.settings?.allowUserInvites && user.organizationRole === 'MEMBER')
-
-    if (!canInvite) {
-      return NextResponse.json({ error: 'You do not have permission to invite users' }, { status: 403 })
-    }
 
     const body = await request.json()
     const { email, role } = body
@@ -53,7 +31,7 @@ export async function POST(request: Request) {
     const existingUser = await prisma.user.findFirst({
       where: {
         email,
-        organizationId: user.organizationId
+        organizationId: context.organizationId
       }
     })
 
@@ -64,7 +42,7 @@ export async function POST(request: Request) {
     // Check if invite already exists
     const existingInvite = await prisma.organizationInvite.findFirst({
       where: {
-        organizationId: user.organizationId,
+        organizationId: context.organizationId,
         email,
         acceptedAt: null,
         expiresAt: {
@@ -85,7 +63,7 @@ export async function POST(request: Request) {
     // Create invite
     const invite = await prisma.organizationInvite.create({
       data: {
-        organizationId: user.organizationId,
+        organizationId: context.organizationId,
         email,
         role,
         token,
@@ -95,7 +73,7 @@ export async function POST(request: Request) {
 
     // TODO: Send email with invite link
     // const inviteLink = `${process.env.NEXTAUTH_URL}/invite/${token}`
-    // await sendInviteEmail(email, user.organization.name, inviteLink)
+    // await sendInviteEmail(email, organization?.name, inviteLink)
 
     return NextResponse.json({
       invite: {

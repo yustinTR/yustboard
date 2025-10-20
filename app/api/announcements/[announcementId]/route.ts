@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from '@/lib/auth/server';
+import { requireAuth, requirePermission } from '@/lib/permissions';
 import prisma from '@/lib/database/prisma';
 
 // GET - Fetch single announcement
@@ -8,22 +8,14 @@ export async function GET(
   { params }: { params: Promise<{ announcementId: string }> }
 ) {
   try {
-    const session = await getServerSession();
+    const authResult = await requireAuth();
+
+    if ('error' in authResult) {
+      return authResult.error;
+    }
+
+    const { context } = authResult;
     const { announcementId } = await params;
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Get user's current organization
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { organizationId: true }
-    });
-
-    if (!user?.organizationId) {
-      return NextResponse.json({ error: 'User must belong to an organization' }, { status: 400 });
-    }
 
     const announcement = await prisma.announcement.findUnique({
       where: { id: announcementId },
@@ -44,7 +36,7 @@ export async function GET(
     }
 
     // Verify announcement belongs to user's organization
-    if (announcement.organizationId !== user.organizationId) {
+    if (announcement.organizationId !== context.organizationId) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -64,30 +56,14 @@ export async function PATCH(
   { params }: { params: Promise<{ announcementId: string }> }
 ) {
   try {
-    const session = await getServerSession();
+    const authResult = await requirePermission('announcements:update');
+
+    if ('error' in authResult) {
+      return authResult.error;
+    }
+
+    const { context } = authResult;
     const { announcementId } = await params;
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Get user's current organization and role
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: {
-        organizationId: true,
-        organizationRole: true
-      }
-    });
-
-    if (!user?.organizationId) {
-      return NextResponse.json({ error: 'User must belong to an organization' }, { status: 400 });
-    }
-
-    // Check if user has permission (ADMIN or OWNER)
-    if (user.organizationRole !== 'ADMIN' && user.organizationRole !== 'OWNER') {
-      return NextResponse.json({ error: 'Forbidden: Only admins can update announcements' }, { status: 403 });
-    }
 
     // Verify announcement belongs to user's organization
     const existingAnnouncement = await prisma.announcement.findUnique({
@@ -99,7 +75,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Announcement not found' }, { status: 404 });
     }
 
-    if (existingAnnouncement.organizationId !== user.organizationId) {
+    if (existingAnnouncement.organizationId !== context.organizationId) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -146,30 +122,14 @@ export async function DELETE(
   { params }: { params: Promise<{ announcementId: string }> }
 ) {
   try {
-    const session = await getServerSession();
+    const authResult = await requirePermission('announcements:delete');
+
+    if ('error' in authResult) {
+      return authResult.error;
+    }
+
+    const { context } = authResult;
     const { announcementId } = await params;
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Get user's current organization and role
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: {
-        organizationId: true,
-        organizationRole: true
-      }
-    });
-
-    if (!user?.organizationId) {
-      return NextResponse.json({ error: 'User must belong to an organization' }, { status: 400 });
-    }
-
-    // Check if user has permission (ADMIN or OWNER)
-    if (user.organizationRole !== 'ADMIN' && user.organizationRole !== 'OWNER') {
-      return NextResponse.json({ error: 'Forbidden: Only admins can delete announcements' }, { status: 403 });
-    }
 
     // Verify announcement belongs to user's organization
     const existingAnnouncement = await prisma.announcement.findUnique({
@@ -181,7 +141,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Announcement not found' }, { status: 404 });
     }
 
-    if (existingAnnouncement.organizationId !== user.organizationId) {
+    if (existingAnnouncement.organizationId !== context.organizationId) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
