@@ -30,6 +30,10 @@ export async function GET() {
       activeMinutes: { value: 45, goal: 60 },
       heartRate: { value: 72, min: 60, max: 100 },
       weeklyStats
+    }, {
+      headers: {
+        'Cache-Control': 'private, max-age=300, stale-while-revalidate=600'
+      }
     })
   } catch (error) {
     console.error('Fitness API error:', error)

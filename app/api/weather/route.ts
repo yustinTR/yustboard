@@ -123,6 +123,10 @@ export async function GET(request: NextRequest) {
       humidity: currentData.main.humidity,
       wind_speed: Math.round(currentData.wind.speed * 3.6), // Convert m/s to km/h
       forecast: dailyForecasts
+    }, {
+      headers: {
+        'Cache-Control': 'public, max-age=600, stale-while-revalidate=1200'
+      }
     })
   } catch (error) {
     console.error('Error fetching weather:', error)

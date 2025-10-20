@@ -34,23 +34,31 @@ export async function GET(req: NextRequest) {
     
     // If it's a test user or we have no access token, return mock data
     if (isTestUser(session) || !session.accessToken) {
-      return NextResponse.json(mockTasks);
+      return NextResponse.json(mockTasks, {
+        headers: {
+          'Cache-Control': 'private, max-age=300, stale-while-revalidate=600'
+        }
+      });
     }
-    
+
     const searchParams = req.nextUrl.searchParams;
     let timeMin = undefined;
     let timeMax = undefined;
-    
+
     if (searchParams.has('timeMin')) {
       timeMin = parseISO(searchParams.get('timeMin') as string);
     }
-    
+
     if (searchParams.has('timeMax')) {
       timeMax = parseISO(searchParams.get('timeMax') as string);
     }
-    
+
     const events = await fetchGoogleCalendarEvents(session.accessToken, timeMin, timeMax);
-    return NextResponse.json(events);
+    return NextResponse.json(events, {
+      headers: {
+        'Cache-Control': 'private, max-age=300, stale-while-revalidate=600'
+      }
+    });
   } catch {
     return NextResponse.json({ error: 'Failed to fetch calendar events' }, { status: 500 });
   }

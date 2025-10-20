@@ -25,7 +25,11 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: 'No access token available' }, { status: 401 });
       }
       const counts = await getEmailCounts(session.accessToken);
-      return NextResponse.json({ counts });
+      return NextResponse.json({ counts }, {
+        headers: {
+          'Cache-Control': 'private, max-age=120, stale-while-revalidate=240'
+        }
+      });
     }
     
     // Check access token is available
@@ -44,13 +48,21 @@ export async function GET(request: Request) {
     // If includeCounts is true, also fetch label counts
     if (includeCounts) {
       const counts = await getEmailCounts(session.accessToken);
-      return NextResponse.json({ 
+      return NextResponse.json({
         ...result,
         counts
+      }, {
+        headers: {
+          'Cache-Control': 'private, max-age=60, stale-while-revalidate=120'
+        }
       });
     }
-    
-    return NextResponse.json(result);
+
+    return NextResponse.json(result, {
+      headers: {
+        'Cache-Control': 'private, max-age=60, stale-while-revalidate=120'
+      }
+    });
   } catch (error: unknown) {
     
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
