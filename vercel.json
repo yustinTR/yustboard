@@ -1,8 +1,6 @@
 {
-  "buildCommand": "npm run build:production",
-  "outputDirectory": ".next",
+  "buildCommand": "prisma generate && next build",
   "framework": "nextjs",
-  "installCommand": "npm install",
   "env": {
     "NODE_ENV": "production"
   }

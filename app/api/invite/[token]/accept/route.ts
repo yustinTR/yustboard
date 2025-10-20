@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/permissions';
 import prisma from '@/lib/database/prisma';
+import { sendWelcomeEmail } from '@/lib/email/send-welcome';
+import { createBulkNotifications } from '@/lib/notifications/create';
 
 // POST - Accept organization invite
 export async function POST(
@@ -109,8 +111,54 @@ export async function POST(
       return membership;
     });
 
-    // TODO: Send email notification to organization admins
-    // await sendInviteAcceptedEmail(invite.organizationId, user?.email)
+    // Get user details for welcome email
+    const user = await prisma.user.findUnique({
+      where: { id: context.userId },
+      select: { name: true, email: true }
+    });
+
+    // Send welcome email to new member
+    if (user?.email && invite.organization) {
+      try {
+        await sendWelcomeEmail({
+          to: user.email,
+          userName: user.name || 'Team Member',
+          organizationName: invite.organization.name,
+          role: invite.role
+        });
+        console.log(`Welcome email sent to ${user.email}`);
+      } catch (emailError) {
+        console.error('Failed to send welcome email:', emailError);
+        // Continue - invite was already accepted
+      }
+    }
+
+    // Notify org admins about new member
+    try {
+      const admins = await prisma.organizationMembership.findMany({
+        where: {
+          organizationId,
+          role: { in: ['OWNER', 'ADMIN'] }
+        },
+        select: { userId: true }
+      });
+
+      if (admins.length > 0) {
+        await createBulkNotifications(
+          admins.map((a) => a.userId),
+          {
+            organizationId,
+            type: 'MEMBER_JOINED',
+            title: 'Nieuw teamlid',
+            message: `${user?.name || 'Een nieuw lid'} is lid geworden van ${invite.organization?.name}`,
+            link: '/dashboard/settings?tab=organization'
+          }
+        );
+      }
+    } catch (notifError) {
+      console.error('Failed to create notifications:', notifError);
+      // Continue - invite was already accepted
+    }
 
     return NextResponse.json({
       message: 'Invite accepted successfully',

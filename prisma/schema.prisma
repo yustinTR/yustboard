@@ -10,17 +10,20 @@ datasource db {
 
 // Multi-tenant Organization model
 model Organization {
-  id                String                 @id @default(cuid())
-  name              String
-  slug              String                 @unique
-  description       String?
-  logo              String?
-  plan              Plan                   @default(FREE)
-  stripeCustomerId  String?                @unique
-  stripeSubscriptionId String?             @unique
-  trialEndsAt       DateTime?
-  createdAt         DateTime               @default(now())
-  updatedAt         DateTime               @updatedAt
+  id                   String                 @id @default(cuid())
+  name                 String
+  slug                 String                 @unique
+  description          String?
+  logo                 String?
+  plan                 Plan                   @default(FREE)
+  stripeCustomerId     String?                @unique
+  stripeSubscriptionId String?                @unique
+  subscriptionStatus   SubscriptionStatus?    @default(ACTIVE)
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean                @default(false)
+  trialEndsAt          DateTime?
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
 
   // Relations
   users             User[]
@@ -34,6 +37,7 @@ model Organization {
   mediaFiles        MediaFile[]
   settings          OrganizationSettings?
   invites           OrganizationInvite[]
+  notifications     Notification[]
 
   @@index([slug])
   @@index([plan])
@@ -65,7 +69,8 @@ model OrganizationSettings {
   customDomain     String?
   brandingEnabled  Boolean      @default(false)
   logoUrl          String?
-  primaryColor     String?
+  primaryColor     String?      // Hex color code (e.g., #3B82F6)
+  secondaryColor   String?      // Hex color code for accents
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
   organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -115,6 +120,7 @@ model User {
   blogPosts         BlogPost[]
   announcements     Announcement[]
   mediaFiles        MediaFile[]
+  notifications     Notification[]
 
   @@index([organizationId])
   @@index([email])
@@ -343,6 +349,15 @@ enum Plan {
   ENTERPRISE
 }
 
+enum SubscriptionStatus {
+  ACTIVE
+  TRIALING
+  PAST_DUE
+  CANCELED
+  UNPAID
+  INCOMPLETE
+}
+
 enum OrganizationRole {
   OWNER
   ADMIN
@@ -401,4 +416,38 @@ model LandingContact {
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// Notification System
+model Notification {
+  id             String           @id @default(cuid())
+  userId         String
+  organizationId String?
+  type           NotificationType
+  title          String
+  message        String           @db.Text
+  link           String?
+  read           Boolean          @default(false)
+  readAt         DateTime?
+  createdAt      DateTime         @default(now())
+
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization?    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@index([organizationId])
+  @@index([createdAt])
+}
+
+enum NotificationType {
+  TEAM_INVITE
+  INVITE_ACCEPTED
+  MEMBER_JOINED
+  MEMBER_REMOVED
+  ROLE_CHANGED
+  ANNOUNCEMENT_CREATED
+  TASK_ASSIGNED
+  TASK_COMPLETED
+  COMMENT_MENTION
+  GENERAL
 }

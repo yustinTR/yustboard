@@ -333,20 +333,152 @@ return createPortal(
 - ✅ Email notification placeholders
 - ✅ Documentatie: `app/invite/README.md`
 
+#### **Phase 1.5: Organization Management UI** (20 Oktober 2025)
+- ✅ Organization Switcher component (`components/molecules/OrganizationSwitcher.tsx`)
+- ✅ Switch API route (`/api/user/organizations/switch`) met organizationRole sync
+- ✅ Organization Settings pagina (`/app/dashboard/settings` - Team tab)
+  - ✅ Organization info met edit functionaliteit (naam, beschrijving)
+  - ✅ Member list met role badges
+  - ✅ Role management dropdown (OWNER/ADMIN/MEMBER/VIEWER)
+  - ✅ Member removal functionaliteit
+  - ✅ Team invite form met role selector
+  - ✅ Pending invites overview met cancel optie
+- ✅ RBAC protectie op alle management functies
+- ✅ Glass morphism design consistency
+
+#### **Phase 1.6: Email Notification System** (20 Oktober 2025)
+- ✅ Resend integration met lazy initialization
+- ✅ React Email templates met glass morphism design
+- ✅ Email templates:
+  - ✅ InviteEmail - Team invite met magic link
+  - ✅ WelcomeEmail - Welcome email voor nieuwe members
+- ✅ Email utilities (`lib/email/`)
+  - ✅ `send-invite.ts` - Invite email functionaliteit
+  - ✅ `send-welcome.ts` - Welcome email functionaliteit
+  - ✅ `resend.ts` - Resend client met graceful degradation
+- ✅ Automated email triggers
+  - ✅ Invite email bij team invite
+  - ✅ Welcome email bij invite acceptance
+- ✅ Environment configuration (RESEND_API_KEY, RESEND_FROM_EMAIL)
+
+#### **Phase 1.7: Notification Center** (20 Oktober 2025)
+- ✅ Notification database model met NotificationType enum
+- ✅ Notification API routes (`/api/notifications`)
+  - ✅ GET - List notifications met unread count
+  - ✅ POST - Mark all as read
+  - ✅ PATCH - Mark single notification as read
+- ✅ NotificationBell component (`components/molecules/NotificationBell.tsx`)
+  - ✅ Real-time polling (30 sec intervals)
+  - ✅ Unread count badge
+  - ✅ Portal-based dropdown
+  - ✅ Glass morphism design
+  - ✅ Dutch relative time formatting
+- ✅ Notification triggers voor alle key events:
+  - ✅ MEMBER_JOINED - Admins notified when member accepts invite
+  - ✅ ROLE_CHANGED - User notified on role update
+  - ✅ MEMBER_REMOVED - User notified when removed
+  - ✅ ANNOUNCEMENT_CREATED - All members notified on new announcement
+- ✅ Bulk notification support voor organization-wide events
+
+#### **Phase 1.8: User Profile Management** (20 Oktober 2025)
+- ✅ User Profile Page (`/app/dashboard/profile`)
+  - ✅ Avatar upload met camera button
+  - ✅ Name editing met validation
+  - ✅ Email display (read-only)
+  - ✅ Account info (organization, role)
+  - ✅ Glass morphism design
+- ✅ Profile Update API (`/api/user/profile`)
+  - ✅ PATCH route voor name en image updates
+  - ✅ Session synchronization
+  - ✅ RBAC protected
+- ✅ Avatar Upload Enhancement
+  - ✅ Avatar-specific upload type
+  - ✅ Separate avatars/ folder
+  - ✅ No organization required voor avatars
+  - ✅ Image validation (type, size max 5MB)
+
+#### **Phase 2.1: Organization Branding** (20 Oktober 2025)
+- ✅ Database & API
+  - ✅ OrganizationSettings.secondaryColor field
+  - ✅ `/api/organization/settings` - GET/PATCH endpoints
+  - ✅ Hex color validation (#RRGGBB)
+  - ✅ Logo upload via `/api/upload` (type: 'logo')
+- ✅ UI Components
+  - ✅ ColorPicker component (`components/ui/ColorPicker.tsx`)
+  - ✅ Native color picker + hex input
+  - ✅ Live preview & reset functionality
+  - ✅ Branding tab in organization settings
+  - ✅ Logo upload met preview (5MB limit)
+  - ✅ Primary & secondary color pickers
+  - ✅ Enable/disable toggle
+- ✅ BrandingContext Provider
+  - ✅ `contexts/BrandingContext.tsx`
+  - ✅ Fetches settings on mount
+  - ✅ CSS custom properties (--branding-primary, --branding-secondary)
+  - ✅ useBranding() hook
+- ✅ Logo Display
+  - ✅ Header: Logo naast page title (40x40px)
+  - ✅ Sidebar: Logo in expanded/collapsed mode (32x32px)
+  - ✅ Vervangt "YustBoard" text wanneer actief
+  - ✅ Glass morphism containers
+
+#### **Phase 2.2: Billing Integration (Stripe)** (20 Oktober 2025)
+- ✅ Database & Schema
+  - ✅ Organization.subscriptionStatus enum (6 states)
+  - ✅ Organization.currentPeriodEnd DateTime
+  - ✅ Organization.cancelAtPeriodEnd Boolean
+- ✅ Stripe Backend (`lib/stripe/config.ts`)
+  - ✅ Lazy initialization pattern
+  - ✅ 4 plan tiers (FREE €0, STARTER €9, PRO €29, ENTERPRISE €99)
+  - ✅ Feature limits per plan
+  - ✅ 14-day trial configuratie
+- ✅ API Routes
+  - ✅ `/api/billing/status` - GET status, plan, usage
+  - ✅ `/api/billing/create-checkout` - POST Stripe Checkout
+  - ✅ `/api/billing/customer-portal` - POST Customer Portal
+  - ✅ `/api/webhooks/stripe` - Stripe event handler
+  - ✅ OWNER-only RBAC protection
+- ✅ Webhook Handlers
+  - ✅ subscription.created/updated - Update org
+  - ✅ subscription.deleted - Downgrade to FREE
+  - ✅ payment_succeeded/failed - Status updates
+- ✅ Types & Hooks
+  - ✅ `types/billing.ts` - TypeScript interfaces
+  - ✅ `hooks/useBillingStatus.ts` - Billing state management
+- ✅ UI Components
+  - ✅ `components/billing/PlanCard.tsx` - Plan cards
+  - ✅ `components/billing/BillingDashboard.tsx` - Complete dashboard
+  - ✅ Billing tab in `/dashboard/settings`
+- ✅ Dashboard Features
+  - ✅ Current plan overview met pricing
+  - ✅ Status badges (trial, past_due, canceled)
+  - ✅ Usage tracking (users, widgets) met progress bars
+  - ✅ Color-coded limits (groen → geel → rood)
+  - ✅ 4-plan selection grid
+  - ✅ Stripe Checkout integration
+  - ✅ Customer Portal access
+  - ✅ 14-day trial support
+  - ✅ Nederlandse betaalmethodes (card, iDEAL)
+
 ### 🔄 **VOLGENDE PRIORITEITEN**
 **Referentie**: Zie `SAAS-ROADMAP.md` voor volledige details
 
-1. **Organization Management UI** (Week 4)
-   - [ ] Organization settings pagina (name, slug, branding)
-   - [ ] Member list met role management
-   - [ ] Pending invites overview
-   - [ ] Organization switcher component
+1. **Team Collaboration Features** (Week 8) 🔄 **SUGGESTED NEXT**
+   - [ ] Real-time collaborative editing
+   - [ ] Comments op timeline posts
+   - [ ] @mentions in comments
+   - [ ] Activity feed voor team acties
+   - [ ] Shared widgets configuratie
 
-2. **Basic Billing Integration** (Week 5-6)
-   - [ ] Stripe setup en webhooks
-   - [ ] Subscription management
-   - [ ] Plan upgrade/downgrade flow
-   - [ ] Usage limits enforcing
+2. **Admin Dashboard Enhancements** (Week 8-9)
+   - [ ] Organization analytics dashboard
+   - [ ] User activity monitoring
+   - [ ] System health dashboard
+
+3. **Marketing Website** (Week 9-10)
+   - [ ] Landing page
+   - [ ] Pricing page
+   - [ ] Features showcase
 
 ### 🔧 **Technical Implementation Notes**
 - **Database**: Multi-tenant schema met organizationId

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { requirePermission } from '@/lib/permissions'
 import prisma from '@/lib/database/prisma'
 import { randomBytes } from 'crypto'
+import { sendInviteEmail } from '@/lib/email/send-invite'
 
 export async function POST(request: Request) {
   try {
@@ -13,12 +14,6 @@ export async function POST(request: Request) {
     }
 
     const { context } = authResult
-
-    // Get organization name for email (if we send emails later)
-    const organization = await prisma.organization.findUnique({
-      where: { id: context.organizationId },
-      select: { name: true }
-    })
 
     const body = await request.json()
     const { email, role } = body
@@ -60,6 +55,17 @@ export async function POST(request: Request) {
     const expiresAt = new Date()
     expiresAt.setDate(expiresAt.getDate() + 7) // Expires in 7 days
 
+    // Get organization and inviter details for email
+    const organization = await prisma.organization.findUnique({
+      where: { id: context.organizationId },
+      select: { name: true }
+    })
+
+    const inviter = await prisma.user.findUnique({
+      where: { id: context.userId },
+      select: { name: true, email: true }
+    })
+
     // Create invite
     const invite = await prisma.organizationInvite.create({
       data: {
@@ -71,9 +77,21 @@ export async function POST(request: Request) {
       }
     })
 
-    // TODO: Send email with invite link
-    // const inviteLink = `${process.env.NEXTAUTH_URL}/invite/${token}`
-    // await sendInviteEmail(email, organization?.name, inviteLink)
+    // Send invite email (don't fail if email fails)
+    try {
+      await sendInviteEmail({
+        to: email,
+        invitedByName: inviter?.name || 'A team member',
+        invitedByEmail: inviter?.email || '',
+        organizationName: organization?.name || 'Your organization',
+        inviteToken: token,
+        role
+      })
+      console.log(`Invite email sent to ${email}`)
+    } catch (emailError) {
+      console.error('Failed to send invite email, but invite was created:', emailError)
+      // Continue - invite is still valid even if email fails
+    }
 
     return NextResponse.json({
       invite: {

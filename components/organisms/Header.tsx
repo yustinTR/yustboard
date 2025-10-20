@@ -1,7 +1,7 @@
 'use client';
 
 import { useSession, signOut } from 'next-auth/react';
-import { FiBell, FiMenu, FiUser, FiLogOut, FiFileText, FiChevronDown, FiSettings } from 'react-icons/fi';
+import { FiMenu, FiUser, FiLogOut, FiFileText, FiChevronDown, FiSettings } from 'react-icons/fi';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -10,9 +10,12 @@ import { createPortal } from 'react-dom';
 import UniversalSearch from './UniversalSearch';
 import MobileSidebar from './MobileSidebar';
 import OrganizationSwitcher from '@/components/molecules/OrganizationSwitcher';
+import NotificationBell from '@/components/molecules/NotificationBell';
+import { useBranding } from '@/contexts/BrandingContext';
 
 export default function Header() {
   const { data: session } = useSession();
+  const { branding } = useBranding();
   const pathname = usePathname();
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
@@ -79,6 +82,21 @@ export default function Header() {
         >
           <FiMenu className="h-5 w-5 text-gray-700 dark:text-gray-300" />
         </button>
+
+        {/* Organization Logo - shown when branding is enabled */}
+        {branding.brandingEnabled && branding.logoUrl && (
+          <div className="hidden lg:block relative w-10 h-10 rounded-lg overflow-hidden bg-white dark:bg-gray-800 p-1">
+            <Image
+              src={branding.logoUrl}
+              alt="Organization logo"
+              width={40}
+              height={40}
+              className="w-full h-full object-contain"
+              unoptimized={true}
+            />
+          </div>
+        )}
+
         <h2 className="text-xl font-normal text-foreground">{getPageTitle()}</h2>
       </div>
       
@@ -95,12 +113,12 @@ export default function Header() {
         {/* Organization Switcher */}
         <OrganizationSwitcher />
 
-        {/* Hide these on mobile - they're in the mobile sidebar */}
-        <button className="hidden lg:flex relative w-10 h-10 rounded-full items-center justify-center hover:bg-white/20 dark:hover:bg-gray-800/20 transition-colors backdrop-blur-sm">
-          <FiBell className="h-5 w-5 text-gray-700 dark:text-gray-300" />
-        </button>
-        <Link 
-          href="/dashboard/settings" 
+        {/* Notification Bell */}
+        <NotificationBell />
+
+        {/* Settings */}
+        <Link
+          href="/dashboard/settings"
           className="hidden lg:flex relative w-10 h-10 rounded-full items-center justify-center hover:bg-white/20 dark:hover:bg-gray-800/20 transition-colors backdrop-blur-sm"
         >
           <FiSettings className="h-5 w-5 text-gray-700 dark:text-gray-300" />

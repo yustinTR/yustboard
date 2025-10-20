@@ -106,18 +106,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user's current organization
+    const formData = await request.formData();
+    const file = formData.get('file') as File;
+    const uploadType = formData.get('type') as string; // 'avatar', 'logo', or undefined (default to blog/media)
+
+    // Get user's current organization (only required for non-avatar/non-logo uploads)
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { organizationId: true }
     });
 
-    if (!user?.organizationId) {
+    if (uploadType !== 'avatar' && uploadType !== 'logo' && !user?.organizationId) {
       return NextResponse.json({ error: 'User must belong to an organization' }, { status: 400 });
     }
-
-    const formData = await request.formData();
-    const file = formData.get('file') as File;
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
@@ -152,10 +153,13 @@ export async function POST(request: NextRequest) {
 
     // Check if Supabase is configured
     if (supabaseAdmin) {
-      // Create unique filename
+      // Create unique filename with type prefix
       const fileExtension = file.name.split('.').pop();
       uniqueFilename = `${uuidv4()}.${fileExtension}`;
-      const filePath = `uploads/${uniqueFilename}`;
+      let prefix = 'uploads'; // default
+      if (uploadType === 'avatar') prefix = 'avatars';
+      else if (uploadType === 'logo') prefix = 'logos';
+      const filePath = `${prefix}/${uniqueFilename}`;
 
       // Upload to Supabase Storage
       const { error } = await supabaseAdmin
@@ -209,21 +213,24 @@ export async function POST(request: NextRequest) {
       fileUrl = `/uploads/blog/${uniqueFilename}`;
     }
 
-    // Save to database
-    const mediaFile = await prisma.mediaFile.create({
-      data: {
-        filename: uniqueFilename,
-        originalName: file.name,
-        mimeType: file.type,
-        size: file.size,
-        url: fileUrl,
-        userId: session.user.id,
-        organizationId: user.organizationId
-      }
-    });
+    // Save to database (skip for avatars and logos as they're stored on user/organization directly)
+    let mediaFile;
+    if (uploadType !== 'avatar' && uploadType !== 'logo' && user?.organizationId) {
+      mediaFile = await prisma.mediaFile.create({
+        data: {
+          filename: uniqueFilename,
+          originalName: file.name,
+          mimeType: file.type,
+          size: file.size,
+          url: fileUrl,
+          userId: session.user.id,
+          organizationId: user.organizationId
+        }
+      });
+    }
 
     return NextResponse.json({
-      id: mediaFile.id,
+      id: mediaFile?.id || null,
       url: fileUrl,
       filename: file.name,
       size: file.size,

@@ -6,6 +6,8 @@ import { FiHome, FiCalendar, FiDollarSign, FiCloud, FiUsers, FiMail, FiMessageSq
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { useSidebar } from '@/contexts/SidebarContext';
+import { useBranding } from '@/contexts/BrandingContext';
+import Image from 'next/image';
 
 interface MenuItem {
   id: string;
@@ -54,6 +56,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const { isCollapsed, toggleSidebar } = useSidebar();
+  const { branding } = useBranding();
   const [menuItems, setMenuItems] = useState<MenuItem[]>(defaultNavItems);
   // const [loading, setLoading] = useState(true); // Currently not used
   const isAdmin = session?.user?.role === 'ADMIN';
@@ -83,7 +86,37 @@ export default function Sidebar({ onClose }: SidebarProps) {
     <div className={`backdrop-blur-md bg-white/80 dark:bg-gray-900/80 h-screen ${isCollapsed ? 'w-16' : 'w-72'} flex flex-col border-r border-white/20 dark:border-gray-700/30 transition-all duration-300`}>
       <div className="h-16 flex items-center justify-between px-4 border-b border-white/20 dark:border-gray-700/30">
         {!isCollapsed && (
-          <h1 className="text-xl font-medium text-foreground">YustBoard</h1>
+          <div className="flex items-center gap-3">
+            {/* Show logo if branding enabled */}
+            {branding.brandingEnabled && branding.logoUrl && (
+              <div className="relative w-8 h-8 rounded-lg overflow-hidden bg-white dark:bg-gray-800 p-0.5">
+                <Image
+                  src={branding.logoUrl}
+                  alt="Organization logo"
+                  width={32}
+                  height={32}
+                  className="w-full h-full object-contain"
+                  unoptimized={true}
+                />
+              </div>
+            )}
+            {/* Hide YustBoard text if logo is shown */}
+            {!(branding.brandingEnabled && branding.logoUrl) && (
+              <h1 className="text-xl font-medium text-foreground">YustBoard</h1>
+            )}
+          </div>
+        )}
+        {isCollapsed && branding.brandingEnabled && branding.logoUrl && (
+          <div className="relative w-8 h-8 rounded-lg overflow-hidden bg-white dark:bg-gray-800 p-0.5">
+            <Image
+              src={branding.logoUrl}
+              alt="Organization logo"
+              width={32}
+              height={32}
+              className="w-full h-full object-contain"
+              unoptimized={true}
+            />
+          </div>
         )}
         <div className="flex items-center gap-2">
           {/* Collapse/Expand button - hidden on mobile */}

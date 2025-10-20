@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requirePermission } from '@/lib/permissions'
 import prisma from '@/lib/database/prisma'
+import { createNotification } from '@/lib/notifications/create'
 
 export async function DELETE(
   request: NextRequest,
@@ -17,12 +18,17 @@ export async function DELETE(
     const { context } = authResult
     const { memberId } = await params
 
-    // Verify member has membership in same organization
+    // Verify member has membership in same organization (with org data for notification)
     const membership = await prisma.organizationMembership.findUnique({
       where: {
         userId_organizationId: {
           userId: memberId,
           organizationId: context.organizationId
+        }
+      },
+      include: {
+        organization: {
+          select: { name: true }
         }
       }
     })
@@ -60,6 +66,19 @@ export async function DELETE(
           organizationRole: 'MEMBER'
         }
       })
+    }
+
+    // Notify the removed member
+    try {
+      await createNotification({
+        userId: memberId,
+        type: 'MEMBER_REMOVED',
+        title: 'Je bent verwijderd uit een organisatie',
+        message: `Je bent verwijderd uit ${membership.organization.name}`,
+      });
+    } catch (notifError) {
+      console.error('Failed to create removal notification:', notifError);
+      // Continue - member was already removed
     }
 
     return NextResponse.json({ message: 'Member removed successfully' })

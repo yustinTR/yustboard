@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requirePermission, isOwner } from '@/lib/permissions'
 import prisma from '@/lib/database/prisma'
+import { createNotification } from '@/lib/notifications/create'
 
 export async function PATCH(request: Request) {
   try {
@@ -76,6 +77,33 @@ export async function PATCH(request: Request) {
     const updatedMember = {
       ...updatedMembership.user,
       organizationRole: updatedMembership.role
+    }
+
+    // Notify the member about role change
+    try {
+      const roleNames: Record<string, string> = {
+        OWNER: 'Eigenaar',
+        ADMIN: 'Beheerder',
+        MEMBER: 'Lid',
+        VIEWER: 'Kijker'
+      };
+
+      const org = await prisma.organization.findUnique({
+        where: { id: context.organizationId },
+        select: { name: true }
+      });
+
+      await createNotification({
+        userId: memberId,
+        organizationId: context.organizationId,
+        type: 'ROLE_CHANGED',
+        title: 'Je rol is gewijzigd',
+        message: `Je rol in ${org?.name || 'de organisatie'} is gewijzigd naar ${roleNames[role] || role}`,
+        link: '/dashboard/settings?tab=organization'
+      });
+    } catch (notifError) {
+      console.error('Failed to create role change notification:', notifError);
+      // Continue - role was already updated
     }
 
     return NextResponse.json({ member: updatedMember })
