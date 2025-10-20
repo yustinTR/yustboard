@@ -1,14 +1,16 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { FiUser, FiMail, FiSave, FiCamera } from 'react-icons/fi';
+import { FiUser, FiMail, FiSave, FiCamera, FiLink, FiTrash2, FiAlertTriangle } from 'react-icons/fi';
 import { toast } from 'sonner';
+import { useAuthMethod } from '@/hooks/useAuthMethod';
 
 export default function ProfilePage() {
   const { data: session, update: updateSession } = useSession();
+  const { isCredentialsAuth, hasGoogleAccess } = useAuthMethod();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -17,6 +19,9 @@ export default function ProfilePage() {
   const [image, setImage] = useState('');
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (session?.user) {
@@ -107,6 +112,59 @@ export default function ProfilePage() {
       toast.error('Fout bij bijwerken van profiel');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleLinkGoogle = async () => {
+    try {
+      const response = await fetch('/api/user/link-google', {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.authUrl) {
+        // Redirect to Google OAuth
+        window.location.href = data.authUrl;
+      } else {
+        toast.error(data.error || 'Fout bij linken van Google account');
+      }
+    } catch (error) {
+      console.error('Error linking Google:', error);
+      toast.error('Fout bij linken van Google account');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'VERWIJDER') {
+      toast.error('Typ "VERWIJDER" om te bevestigen');
+      return;
+    }
+
+    setDeleting(true);
+
+    try {
+      const response = await fetch('/api/user/delete', {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success('Account succesvol verwijderd');
+        // Sign out and redirect
+        await signOut({ redirect: false });
+        router.push('/');
+      } else {
+        toast.error(data.error || 'Fout bij verwijderen van account');
+      }
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      toast.error('Fout bij verwijderen van account');
+    } finally {
+      setDeleting(false);
+      setShowDeleteModal(false);
+      setDeleteConfirmText('');
     }
   };
 
@@ -255,8 +313,110 @@ export default function ProfilePage() {
                 {(session.user as { organizationRole?: string })?.organizationRole || 'N/A'}
               </span>
             </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600 dark:text-gray-400">Login Methode</span>
+              <span className="font-medium text-gray-900 dark:text-gray-100">
+                {isCredentialsAuth ? 'Email/Wachtwoord' : 'Google OAuth'}
+              </span>
+            </div>
           </div>
         </div>
+
+        {/* Link Google Account (only for credentials users) */}
+        {isCredentialsAuth && !hasGoogleAccess && (
+          <div className="mt-6 backdrop-blur-md bg-blue-50/80 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/30 rounded-xl shadow-xl shadow-black/5 p-6">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
+                <FiLink className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                  Link Google Account
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  Link je Google account om toegang te krijgen tot Gmail, Calendar, Drive en Fitness widgets.
+                </p>
+                <button
+                  onClick={handleLinkGoogle}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-lg transition-all"
+                >
+                  <FiLink className="h-4 w-4" />
+                  Link Google Account
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Danger Zone */}
+        <div className="mt-6 backdrop-blur-md bg-red-50/80 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-xl shadow-xl shadow-black/5 p-6">
+          <h3 className="font-semibold text-red-900 dark:text-red-100 mb-2 flex items-center gap-2">
+            <FiAlertTriangle className="h-5 w-5" />
+            Gevaarlijke Zone
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            Deze actie kan niet ongedaan gemaakt worden. Wees voorzichtig.
+          </p>
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg shadow-lg transition-all"
+          >
+            <FiTrash2 className="h-4 w-4" />
+            Account Verwijderen
+          </button>
+        </div>
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+            <div className="backdrop-blur-md bg-white/90 dark:bg-gray-900/90 rounded-2xl border border-white/20 dark:border-gray-700/30 p-6 max-w-md w-full">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
+                  <FiAlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                  Account Verwijderen?
+                </h3>
+              </div>
+
+              <div className="mb-6">
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  Dit verwijdert permanent je account en alle bijbehorende gegevens. Deze actie kan niet ongedaan gemaakt worden.
+                </p>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                  Typ <span className="text-red-600 dark:text-red-400">VERWIJDER</span> om te bevestigen:
+                </p>
+                <input
+                  type="text"
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-red-500/50 focus:border-red-500"
+                  placeholder="Typ VERWIJDER"
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setDeleteConfirmText('');
+                  }}
+                  disabled={deleting}
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+                >
+                  Annuleren
+                </button>
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleting || deleteConfirmText !== 'VERWIJDER'}
+                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {deleting ? 'Verwijderen...' : 'Account Verwijderen'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

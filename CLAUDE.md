@@ -460,6 +460,28 @@ return createPortal(
   - ✅ 14-day trial support
   - ✅ Nederlandse betaalmethodes (card, iDEAL)
 
+#### **Phase 2.3: Branding Application & RBAC Enhancements** (20 Oktober 2025)
+- ✅ Branding Theme Application
+  - ✅ Sidebar active menu items use primaryColor from branding
+  - ✅ Active state indicators (left/right bar) use primaryColor
+  - ✅ Inline styles applied when branding enabled
+  - ✅ Fallback to default Tailwind colors when disabled
+  - ✅ All menu items styled (dashboard, admin, organization sections)
+- ✅ Organization Settings RBAC
+  - ✅ Branding tab visible to all (OWNER/ADMIN can edit)
+  - ✅ Organization details editing restricted to OWNER/ADMIN
+  - ✅ Team invite management restricted to OWNER/ADMIN
+  - ✅ Member role management restricted to OWNER/ADMIN
+  - ✅ Regular members can view but not modify
+- ✅ Profile Management Improvements
+  - ✅ Profile link added to Header dropdown menu
+  - ✅ Easy access to `/dashboard/profile` for all users
+  - ✅ Avatar upload, name editing, account info display
+- ✅ Auth Method Differentiation
+  - ✅ Google API features hidden for credentials users
+  - ✅ Middleware route protection for OAuth-only features
+  - ✅ Sidebar filtering based on authMethod
+
 ### 🔄 **VOLGENDE PRIORITEITEN**
 **Referentie**: Zie `SAAS-ROADMAP.md` voor volledige details
 

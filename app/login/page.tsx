@@ -2,8 +2,8 @@
 
 import { useSession, signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, Suspense } from 'react';
-// import Image from 'next/image'; // Currently not used
+import { useEffect, Suspense, useState } from 'react';
+import Link from 'next/link';
 
 function LoginContent() {
   const { status } = useSession();
@@ -11,13 +11,19 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
 
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [resendingVerification, setResendingVerification] = useState(false);
+
   // Use useEffect for navigation instead of doing it during render
   useEffect(() => {
     if (status === 'authenticated') {
       router.push('/dashboard');
     }
   }, [status, router]);
-
 
   const getErrorMessage = (error: string) => {
     switch (error) {
@@ -29,25 +35,95 @@ function LoginContent() {
       case 'OAuthAccountNotLinked':
       case 'EmailSignin':
       case 'CredentialsSignin':
-        return 'Authentication error. Please try again.';
+        return 'Onjuiste inloggegevens. Probeer het opnieuw.';
       case 'TokenExpired':
-        return 'Your session has expired. Please sign in again.';
+        return 'Je sessie is verlopen. Log opnieuw in.';
       case 'SessionRequired':
-        return 'Please sign in to access this page.';
+        return 'Log in om deze pagina te bekijken.';
       case 'google':
-        return 'Google authentication failed. Please check your credentials or try another method.';
+        return 'Google authenticatie mislukt. Probeer het opnieuw.';
       case 'RefreshAccessTokenError':
-        return 'Je sessie is verlopen. Log opnieuw in om door te gaan.';
       case 'RefreshTokenExpired':
-        return 'Je sessie is verlopen. Log opnieuw in om door te gaan.';
       case 'LoadingTimeout':
-        return 'De pagina laadde te lang. Log opnieuw in om door te gaan.';
       case 'SessionInvalid':
-        return 'Je sessie is ongeldig geworden. Log opnieuw in om door te gaan.';
       case 'SessionExpired':
         return 'Je sessie is verlopen. Log opnieuw in om door te gaan.';
       default:
-        return 'An error occurred during authentication. Please try again.';
+        return 'Er is een fout opgetreden. Probeer het opnieuw.';
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setFormError(null);
+    setNeedsVerification(false);
+
+    try {
+      console.log('🔐 Attempting login for:', email);
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      });
+
+      console.log('📝 Login result:', { ok: result?.ok, error: result?.error, url: result?.url });
+
+      if (result?.error) {
+        // Always check if this is a verification issue when login fails
+        const checkResponse = await fetch('/api/auth/check-verification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+
+        if (checkResponse.ok) {
+          const data = await checkResponse.json();
+          if (data.needsVerification) {
+            setNeedsVerification(true);
+            setFormError('✉️ Je e-mailadres is nog niet geverifieerd. Check je inbox voor de verificatielink.');
+            setLoading(false);
+            return;
+          }
+        }
+
+        // If not a verification issue, show generic error
+        setFormError('Onjuiste inloggegevens. Probeer het opnieuw.');
+      } else if (result?.ok) {
+        console.log('✅ Login successful, redirecting to dashboard');
+        // Small delay to ensure session is set
+        await new Promise(resolve => setTimeout(resolve, 500));
+        router.push('/dashboard');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setFormError('Er is een fout opgetreden. Probeer het opnieuw.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    setResendingVerification(true);
+    try {
+      const response = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setFormError('✅ Verificatielink opnieuw verstuurd! Check je inbox.');
+      } else {
+        setFormError(data.error || 'Fout bij versturen verificatielink');
+      }
+    } catch (error) {
+      console.error('Resend verification error:', error);
+      setFormError('Er is een fout opgetreden. Probeer het opnieuw.');
+    } finally {
+      setResendingVerification(false);
     }
   };
 
@@ -70,19 +146,94 @@ function LoginContent() {
       <div className="m-auto bg-card p-8 rounded-lg shadow-2 w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-normal mb-2 text-foreground">Welkom bij YustBoard</h1>
-          <p className="text-secondary-foreground">Meld je aan om door te gaan</p>
+          <p className="text-secondary-foreground">Log in om door te gaan</p>
         </div>
 
-        {error && (
-          <div className="mb-6 p-4 bg-destructive/10 text-destructive rounded-lg flex items-center">
-            <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        {(error || formError) && (
+          <div className={`mb-6 p-4 rounded-lg flex items-start ${formError?.startsWith('✅') ? 'bg-green-500/10 text-green-600 dark:text-green-400' : 'bg-destructive/10 text-destructive'}`}>
+            <svg className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-            <p>{getErrorMessage(error)}</p>
+            <div className="flex-1">
+              <p>{formError || (error && getErrorMessage(error))}</p>
+              {needsVerification && (
+                <button
+                  type="button"
+                  onClick={handleResendVerification}
+                  disabled={resendingVerification}
+                  className="mt-2 text-sm underline hover:no-underline disabled:opacity-50"
+                >
+                  {resendingVerification ? 'Versturen...' : 'Verificatielink opnieuw versturen'}
+                </button>
+              )}
+            </div>
           </div>
         )}
 
-        <div className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
+              E-mailadres
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+              placeholder="jouw@email.nl"
+            />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-foreground">
+                Wachtwoord
+              </label>
+              <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+                Vergeten?
+              </Link>
+            </div>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-2 px-4 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Inloggen...' : 'Inloggen'}
+          </button>
+        </form>
+
+        <div className="mt-6 text-center">
+          <p className="text-sm text-muted-foreground">
+            Nog geen account?{' '}
+            <Link href="/register" className="text-primary hover:underline">
+              Registreer hier
+            </Link>
+          </p>
+        </div>
+
+        <div className="mt-8 relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-border"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-card text-muted-foreground">Of log in met</span>
+          </div>
+        </div>
+
+        <div className="mt-6">
           <button
             onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
             className="relative flex items-center justify-center w-full h-12 px-6 text-foreground bg-white dark:bg-card border border-border rounded-full hover:bg-secondary transition-colors hover-overlay"
@@ -94,16 +245,6 @@ function LoginContent() {
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
             <span className="text-sm font-medium">Doorgaan met Google</span>
-          </button>
-
-          <button
-            onClick={() => signIn('github', { callbackUrl: '/dashboard' })}
-            className="relative flex items-center justify-center w-full h-12 px-6 text-white bg-[#24292e] rounded-full hover:bg-[#1a1e22] transition-colors hover-overlay"
-          >
-            <svg className="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
-            </svg>
-            <span className="text-sm font-medium">Doorgaan met GitHub</span>
           </button>
         </div>
 

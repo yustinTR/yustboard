@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
+import Credentials from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
 import prisma from "@/lib/database/prisma";
 import { logger } from "@/lib/logger";
 import type { NextAuthConfig } from "next-auth";
@@ -127,6 +128,49 @@ logger.debug("NextAuth Config:", {
 export const authConfig: NextAuthConfig = {
   adapter: PrismaAdapter(prisma),
   providers: [
+    Credentials({
+      name: 'credentials',
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" }
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          return null;
+        }
+
+        const user = await prisma.user.findUnique({
+          where: {
+            email: credentials.email as string,
+          },
+        });
+
+        if (!user || !user.password) {
+          return null;
+        }
+
+        // Check if email is verified for credentials users
+        if (user.authMethod === 'CREDENTIALS' && !user.emailVerified) {
+          throw new Error('EMAIL_NOT_VERIFIED');
+        }
+
+        const isPasswordValid = await bcrypt.compare(
+          credentials.password as string,
+          user.password
+        );
+
+        if (!isPasswordValid) {
+          return null;
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image,
+        };
+      },
+    }),
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
@@ -140,20 +184,23 @@ export const authConfig: NextAuthConfig = {
       },
       allowDangerousEmailAccountLinking: true,
     }),
-    GitHub({
-      clientId: process.env.GITHUB_ID || "",
-      clientSecret: process.env.GITHUB_SECRET || "",
-      allowDangerousEmailAccountLinking: true,
-    }),
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      logger.debug("SignIn callback:", { 
+      logger.debug("SignIn callback:", {
         user: user ? { id: user.id, name: user.name, email: user.email } : null,
         account: account ? { provider: account.provider, type: account.type } : null,
         profile: profile ? { email: profile.email } : null,
       });
-      
+
+      // Update authMethod for OAuth users
+      if (account?.provider === 'google' && user?.id) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { authMethod: 'OAUTH' }
+        });
+      }
+
       // Allow sign in regardless of whether the account is already linked
       return true;
     },
@@ -167,28 +214,87 @@ export const authConfig: NextAuthConfig = {
           expiresAt: account.expires_at,
         });
 
+        // Fetch user details from database during initial sign in
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: user.id },
+            select: {
+              role: true,
+              organizationId: true,
+              organizationRole: true,
+              authMethod: true
+            }
+          });
 
-        return {
-          ...token,
-          accessToken: account.access_token,
-          refreshToken: account.refresh_token,
-          accessTokenExpires: account.expires_at ? account.expires_at * 1000 : undefined,
-          userRole: "user",
-          userId: user.id,
-        };
+          return {
+            ...token,
+            accessToken: account.access_token,
+            refreshToken: account.refresh_token,
+            accessTokenExpires: account.expires_at ? account.expires_at * 1000 : undefined,
+            userRole: dbUser?.role || 'USER',
+            userId: user.id,
+            provider: account.provider, // Track which provider was used
+            organizationId: dbUser?.organizationId,
+            organizationRole: dbUser?.organizationRole,
+            authMethod: dbUser?.authMethod || (account.provider === 'credentials' ? 'CREDENTIALS' : 'OAUTH'),
+          };
+        } catch (error) {
+          logger.error("Failed to fetch user info during sign in:", error as Error);
+          return {
+            ...token,
+            accessToken: account.access_token,
+            refreshToken: account.refresh_token,
+            accessTokenExpires: account.expires_at ? account.expires_at * 1000 : undefined,
+            userRole: "user",
+            userId: user.id,
+            provider: account.provider,
+          };
+        }
       }
 
-      // Handle updates
+      // Handle updates (e.g., after onboarding or profile changes)
       if (trigger === 'update' && session) {
+        // If there's a userId, fetch fresh data from database
+        if (token.userId) {
+          try {
+            const dbUser = await prisma.user.findUnique({
+              where: { id: token.userId as string },
+              select: {
+                role: true,
+                organizationId: true,
+                organizationRole: true,
+                authMethod: true
+              }
+            });
+
+            return {
+              ...token,
+              ...session,
+              userRole: dbUser?.role || token.userRole,
+              organizationId: dbUser?.organizationId,
+              organizationRole: dbUser?.organizationRole,
+              authMethod: dbUser?.authMethod || token.authMethod,
+            };
+          } catch (error) {
+            logger.error("Failed to fetch user info during update:", error as Error);
+            return { ...token, ...session };
+          }
+        }
         return { ...token, ...session };
       }
 
-      // If no refresh token in JWT token but we have userId, try to fetch from database
+      // Skip token refresh logic for credentials users (they don't have OAuth tokens)
+      if (token.provider === 'credentials') {
+        logger.debug("JWT callback: Credentials user, skipping token refresh");
+        return token;
+      }
+
+      // If no refresh token in JWT token but we have userId, try to fetch from database (OAuth users only)
       if (!token.refreshToken && token.userId) {
         try {
           const account = await prisma.account.findFirst({
             where: {
-              userId: token.userId,
+              userId: token.userId as string,
               provider: "google",
             },
             select: {
@@ -214,34 +320,40 @@ export const authConfig: NextAuthConfig = {
         }
       }
 
-      // Return previous token if the access token has not expired yet
+      // Return previous token if the access token has not expired yet (OAuth users only)
       if (token.accessTokenExpires && typeof token.accessTokenExpires === 'number' && Date.now() < token.accessTokenExpires) {
         logger.debug("JWT callback: Using existing token (not expired)");
         return token;
       }
 
-      // Token is expired, try to refresh it
-      logger.debug("JWT callback: Token expired, attempting refresh");
-      const refreshResult = await refreshAccessToken(token);
-      logger.debug("JWT callback: Refresh result:", {
-        hasError: !!refreshResult.error,
-        error: refreshResult.error,
-        hasAccessToken: !!refreshResult.accessToken
-      });
-      return refreshResult;
+      // Token is expired, try to refresh it (OAuth users only)
+      if (token.refreshToken) {
+        logger.debug("JWT callback: Token expired, attempting refresh");
+        const refreshResult = await refreshAccessToken(token);
+        logger.debug("JWT callback: Refresh result:", {
+          hasError: !!refreshResult.error,
+          error: refreshResult.error,
+          hasAccessToken: !!refreshResult.accessToken
+        });
+        return refreshResult;
+      }
+
+      // No refresh token available, just return the current token
+      return token;
     },
     async session({ session, token }) {
       // This is now always called with a token, not a user
       if (token) {
-        logger.debug("Session callback with token:", { 
+        logger.debug("Session callback with token:", {
           userId: token.userId,
           accessToken: token.accessToken ? "Provided" : "Missing",
           error: token.error,
+          provider: token.provider,
         });
 
-        // Check if token refresh failed
-        if (token.error === "RefreshAccessTokenError") {
-          logger.debug("Session callback: RefreshAccessTokenError detected, clearing session");
+        // Check if token refresh failed (OAuth users only)
+        if (token.error === "RefreshAccessTokenError" && token.provider !== 'credentials') {
+          logger.debug("Session callback: RefreshAccessTokenError detected for OAuth user, clearing session");
           // Don't return null immediately - instead clear the session data
           // and let the client handle the redirect
           session.error = "RefreshAccessTokenError";
@@ -249,38 +361,26 @@ export const authConfig: NextAuthConfig = {
           return session;
         }
 
-        // Add the access token and user ID to the session
+        // Add data from token to session (no database calls here - edge runtime safe)
         session.accessToken = token.accessToken as string;
         session.user.id = (token.userId || token.sub) as string;
+        session.user.role = (token.userRole as string) || 'USER';
+        session.user.organizationId = token.organizationId as string | undefined;
+        session.user.organizationRole = token.organizationRole as any;
+        session.user.authMethod = (token.authMethod as any) || 'OAUTH';
         session.error = undefined; // Clear any previous errors
 
-        // Fetch current user role and organization info from database
-        if (session.user.id && typeof window === 'undefined') {
-          try {
-            const user = await prisma.user.findUnique({
-              where: { id: session.user.id },
-              select: {
-                role: true,
-                organizationId: true,
-                organizationRole: true
-              }
-            });
-            session.user.role = user?.role || 'USER';
-            session.user.organizationId = user?.organizationId || undefined;
-            session.user.organizationRole = user?.organizationRole || undefined;
-          } catch (error) {
-            logger.error("Failed to fetch user info:", error as Error);
-            session.user.role = 'USER';
-            session.user.organizationId = undefined;
-            session.user.organizationRole = undefined;
-          }
-        } else {
-          session.user.role = 'USER';
-          session.user.organizationId = undefined;
-          session.user.organizationRole = undefined;
-        }
+        logger.debug("Session callback returning:", {
+          hasUser: !!session.user,
+          userId: session.user.id,
+          userRole: session.user.role,
+          organizationId: session.user.organizationId,
+          fullSession: JSON.stringify(session),
+        });
+      } else {
+        logger.warn("Session callback called without token!");
       }
-      
+
       return session;
     },
   },
@@ -294,6 +394,19 @@ export const authConfig: NextAuthConfig = {
     strategy: "jwt" as const, // Important: use JWT strategy to make the token available
     maxAge: 30 * 24 * 60 * 60, // 30 days
     updateAge: 24 * 60 * 60, // 24 hours
+  },
+  // Add CSRF token options for better security
+  useSecureCookies: process.env.NODE_ENV === 'production',
+  cookies: {
+    sessionToken: {
+      name: `${process.env.NODE_ENV === 'production' ? '__Secure-' : ''}next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
   },
 };
 

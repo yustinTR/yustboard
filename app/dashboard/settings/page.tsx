@@ -14,6 +14,7 @@ import { BillingDashboard } from '@/components/billing/BillingDashboard'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 import { toast } from 'sonner'
 import ColorPicker from '@/components/ui/ColorPicker'
+import { useBranding } from '@/contexts/BrandingContext'
 
 interface Widget {
   id: string
@@ -94,6 +95,7 @@ const defaultMenuItems: MenuItem[] = [
 
 export default function SettingsPage() {
   const { data: session } = useSession()
+  const { refreshBranding } = useBranding()
   const [widgets, setWidgets] = useState<Widget[]>([])
   const [menuItems, setMenuItems] = useState<MenuItem[]>(defaultMenuItems)
   const [users, setUsers] = useState<UserData[]>([])
@@ -120,6 +122,7 @@ export default function SettingsPage() {
   const [uploadingLogo, setUploadingLogo] = useState(false)
 
   const isAdmin = session?.user?.role === 'ADMIN'
+  const isOwnerOrAdmin = session?.user?.organizationRole === 'OWNER' || session?.user?.organizationRole === 'ADMIN'
 
   const fetchSettings = useCallback(async () => {
     if (!session) return
@@ -369,10 +372,8 @@ export default function SettingsPage() {
 
       toast.success('Branding instellingen bijgewerkt')
 
-      // Reload page to apply new branding
-      if (brandingEnabled) {
-        setTimeout(() => window.location.reload(), 1000)
-      }
+      // Refresh branding context to apply changes immediately
+      await refreshBranding()
     } catch (error) {
       console.error('Error updating branding:', error)
       toast.error('Fout bij het bijwerken van branding')
@@ -598,7 +599,7 @@ export default function SettingsPage() {
                       {editingOrg ? 'Bewerk je organisatie gegevens' : 'Overzicht van je organisatie'}
                     </CardDescription>
                   </div>
-                  {!editingOrg && (
+                  {!editingOrg && isOwnerOrAdmin && (
                     <Button
                       variant="outline"
                       size="sm"
@@ -698,46 +699,48 @@ export default function SettingsPage() {
             </Card>
           )}
 
-          {/* Invite Team Members Card */}
-          <Card className="backdrop-blur-md bg-white/80 dark:bg-gray-900/80 border-white/20 dark:border-gray-700/30 shadow-xl shadow-black/5">
-            <CardHeader>
-              <CardTitle>Teamleden Uitnodigen</CardTitle>
-              <CardDescription>
-                Nodig nieuwe teamleden uit voor je organisatie
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={sendInvite} className="flex gap-2">
-                <input
-                  type="email"
-                  value={inviteEmail}
-                  onChange={(e) => setInviteEmail(e.target.value)}
-                  placeholder="email@example.com"
-                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm"
-                  required
-                />
-                <select
-                  value={inviteRole}
-                  onChange={(e) => setInviteRole(e.target.value as 'MEMBER' | 'ADMIN')}
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm"
-                >
-                  <option value="MEMBER">Lid</option>
-                  <option value="ADMIN">Beheerder</option>
-                </select>
-                <Button type="submit" disabled={sendingInvite} className="flex items-center gap-2">
-                  {sendingInvite ? (
-                    <FiRefreshCw className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <FiUserPlus className="h-4 w-4" />
-                  )}
-                  Uitnodigen
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+          {/* Invite Team Members Card - Only for Owners/Admins */}
+          {isOwnerOrAdmin && (
+            <Card className="backdrop-blur-md bg-white/80 dark:bg-gray-900/80 border-white/20 dark:border-gray-700/30 shadow-xl shadow-black/5">
+              <CardHeader>
+                <CardTitle>Teamleden Uitnodigen</CardTitle>
+                <CardDescription>
+                  Nodig nieuwe teamleden uit voor je organisatie
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={sendInvite} className="flex gap-2">
+                  <input
+                    type="email"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    placeholder="email@example.com"
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm"
+                    required
+                  />
+                  <select
+                    value={inviteRole}
+                    onChange={(e) => setInviteRole(e.target.value as 'MEMBER' | 'ADMIN')}
+                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm"
+                  >
+                    <option value="MEMBER">Lid</option>
+                    <option value="ADMIN">Beheerder</option>
+                  </select>
+                  <Button type="submit" disabled={sendingInvite} className="flex items-center gap-2">
+                    {sendingInvite ? (
+                      <FiRefreshCw className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <FiUserPlus className="h-4 w-4" />
+                    )}
+                    Uitnodigen
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          )}
 
-          {/* Pending Invites */}
-          {pendingInvites.length > 0 && (
+          {/* Pending Invites - Only for Owners/Admins */}
+          {pendingInvites.length > 0 && isOwnerOrAdmin && (
             <Card className="backdrop-blur-md bg-white/80 dark:bg-gray-900/80 border-white/20 dark:border-gray-700/30 shadow-xl shadow-black/5">
               <CardHeader>
                 <CardTitle>Openstaande Uitnodigingen</CardTitle>
@@ -833,7 +836,7 @@ export default function SettingsPage() {
                           : 'Lid'}
                       </Badge>
 
-                      {member.id !== session?.user?.id && member.organizationRole !== 'OWNER' && (
+                      {isOwnerOrAdmin && member.id !== session?.user?.id && member.organizationRole !== 'OWNER' && (
                         <div className="flex gap-2">
                           <select
                             value={member.organizationRole}

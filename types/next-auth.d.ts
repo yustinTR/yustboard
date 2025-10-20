@@ -1,5 +1,5 @@
 import { DefaultSession } from "next-auth";
-import { OrganizationRole } from "@prisma/client";
+import { OrganizationRole, AuthMethod } from "@prisma/client";
 
 declare module "next-auth" {
   /**
@@ -15,6 +15,8 @@ declare module "next-auth" {
       organizationId?: string;
       /** The user's organization role. */
       organizationRole?: OrganizationRole;
+      /** The user's authentication method. */
+      authMethod?: AuthMethod;
     } & DefaultSession["user"];
 
     /** Access token for Google API or other providers */
