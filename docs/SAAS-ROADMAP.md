@@ -632,20 +632,53 @@ const metrics = {
 
 Aanbevolen volgorde voor Phase 2 (vervolg):
 
-1. **Team Collaboration Features** - Week 8 🔄 **SUGGESTED NEXT**
+1. **Performance & Caching Optimalisatie** - Week 8 🔄 **HIGH PRIORITY**
+   - [ ] Next.js caching strategie implementeren
+     - [ ] Static page caching voor publieke pagina's
+     - [ ] Incremental Static Regeneration (ISR) voor blog/news
+     - [ ] Route segment caching configuratie
+   - [ ] API response caching
+     - [ ] Redis integratie voor session caching
+     - [ ] API response cache met revalidation tags
+     - [ ] Database query optimization
+   - [ ] Client-side caching
+     - [ ] React Query/SWR voor data fetching
+     - [ ] Local storage voor user preferences
+     - [ ] Service Worker voor offline support
+   - [ ] Image optimalisatie
+     - [ ] Next.js Image component overal gebruiken
+     - [ ] CDN integratie (Vercel/Cloudflare)
+     - [ ] Lazy loading voor images
+     - [ ] WebP/AVIF formaat conversie
+   - [ ] Bundle optimalisatie
+     - [ ] Code splitting per route
+     - [ ] Dynamic imports voor large components
+     - [ ] Tree shaking verificatie
+     - [ ] Bundle analyzer gebruiken
+   - [ ] Database optimalisatie
+     - [ ] Query indexing (Prisma indexes)
+     - [ ] Connection pooling configuratie
+     - [ ] N+1 query problemen oplossen
+     - [ ] Database query monitoring
+   - [ ] Lighthouse performance score > 90
+     - [ ] Core Web Vitals optimalisatie (LCP, FID, CLS)
+     - [ ] Time to First Byte (TTFB) verbeteren
+     - [ ] Total Blocking Time (TBT) reduceren
+
+2. **Team Collaboration Features** - Week 8-9
    - [ ] Real-time collaborative editing
    - [ ] Comments op timeline posts (already partially implemented)
    - [ ] @mentions in comments
    - [ ] Activity feed voor team acties
    - [ ] Shared widgets configuratie
 
-2. **Admin Dashboard Enhancements** - Week 8-9
+3. **Admin Dashboard Enhancements** - Week 9
    - [ ] Organization analytics dashboard
    - [ ] User activity monitoring
    - [ ] System health dashboard
    - [ ] Advanced reporting
 
-3. **Marketing Website** - Week 9-10
+4. **Marketing Website** - Week 10-11
    - [ ] Landing page
    - [ ] Pricing page
    - [ ] Features showcase
@@ -653,6 +686,191 @@ Aanbevolen volgorde voor Phase 2 (vervolg):
    - [ ] Contact/support forms
 
 ### 🔧 **Technische Details & Notities**
+
+#### **Performance Optimization Implementation Guide**
+
+**1. Next.js Caching Strategie**
+```typescript
+// app/blog/page.tsx - ISR met revalidation
+export const revalidate = 3600; // Revalidate every hour
+
+export default async function BlogPage() {
+  const posts = await getBlogPosts();
+  return <BlogList posts={posts} />;
+}
+
+// app/api/news/route.ts - API Route caching
+export async function GET() {
+  const news = await fetchNews();
+
+  return NextResponse.json(news, {
+    headers: {
+      'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400'
+    }
+  });
+}
+
+// Route Segment Config
+export const dynamic = 'force-static'; // For static pages
+export const fetchCache = 'force-cache'; // Force cache for fetches
+```
+
+**2. Redis Caching Layer**
+```typescript
+// lib/cache/redis.ts
+import { Redis } from '@upstash/redis';
+
+export const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_URL,
+  token: process.env.UPSTASH_REDIS_TOKEN,
+});
+
+export async function getCached<T>(
+  key: string,
+  fetcher: () => Promise<T>,
+  ttl: number = 3600
+): Promise<T> {
+  const cached = await redis.get<T>(key);
+  if (cached) return cached;
+
+  const data = await fetcher();
+  await redis.setex(key, ttl, JSON.stringify(data));
+  return data;
+}
+
+// Usage in API route
+export async function GET(req: Request) {
+  const orgId = req.headers.get('x-organization-id');
+
+  const data = await getCached(
+    `widgets:${orgId}`,
+    () => prisma.widget.findMany({ where: { organizationId: orgId } }),
+    300 // 5 minutes
+  );
+
+  return NextResponse.json(data);
+}
+```
+
+**3. React Query Integration**
+```typescript
+// lib/query/client.ts
+import { QueryClient } from '@tanstack/react-query';
+
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      cacheTime: 10 * 60 * 1000, // 10 minutes
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
+
+// hooks/useWidgets.ts
+import { useQuery } from '@tanstack/react-query';
+
+export function useWidgets(orgId: string) {
+  return useQuery({
+    queryKey: ['widgets', orgId],
+    queryFn: () => fetch(`/api/settings/widgets`).then(r => r.json()),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+```
+
+**4. Database Query Optimization**
+```typescript
+// Before: N+1 query problem
+const posts = await prisma.post.findMany();
+for (const post of posts) {
+  const author = await prisma.user.findUnique({ where: { id: post.userId } });
+}
+
+// After: Include relation
+const posts = await prisma.post.findMany({
+  include: {
+    user: {
+      select: { id: true, name: true, image: true }
+    },
+    _count: { select: { comments: true, likes: true } }
+  }
+});
+
+// Add indexes in schema.prisma
+model Post {
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([userId])
+}
+```
+
+**5. Image Optimization**
+```typescript
+// components/ui/OptimizedImage.tsx
+import Image from 'next/image';
+
+export function OptimizedImage({ src, alt, ...props }) {
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      loading="lazy"
+      placeholder="blur"
+      blurDataURL="data:image/svg+xml;base64,..."
+      quality={85}
+      formats={['image/webp', 'image/avif']}
+      {...props}
+    />
+  );
+}
+```
+
+**6. Bundle Optimization**
+```typescript
+// Dynamic imports voor large components
+import dynamic from 'next/dynamic';
+
+const StripeDashboard = dynamic(
+  () => import('@/components/billing/BillingDashboard'),
+  {
+    loading: () => <LoadingSkeleton />,
+    ssr: false
+  }
+);
+
+// Route-based code splitting is automatic in Next.js 15
+```
+
+**7. Performance Monitoring**
+```typescript
+// lib/monitoring/performance.ts
+export function reportWebVitals(metric: NextWebVitalsMetric) {
+  const { id, name, label, value } = metric;
+
+  // Send to analytics
+  if (typeof window !== 'undefined') {
+    window.gtag?.('event', name, {
+      event_category: label === 'web-vital' ? 'Web Vitals' : 'Next.js Metric',
+      value: Math.round(name === 'CLS' ? value * 1000 : value),
+      event_label: id,
+      non_interaction: true,
+    });
+  }
+}
+
+// app/layout.tsx
+export { reportWebVitals } from '@/lib/monitoring/performance';
+```
+
+**Target Performance Metrics:**
+- **Lighthouse Score**: > 90 voor alle categorieën
+- **First Contentful Paint (FCP)**: < 1.8s
+- **Largest Contentful Paint (LCP)**: < 2.5s
+- **First Input Delay (FID)**: < 100ms
+- **Cumulative Layout Shift (CLS)**: < 0.1
+- **Time to First Byte (TTFB)**: < 600ms
+- **Total Blocking Time (TBT)**: < 300ms
 
 #### **Database Schema Changes**
 ```sql
