@@ -29,12 +29,16 @@ export async function GET(request: Request) {
   // If statsOnly parameter is true, return only the stats
   if (statsOnly) {
     const stats = getTransactionStats(transactions);
-    return ApiResponse.success({ stats });
+    const response = ApiResponse.success({ stats });
+    response.headers.set('Cache-Control', 'private, max-age=300, stale-while-revalidate=600');
+    return response;
   }
 
   // Otherwise, return both transactions and stats
   const stats = getTransactionStats(transactions);
-  return ApiResponse.success({ transactions, stats });
+  const response = ApiResponse.success({ transactions, stats });
+  response.headers.set('Cache-Control', 'private, max-age=300, stale-while-revalidate=600');
+  return response;
   } catch (error) {
     if (error instanceof Error) {
       return ApiResponse.serverError(error.message);

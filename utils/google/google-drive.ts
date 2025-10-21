@@ -80,13 +80,17 @@ export async function fetchRecentFiles(accessToken: string, maxResults: number =
       shared: file.shared || false,
       size: formatFileSize(Number(file.size))
     }));
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Check for specific Google API errors
-    if (error?.response?.status === 401) {
+    const apiError = error as {
+      response?: { status?: number };
+      errors?: Array<{ reason?: string }>;
+    };
+    if (apiError?.response?.status === 401) {
       throw new Error('Invalid Credentials');
     }
 
-    if (error?.errors?.[0]?.reason === 'authError') {
+    if (apiError?.errors?.[0]?.reason === 'authError') {
       throw new Error('Authentication failed');
     }
     
@@ -129,13 +133,17 @@ export async function fetchSharedFiles(accessToken: string, maxResults: number =
       shared: file.shared || false,
       size: formatFileSize(Number(file.size))
     }));
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Check for specific Google API errors
-    if (error?.response?.status === 401) {
+    const apiError = error as {
+      response?: { status?: number };
+      errors?: Array<{ reason?: string }>;
+    };
+    if (apiError?.response?.status === 401) {
       throw new Error('Invalid Credentials');
     }
 
-    if (error?.errors?.[0]?.reason === 'authError') {
+    if (apiError?.errors?.[0]?.reason === 'authError') {
       throw new Error('Authentication failed');
     }
     

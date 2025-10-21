@@ -1,4 +1,4 @@
-import { google } from 'googleapis';
+import { google, calendar_v3 } from 'googleapis';
 import { format, parseISO, formatISO, addDays } from 'date-fns';
 
 export interface GoogleEvent {
@@ -78,7 +78,7 @@ export function eventToTask(event: GoogleEvent): Task {
       location: event.location,
       isAllDay,
     };
-  } catch (error) {
+  } catch {
     // Error converting event to task - providing fallback
     // Provide a fallback if there's an issue with the date format
     return {
@@ -180,12 +180,12 @@ export async function fetchGoogleCalendarEvents(accessToken: string, timeMin?: D
     return validEvents.map(event => {
       try {
         return eventToTask(event as GoogleEvent);
-      } catch (error) {
+      } catch {
         // Error processing event - skipping
         return null;
       }
     }).filter(Boolean) as Task[];
-  } catch (error) {
+  } catch {
     
     // Return empty array rather than failing completely
     return [];
@@ -200,7 +200,7 @@ export async function createGoogleCalendarEvent(accessToken: string, task: Task)
     
     const response = await calendar.events.insert({
       calendarId: 'primary',
-      requestBody: event as any,
+      requestBody: event as calendar_v3.Schema$Event,
     });
 
     
@@ -209,7 +209,7 @@ export async function createGoogleCalendarEvent(accessToken: string, task: Task)
     }
     
     return null;
-  } catch (error) {
+  } catch {
     
     return null;
   }
@@ -224,7 +224,7 @@ export async function updateGoogleCalendarEvent(accessToken: string, task: Task)
     const response = await calendar.events.update({
       calendarId: 'primary',
       eventId: task.id,
-      requestBody: event as any,
+      requestBody: event as calendar_v3.Schema$Event,
     });
 
     
@@ -233,7 +233,7 @@ export async function updateGoogleCalendarEvent(accessToken: string, task: Task)
     }
     
     return null;
-  } catch (error) {
+  } catch {
     
     return null;
   }
@@ -250,7 +250,7 @@ export async function deleteGoogleCalendarEvent(accessToken: string, eventId: st
     });
     
     return true;
-  } catch (error) {
+  } catch {
     
     return false;
   }

@@ -27,8 +27,12 @@ export async function GET(request: Request) {
     } else {
       files = await fetchRecentFiles(session.accessToken, maxResults);
     }
-    
-    return NextResponse.json({ files });
+
+    return NextResponse.json({ files }, {
+      headers: {
+        'Cache-Control': 'private, max-age=180, stale-while-revalidate=360'
+      }
+    });
   } catch (error) {
     
     // Check if it's an authentication error

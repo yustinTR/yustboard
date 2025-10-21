@@ -4,27 +4,40 @@ This document contains important development guidelines and standards for the Yu
 
 ## 🚀 Pre-Commit Requirements
 
-### Build Verification
-**CRITICAL**: Before any commit, always run and ensure these commands pass without errors:
+### CRITICAL: Test, Lint, and Build Verification
+**MANDATORY**: Before ANY commit, you MUST run and ensure ALL these commands pass without errors:
 
 ```bash
+# 1. Run unit tests - ALL must pass
+npm run test:unit
+
+# 2. Run linting - 0 errors, 0 warnings
+npm run lint
+
+# 3. Run type checking - no type errors
+npm run typecheck
+
+# 4. Build the application - must complete successfully
 npm run build
 ```
 
-- The build must complete successfully with zero errors
-- Type checking must pass without issues
-- All imports and dependencies must be resolved
-- No unused variables or dead code should remain
+### Pre-Commit Checklist
+Before committing, verify:
+- ✅ **All 88 unit tests pass** (`npm run test:unit`)
+- ✅ **0 lint errors, 0 lint warnings** (`npm run lint`)
+- ✅ **No TypeScript errors** (`npm run typecheck`)
+- ✅ **Build completes successfully** (`npm run build`)
+- ✅ **No console.log statements in production code** (except in catch blocks for errors)
+- ✅ **No TODO/FIXME comments in critical API routes**
+- ✅ **All imports are used, no unused variables**
 
-### Linting and Type Checking
-Run these commands to ensure code quality:
+### Why These Checks Matter
+- **Unit Tests**: Ensure functionality works correctly and regressions are caught
+- **Lint**: Maintain code quality and consistency
+- **Type Check**: Prevent runtime errors from type mismatches
+- **Build**: Verify the application can be deployed to production
 
-```bash
-npm run lint
-npm run typecheck
-```
-
-If these commands are not available, ask the user for the correct commands and update this file.
+**If any check fails, DO NOT commit. Fix the issues first.**
 
 ## 📚 Storybook Requirements
 
@@ -297,6 +310,160 @@ return createPortal(
   </div>,
   document.body
 );
+```
+
+### React Query Pattern (PREFERRED for widgets)
+```typescript
+// hooks/queries/useYourData.ts
+import { useQuery } from '@tanstack/react-query';
+import { queryKeys } from '@/lib/query/client';
+
+async function fetchYourData(): Promise<YourData[]> {
+  const response = await fetch('/api/your-endpoint');
+  if (!response.ok) throw new Error('Failed to fetch');
+  return response.json();
+}
+
+export function useYourData() {
+  return useQuery({
+    queryKey: queryKeys.yourFeature.list(),
+    queryFn: fetchYourData,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000,   // Keep for 10 minutes
+  });
+}
+
+// Widget component
+const YourWidget = React.memo(function YourWidget() {
+  const { data, isLoading, error, refetch } = useYourData();
+
+  // No need for useState, useEffect, or manual loading states!
+  // React Query handles all caching, loading, and error states
+});
+```
+
+## ⚡ Performance Standards
+
+### HTTP Caching (API Routes)
+Always add Cache-Control headers to GET routes:
+
+```typescript
+// app/api/your-route/route.ts
+export async function GET(request: Request) {
+  const data = await fetchData();
+
+  return NextResponse.json(data, {
+    headers: {
+      // Choose cache duration based on update frequency:
+      // - 30-60s: Real-time data (notifications, live feeds)
+      // - 120-300s: Frequent updates (tasks, timeline)
+      // - 600s+: Slow updates (weather, news)
+      'Cache-Control': 'private, max-age=300, stale-while-revalidate=600'
+    }
+  });
+}
+```
+
+**Cache Duration Guidelines:**
+- **30-60s**: Real-time data (notifications, messages)
+- **120-300s**: Frequent updates (tasks, user content)
+- **300-600s**: Moderate updates (calendar, emails)
+- **600s+**: Slow updates (weather, news, external data)
+
+### React Query (Client-Side Caching)
+**ALWAYS use React Query for widgets** instead of useState + useEffect:
+
+✅ **Benefits:**
+- Automatic request deduplication (85-90% reduction)
+- Instant cache hits on revisits
+- Background refetching without loading states
+- 30-40% less code per widget
+- Eliminates manual loading/error state management
+
+❌ **Don't do this:**
+```typescript
+const [data, setData] = useState();
+const [loading, setLoading] = useState(true);
+const [error, setError] = useState(null);
+
+useEffect(() => {
+  async function fetchData() {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/data');
+      setData(await response.json());
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+  fetchData();
+}, []);
+```
+
+✅ **Do this instead:**
+```typescript
+const { data, isLoading, error, refetch } = useYourData();
+// That's it! React Query handles everything.
+```
+
+### Database Query Optimization
+When writing Prisma queries:
+
+```typescript
+// ✅ Use indexes for WHERE clauses
+await prisma.post.findMany({
+  where: {
+    organizationId: orgId,  // Has index: @@index([organizationId, createdAt])
+    createdAt: { gte: date }
+  },
+  orderBy: { createdAt: 'desc' }  // Covered by index
+});
+
+// ✅ Use batch operations
+await prisma.task.createMany({
+  data: tasks  // 12x faster than individual creates
+});
+
+// ❌ Avoid N+1 queries
+// Bad: Loop with individual queries
+for (const item of items) {
+  await prisma.detail.create({ data: item });
+}
+```
+
+### Code Splitting
+Lazy load heavy components:
+
+```typescript
+import dynamic from 'next/dynamic';
+
+// ✅ Lazy load heavy libraries (Stripe, Charts, etc.)
+const HeavyComponent = dynamic(
+  () => import('@/components/HeavyComponent'),
+  {
+    ssr: false,
+    loading: () => <Spinner />
+  }
+);
+```
+
+### Image Optimization
+**NEVER use unoptimized={true}** unless absolutely necessary:
+
+```typescript
+// ✅ Let Next.js optimize
+<Image
+  src={imageUrl}
+  alt="Description"
+  width={400}
+  height={300}
+  className="..."
+/>
+
+// ❌ Don't disable optimization
+<Image src={imageUrl} alt="..." unoptimized={true} />
 ```
 
 ---

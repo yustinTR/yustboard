@@ -122,3 +122,58 @@ export function isValidPlan(plan: string): plan is PlanType {
 
 // Trial configuration
 export const TRIAL_DAYS = 14;
+
+// Backward compatibility with old PLANS structure for tests
+export const PLANS = {
+  FREE: {
+    price: PLAN_CONFIG.FREE.price,
+    maxUsers: PLAN_CONFIG.FREE.features.maxUsers,
+    maxWidgets: PLAN_CONFIG.FREE.features.maxWidgets,
+    features: ['basic-dashboard', ...PLAN_CONFIG.FREE.features.features],
+    trialDays: 0,
+  },
+  STARTER: {
+    price: PLAN_CONFIG.STARTER.price,
+    maxUsers: PLAN_CONFIG.STARTER.features.maxUsers,
+    maxWidgets: PLAN_CONFIG.STARTER.features.maxWidgets,
+    features: ['basic-dashboard', 'team-collaboration', ...PLAN_CONFIG.STARTER.features.features],
+    trialDays: TRIAL_DAYS,
+  },
+  PRO: {
+    price: PLAN_CONFIG.PRO.price,
+    maxUsers: PLAN_CONFIG.PRO.features.maxUsers,
+    maxWidgets: PLAN_CONFIG.PRO.features.maxWidgets,
+    features: ['basic-dashboard', 'team-collaboration', 'advanced-analytics', ...PLAN_CONFIG.PRO.features.features],
+    trialDays: TRIAL_DAYS,
+  },
+  ENTERPRISE: {
+    price: PLAN_CONFIG.ENTERPRISE.price,
+    maxUsers: PLAN_CONFIG.ENTERPRISE.features.maxUsers,
+    maxWidgets: PLAN_CONFIG.ENTERPRISE.features.maxWidgets,
+    features: ['basic-dashboard', 'team-collaboration', 'advanced-analytics', 'sso', 'priority-support', 'custom-integrations', ...PLAN_CONFIG.ENTERPRISE.features.features],
+    trialDays: 0,
+  },
+};
+
+// Helper functions for tests
+export function getPlanLimits(plan: PlanType) {
+  return PLANS[plan as keyof typeof PLANS];
+}
+
+export function getPlanPrice(plan: PlanType) {
+  return PLAN_CONFIG[plan]?.price;
+}
+
+export function canUpgradePlan(currentPlan: PlanType, targetPlan: PlanType): boolean {
+  const planOrder: PlanType[] = ['FREE', 'STARTER', 'PRO', 'ENTERPRISE'];
+  const currentIndex = planOrder.indexOf(currentPlan);
+  const targetIndex = planOrder.indexOf(targetPlan);
+  return targetIndex > currentIndex;
+}
+
+export function canDowngradePlan(currentPlan: PlanType, targetPlan: PlanType): boolean {
+  const planOrder: PlanType[] = ['FREE', 'STARTER', 'PRO', 'ENTERPRISE'];
+  const currentIndex = planOrder.indexOf(currentPlan);
+  const targetIndex = planOrder.indexOf(targetPlan);
+  return targetIndex < currentIndex;
+}

@@ -45,7 +45,11 @@ export async function GET(request: NextRequest) {
       ]
     });
 
-    return NextResponse.json({ tasks });
+    return NextResponse.json({ tasks }, {
+      headers: {
+        'Cache-Control': 'private, max-age=120, stale-while-revalidate=240'
+      }
+    });
   } catch (error) {
     console.error('Error fetching tasks:', error);
     return NextResponse.json(

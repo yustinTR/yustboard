@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import Image from 'next/image'
+import dynamic from 'next/dynamic'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/molecules/card'
 import { Button } from '@/components/atoms/button'
 import { Switch } from '@/components/atoms/switch'
@@ -10,11 +11,23 @@ import { Label } from '@/components/atoms/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/molecules/tabs'
 import { Badge } from '@/components/atoms/badge'
 import { FiMenu, FiShield, FiSave, FiRefreshCw, FiCalendar, FiSettings, FiLayout, FiGrid, FiUser, FiMail, FiUsers, FiUserPlus, FiTrash2, FiDroplet, FiUpload, FiCamera, FiCreditCard } from 'react-icons/fi'
-import { BillingDashboard } from '@/components/billing/BillingDashboard'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 import { toast } from 'sonner'
 import ColorPicker from '@/components/ui/ColorPicker'
 import { useBranding } from '@/contexts/BrandingContext'
+
+// Lazy load BillingDashboard (only for OWNER/ADMIN users)
+const BillingDashboard = dynamic(
+  () => import('@/components/billing/BillingDashboard').then(mod => ({ default: mod.BillingDashboard })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    )
+  }
+)
 
 interface Widget {
   id: string

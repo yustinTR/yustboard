@@ -19,7 +19,14 @@ export interface GmailMessage {
       size: number;
       data?: string;
     };
-    parts?: any[];
+    parts?: Array<{
+      mimeType: string;
+      body?: {
+        size: number;
+        data?: string;
+      };
+      parts?: unknown[];
+    }>;
   };
   sizeEstimate: number;
   raw?: string;
@@ -109,32 +116,35 @@ function decodeBase64(data: string): string {
   try {
     // For browser environment
     return atob(base64Data);
-  } catch (e) {
+  } catch {
     // For Node.js environment
     return Buffer.from(base64Data, 'base64').toString('utf-8');
   }
 }
 
 // Extract email body content from parts
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function extractBodyContent(payload: any): string {
   // If the message is a simple text or HTML
   if (payload.body?.data) {
     return decodeBase64(payload.body.data);
   }
-  
+
   // If the message has parts (multipart message)
   if (payload.parts && payload.parts.length) {
     // First try to find an HTML part
-    const htmlPart = payload.parts.find((part: any) => 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const htmlPart = payload.parts.find((part: any) =>
       part.mimeType === 'text/html'
     );
-    
+
     if (htmlPart && htmlPart.body?.data) {
       return decodeBase64(htmlPart.body.data);
     }
-    
+
     // If no HTML part, try to find a text part
-    const textPart = payload.parts.find((part: any) => 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const textPart = payload.parts.find((part: any) =>
       part.mimeType === 'text/plain'
     );
     
@@ -236,7 +246,7 @@ export async function fetchEmails(
     
     // Then, fetch full messages for each ID
     const emails = await Promise.all(
-      messageIds.map(async ({ id, threadId }) => {
+      messageIds.map(async ({ id }) => {
         if (!id) return null;
         
         const messageResponse = await gmail.users.messages.get({
@@ -254,7 +264,7 @@ export async function fetchEmails(
       emails: emails.filter(Boolean) as EmailMessage[],
       nextPageToken: messagesResponse.data.nextPageToken || undefined,
     };
-  } catch (error) {
+  } catch {
     
     // Return empty array rather than failing completely
     return { emails: [] };
@@ -276,7 +286,7 @@ export async function fetchEmailById(
     });
     
     return convertGmailMessageToEmail(messageResponse.data as GmailMessage);
-  } catch (error) {
+  } catch {
     return null;
   }
 }

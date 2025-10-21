@@ -1,572 +1,508 @@
-# Testing Guide
+# Testing Documentation
 
-Complete testing documentation for YustBoard's onboarding, invite, and RBAC systems.
+This document provides comprehensive information about the testing infrastructure for YustBoard.
 
-## Test Stack
+## Table of Contents
 
-- **Storybook** - Component testing and visual regression
-- **Playwright** - End-to-end testing
-- **Storybook Test Runner** - Interaction testing
+- [Overview](#overview)
+- [Test Types](#test-types)
+- [Running Tests](#running-tests)
+- [Writing Tests](#writing-tests)
+- [CI/CD Integration](#cicd-integration)
+- [Coverage Reports](#coverage-reports)
+- [Best Practices](#best-practices)
 
-## Quick Start
+## Overview
+
+YustBoard uses a multi-layered testing strategy to ensure code quality, security, accessibility, and performance:
+
+- **Unit Tests** - Test individual functions and components in isolation
+- **Integration Tests** - Test API endpoints and database interactions
+- **E2E Tests** - Test complete user flows with Playwright
+- **Accessibility Tests** - Test components for WCAG compliance
+- **Security Scans** - Automated vulnerability and secret scanning
+- **Performance Audits** - Lighthouse CI for web vitals monitoring
+
+## Test Types
+
+### 1. Unit Tests (Vitest)
+
+**Location**: `**/*.test.ts`, `**/*.test.tsx`
+
+**Framework**: [Vitest](https://vitest.dev/) with happy-dom environment
+
+**Coverage**: 60% minimum threshold (lines, functions, branches, statements)
+
+**Examples**:
+- `lib/permissions/check.test.ts` - RBAC permission logic (29 tests)
+- `lib/stripe/config.test.ts` - Billing plan configuration (28 tests)
+
+**Run commands**:
+```bash
+npm run test:unit              # Run once
+npm run test:unit:watch        # Watch mode
+npm run test:unit:ui           # UI mode (interactive)
+npm run test:coverage          # With coverage report
+```
+
+### 2. Integration Tests (API Routes)
+
+**Location**: `app/api/**/*.test.ts`
+
+**Purpose**: Test API endpoints with mocked database and authentication
+
+**Examples**:
+- `app/api/organization/route.test.ts` - Organization CRUD operations
+- `app/api/organization/invite/route.test.ts` - Team invite system
+
+**Key features**:
+- Mock next-auth sessions
+- Mock Prisma database calls
+- Test authentication/authorization
+- Validate request/response formats
+
+### 3. E2E Tests (Playwright)
+
+**Location**: `e2e/**/*.spec.ts`
+
+**Framework**: [Playwright](https://playwright.dev/)
+
+**Run commands**:
+```bash
+npm run test:e2e               # Run all E2E tests
+npm run test:e2e:ui            # Interactive UI mode
+npm run test:e2e:headed        # With browser visible
+npm run test:e2e:debug         # Debug mode
+```
+
+**Features**:
+- Multi-browser testing (Chromium, Firefox, WebKit)
+- Parallel execution with sharding
+- Visual regression testing
+- Network mocking
+
+### 4. Accessibility Tests (jest-axe)
+
+**Location**: `components/**/*.test.tsx`
+
+**Framework**: [jest-axe](https://github.com/nickcolley/jest-axe)
+
+**Standards**: WCAG 2.1 Level AA
+
+**Examples**:
+- `components/organisms/Sidebar.test.tsx` - Navigation accessibility
+- `components/organisms/Header.test.tsx` - Header landmarks and headings
+
+**What we test**:
+- ARIA attributes and roles
+- Keyboard navigation
+- Color contrast
+- Heading hierarchy
+- Form labels
+- Alt text for images
+
+### 5. Component Tests (Storybook)
+
+**Location**: `**/*.stories.tsx`
+
+**Framework**: [Storybook](https://storybook.js.org/)
+
+**Run commands**:
+```bash
+npm run storybook              # Start dev server
+npm run build-storybook        # Build static version
+npm run test-storybook         # Run interaction tests
+```
+
+### 6. Security Scanning
+
+**Workflow**: `.github/workflows/security-scan.yml`
+
+**Tools**:
+- **NPM Audit** - Checks for known vulnerabilities in dependencies
+- **CodeQL** - Static analysis for security issues
+- **TruffleHog** - Secret scanning in git history
+- **Dependency Review** - Analyzes new dependencies in PRs
+- **Prisma Validation** - Schema validation and security
+
+**Schedule**: Runs on every push/PR + weekly on Mondays
+
+### 7. Performance Audits (Lighthouse CI)
+
+**Workflow**: `.github/workflows/lighthouse.yml`
+
+**Configuration**: `lighthouserc.json`
+
+**Thresholds**:
+- Performance: ≥80
+- Accessibility: ≥90
+- Best Practices: ≥85
+- SEO: ≥85
+
+**Metrics**:
+- First Contentful Paint (FCP): ≤2000ms
+- Largest Contentful Paint (LCP): ≤2500ms
+- Cumulative Layout Shift (CLS): ≤0.1
+- Total Blocking Time (TBT): ≤300ms
+- Speed Index: ≤3000ms
+
+## Running Tests
+
+### Local Development
 
 ```bash
-# Run Storybook (component testing)
-npm run storybook
+# Run all tests
+npm run test:all
 
-# Run Storybook tests
+# Run specific test types
+npm run test:unit
+npm run test:e2e
 npm run test-storybook
 
-# Run Playwright E2E tests
-npm run test:e2e
+# Watch mode for TDD
+npm run test:unit:watch
 
-# Run Playwright E2E tests in UI mode
+# Interactive UI mode
+npm run test:unit:ui
 npm run test:e2e:ui
 
-# Run specific test file
-npx playwright test e2e/onboarding.spec.ts
+# Coverage reports
+npm run test:coverage
 ```
 
----
+### CI/CD Pipelines
 
-## Storybook Testing
+**Main Branch** (`test-all.yml`):
+1. Build & Type Check
+2. Unit Tests (with coverage)
+3. E2E Tests (sharded 3-way)
+4. Storybook Tests
+5. Report aggregation
 
-### Overview
+**Develop Branch** (`e2e-tests.yml`):
+1. Unit Tests
+2. E2E Tests
 
-Storybook stories serve as:
-1. **Visual Documentation** - Interactive component showcase
-2. **Interaction Testing** - Test user interactions
-3. **Regression Testing** - Visual regression with Chromatic
-4. **Development Environment** - Isolated component development
+**Pull Requests**:
+- All test suites run automatically
+- Lighthouse CI comments on PRs
+- Security scans check new dependencies
+- Test results posted as PR comments
 
-### Available Stories
+## Writing Tests
 
-#### Onboarding Page Stories
-**Location**: `app/onboarding/page.stories.tsx`
+### Unit Test Example
 
-Stories:
-- `Default` - Normal onboarding flow
-- `Loading` - Loading state
-- `CreatingOrganization` - Submitting state
-- `SlugAlreadyExists` - Error: duplicate slug
-- `InvalidSlugFormat` - Error: invalid format
-- `Unauthenticated` - Redirect to login
-
-**Usage**:
-```bash
-npm run storybook
-# Navigate to Pages > Onboarding
-```
-
-#### Invite Page Stories
-**Location**: `app/invite/[token]/page.stories.tsx`
-
-Stories:
-- `ValidInvite` - Ready to accept/decline
-- `Loading` - Loading state
-- `ExpiredInvite` - Expired invitation
-- `AlreadyAccepted` - Already accepted
-- `InvalidInvite` - Invalid token
-- `SuccessAccepted` - Success state
-- `Accepting` - Accepting in progress
-- `AcceptFailed` - Accept failed
-- `AdminRoleInvite` - Admin role
-- `Unauthenticated` - Redirect to login
-
-**Usage**:
-```bash
-npm run storybook
-# Navigate to Pages > Invite
-```
-
-### Writing New Stories
-
-Template:
 ```typescript
-import type { Meta, StoryObj } from '@storybook/nextjs';
-import YourComponent from './YourComponent';
+import { describe, it, expect } from 'vitest';
+import { hasPermission } from './check';
 
-const meta = {
-  title: 'Category/YourComponent',
-  component: YourComponent,
-  parameters: {
-    layout: 'fullscreen', // or 'centered', 'padded'
-  },
-  tags: ['autodocs'],
-} satisfies Meta<typeof YourComponent>;
+describe('Permission Checks', () => {
+  it('should allow OWNER all permissions', () => {
+    expect(hasPermission('OWNER', 'organization:update')).toBe(true);
+  });
 
-export default meta;
-type Story = StoryObj<typeof meta>;
-
-export const Default: Story = {};
-
-export const WithMockData: Story = {
-  decorators: [
-    (Story) => {
-      global.fetch = ((url: string) => {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({ data: 'mock' }),
-        } as Response);
-      }) as typeof globalThis.fetch;
-
-      return <Story />;
-    },
-  ],
-};
+  it('should deny MEMBER from managing organization', () => {
+    expect(hasPermission('MEMBER', 'organization:update')).toBe(false);
+  });
+});
 ```
 
-### Mocking in Storybook
+### Accessibility Test Example
 
-#### Mock Fetch Requests
 ```typescript
-export const WithData: Story = {
-  decorators: [
-    (Story) => {
-      global.fetch = ((url: string) => {
-        if (url.includes('/api/data')) {
-          return Promise.resolve({
-            ok: true,
-            json: () => Promise.resolve({ data: [] }),
-          } as Response);
-        }
-        return Promise.reject(new Error('Not found'));
-      }) as typeof globalThis.fetch;
+import { render } from '@testing-library/react';
+import { axe, toHaveNoViolations } from 'jest-axe';
+import { MyComponent } from './MyComponent';
 
-      return <Story />;
-    },
-  ],
-};
+expect.extend(toHaveNoViolations);
+
+describe('MyComponent Accessibility', () => {
+  it('should not have accessibility violations', async () => {
+    const { container } = render(<MyComponent />);
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+  });
+});
 ```
 
-#### Mock NextAuth Session
+### API Integration Test Example
+
 ```typescript
-import { SessionProvider } from 'next-auth/react';
+import { describe, it, expect, vi } from 'vitest';
+import { GET } from './route';
+import { getServerSession } from 'next-auth';
 
-export const Authenticated: Story = {
-  decorators: [
-    (Story) => (
-      <SessionProvider
-        session={{
-          user: {
-            id: 'user-123',
-            name: 'Test User',
-            email: 'test@example.com',
-          },
-          expires: '2025-12-31',
-        }}
-      >
-        <Story />
-      </SessionProvider>
-    ),
-  ],
-};
+vi.mock('next-auth', () => ({
+  getServerSession: vi.fn(),
+}));
+
+describe('API Route', () => {
+  it('should return 401 if not authenticated', async () => {
+    vi.mocked(getServerSession).mockResolvedValue(null);
+
+    const response = await GET();
+    const data = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(data.error).toBe('Unauthorized');
+  });
+});
 ```
 
----
+### E2E Test Example
 
-## Playwright E2E Testing
-
-### Overview
-
-Playwright tests cover complete user flows across real browsers:
-- Chrome/Chromium
-- Firefox
-- Safari/WebKit
-- Mobile browsers
-
-### Test Files
-
-#### Onboarding Tests
-**Location**: `e2e/onboarding.spec.ts`
-
-Tests:
-- ✅ New user redirect to onboarding
-- ✅ Complete onboarding flow
-- ✅ Auto-generate slug from name
-- ✅ Custom slug editing
-- ✅ Slug format validation
-- ✅ Duplicate slug error
-- ✅ Back button navigation
-- ✅ Prevent org users from accessing onboarding
-- ✅ Loading states
-
-#### Invite Tests
-**Location**: `e2e/invite.spec.ts`
-
-Tests:
-- ✅ Display invite details
-- ✅ Accept invite successfully
-- ✅ Decline invite successfully
-- ✅ Expired invite state
-- ✅ Already accepted state
-- ✅ Invalid token error
-- ✅ Redirect unauthenticated users
-- ✅ ADMIN role invite
-- ✅ Loading states
-
-#### RBAC Tests
-**Location**: `e2e/rbac.spec.ts`
-
-Tests:
-- ✅ OWNER can send invites
-- ✅ ADMIN can send invites
-- ✅ MEMBER cannot send invites
-- ✅ VIEWER cannot send invites
-- ✅ OWNER can delete organization
-- ✅ ADMIN cannot delete organization
-- ✅ MEMBER can create/edit own tasks
-- ✅ VIEWER cannot create tasks
-
-### Running E2E Tests
-
-```bash
-# Run all E2E tests
-npm run test:e2e
-
-# Run in UI mode (recommended for development)
-npm run test:e2e:ui
-
-# Run specific test file
-npx playwright test e2e/onboarding.spec.ts
-
-# Run specific test
-npx playwright test e2e/onboarding.spec.ts -g "should complete onboarding"
-
-# Run in headed mode (see browser)
-npx playwright test --headed
-
-# Run in debug mode
-npx playwright test --debug
-
-# Run only on chromium
-npx playwright test --project=chromium
-
-# Generate test report
-npx playwright show-report
-```
-
-### Writing E2E Tests
-
-Template:
 ```typescript
 import { test, expect } from '@playwright/test';
-import {
-  createTestUser,
-  cleanupTestUser,
-  disconnect,
-} from './helpers/database';
 
-test.describe('Feature Name', () => {
-  const testUser = {
-    email: `test-${Date.now()}@example.com`,
-    name: 'Test User',
-  };
+test('user can login and view dashboard', async ({ page }) => {
+  await page.goto('/login');
 
-  test.beforeEach(async () => {
-    await cleanupTestUser(testUser.email);
-  });
+  await page.fill('input[name="email"]', 'test@example.com');
+  await page.fill('input[name="password"]', 'password123');
+  await page.click('button[type="submit"]');
 
-  test.afterEach(async () => {
-    await cleanupTestUser(testUser.email);
-  });
-
-  test.afterAll(async () => {
-    await disconnect();
-  });
-
-  test('should do something', async ({ page }) => {
-    // Setup
-    await createTestUser(testUser);
-
-    // Navigate
-    await page.goto('/your-page');
-
-    // Interact
-    await page.fill('input[name="field"]', 'value');
-    await page.click('button[type="submit"]');
-
-    // Assert
-    await expect(page).toHaveURL('/expected-url');
-    await expect(page.locator('text=Success')).toBeVisible();
-  });
+  await expect(page).toHaveURL('/dashboard');
+  await expect(page.locator('h1')).toContainText('Dashboard');
 });
 ```
-
-### Database Helpers
-
-Located in `e2e/helpers/database.ts`:
-
-```typescript
-// Create test user
-const user = await createTestUser({
-  email: 'test@example.com',
-  name: 'Test User',
-});
-
-// Create test organization
-const org = await createTestOrganization({
-  name: 'Test Org',
-  slug: 'test-org',
-  ownerId: user.id,
-});
-
-// Create test invite
-const invite = await createTestInvite({
-  organizationId: org.id,
-  email: 'member@test.com',
-  role: 'MEMBER',
-  expiresInDays: 7,
-});
-
-// Cleanup
-await cleanupTestUser('test@example.com');
-await cleanupTestOrganization('test-org');
-await disconnect();
-```
-
-### Authentication Helpers
-
-Located in `e2e/helpers/auth.ts`:
-
-```typescript
-import { login, logout, isAuthenticated } from './helpers/auth';
-
-// Login
-await login(page, {
-  email: 'test@example.com',
-  password: 'password123',
-});
-
-// Logout
-await logout(page);
-
-// Check auth status
-const authenticated = await isAuthenticated(page);
-```
-
----
-
-## Test Data Management
-
-### Database Isolation
-
-Each test should:
-1. Clean up before running (`beforeEach`)
-2. Clean up after running (`afterEach`)
-3. Use unique identifiers (timestamps, random values)
-
-```typescript
-const testData = {
-  email: `test-${Date.now()}@example.com`,
-  slug: `test-org-${Date.now()}`,
-};
-```
-
-### Avoiding Conflicts
-
-- Use unique emails and slugs with timestamps
-- Clean up in both `beforeEach` and `afterEach`
-- Use transactions where possible
-- Don't rely on specific database state
-
----
 
 ## CI/CD Integration
 
-### GitHub Actions
+### GitHub Actions Workflows
 
-YustBoard has comprehensive CI/CD workflows for automated testing. See `.github/workflows/README.md` for complete documentation.
+**1. Full Test Suite** (`.github/workflows/test-all.yml`)
+- Runs on: Push to main, PRs to main
+- Jobs: Build, Unit, E2E (sharded), Storybook, Status
+- Artifacts: Coverage reports, Playwright reports
 
-#### Available Workflows
+**2. E2E Tests** (`.github/workflows/e2e-tests.yml`)
+- Runs on: Push to main/develop, PRs
+- Jobs: Unit tests, E2E tests
+- Artifacts: Test results, Playwright reports
 
-**E2E Tests** (`.github/workflows/e2e-tests.yml`)
-- Runs on push to `main`/`develop` and PRs
-- PostgreSQL database automatically provisioned
-- Playwright tests with full browser support
-- Uploads reports and screenshots on failure
-- Comments on PRs when tests fail
+**3. Security Scan** (`.github/workflows/security-scan.yml`)
+- Runs on: Push, PRs, Weekly schedule, Manual trigger
+- Jobs: NPM Audit, CodeQL, Secret Scan, Dependency Review
+- Reports: GitHub Security tab
 
-**Full Test Suite** (`.github/workflows/test-all.yml`)
-- Comprehensive testing (build, lint, typecheck, E2E, Storybook)
-- Parallel execution with sharding (3x faster)
-- Runs on push to `main` and PRs
-- Merges test reports from all shards
+**4. Lighthouse CI** (`.github/workflows/lighthouse.yml`)
+- Runs on: PRs, Manual trigger
+- Jobs: Performance audit on key pages
+- Output: PR comments with scores, Artifact reports
 
-**Storybook Tests** (`.github/workflows/storybook-tests.yml`)
-- Component interaction tests
-- Runs on all branches
+### Environment Variables for CI
 
-**Chromatic** (`.github/workflows/chromatic.yml`)
-- Visual regression testing
-- Requires `CHROMATIC_PROJECT_TOKEN` secret
-
-#### Viewing Test Results
-
-1. Go to GitHub Actions tab
-2. Click on workflow run
-3. Download artifacts (playwright-report, test-results)
-4. Run locally:
-   ```bash
-   npx playwright show-report path/to/playwright-report
-   ```
-
-#### Status Badges
-
-Add to README:
-```markdown
-[![E2E Tests](https://github.com/YOUR_ORG/yustboard/actions/workflows/e2e-tests.yml/badge.svg)](https://github.com/YOUR_ORG/yustboard/actions/workflows/e2e-tests.yml)
+```yaml
+DATABASE_URL: postgresql://postgres:postgres@localhost:5432/yustboard_test
+DIRECT_URL: postgresql://postgres:postgres@localhost:5432/yustboard_test
+NEXTAUTH_URL: http://localhost:3000
+NEXTAUTH_SECRET: test-secret-key-for-ci-only
+CI: true
 ```
 
-#### Required Secrets
+## Coverage Reports
 
-| Secret | Workflow | Description |
-|--------|----------|-------------|
-| `CHROMATIC_PROJECT_TOKEN` | chromatic.yml | Chromatic project token |
-
-No secrets needed for E2E tests - they use test database credentials.
-
-### Chromatic (Visual Regression)
+### Viewing Coverage Locally
 
 ```bash
-# Run Chromatic build locally
-npm run chromatic
-
-# Environment variable needed
-CHROMATIC_PROJECT_TOKEN=your-token
+npm run test:coverage
 ```
 
-### Local CI Simulation
+Coverage reports are generated in:
+- `coverage/` - HTML report (open `coverage/index.html`)
+- Console output with summary
 
-Run tests exactly as CI does:
+### Coverage Thresholds
 
-```bash
-# Simulate E2E workflow
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/yustboard_test" \
-NEXTAUTH_URL="http://localhost:3000" \
-NEXTAUTH_SECRET="test-secret" \
-CI=true \
-npm run test:e2e
-
-# Simulate Storybook workflow
-npm run build-storybook
-npx http-server storybook-static --port 6006 &
-npx wait-on tcp:6006
-npm run test-storybook
+```json
+{
+  "lines": 60,
+  "functions": 60,
+  "branches": 60,
+  "statements": 60
+}
 ```
 
----
+### Coverage in CI
+
+- Unit test coverage is uploaded as GitHub Actions artifact
+- Available for 30 days
+- Download from workflow run page
 
 ## Best Practices
 
-### Storybook
+### General Testing Principles
 
-1. **Cover All States** - Loading, error, empty, success
-2. **Mock External Dependencies** - APIs, auth, etc.
-3. **Use Decorators** - For common wrappers (session, router)
-4. **Document Props** - Use `tags: ['autodocs']`
-5. **Test Interactions** - User clicks, form submissions
+1. **Test Behavior, Not Implementation**
+   - Focus on what users see and do
+   - Avoid testing internal state
 
-### Playwright
+2. **Arrange-Act-Assert (AAA) Pattern**
+   ```typescript
+   it('should do something', () => {
+     // Arrange - Set up test data
+     const input = { name: 'Test' };
 
-1. **Clean Up Data** - Always clean before and after
-2. **Use Helpers** - Reuse database and auth helpers
-3. **Wait for Elements** - Use `waitForSelector`, `waitForURL`
-4. **Test Multiple Browsers** - Don't just test Chromium
-5. **Screenshot on Failure** - Configured automatically
-6. **Unique Test Data** - Use timestamps for uniqueness
+     // Act - Execute the code
+     const result = myFunction(input);
 
-### General
+     // Assert - Verify the result
+     expect(result).toBe(expected);
+   });
+   ```
 
-1. **Test User Flows** - Not implementation details
-2. **Avoid Flaky Tests** - Use proper waits, not timeouts
-3. **Keep Tests Fast** - Parallelize where possible
-4. **Document Test Intent** - Clear test names and comments
-5. **Update Tests with Features** - Keep in sync with code
+3. **One Assertion Per Test** (when possible)
+   - Makes failures easier to debug
+   - Tests remain focused
 
----
+4. **Use Descriptive Test Names**
+   - `it('should allow OWNER to update organization')`
+   - Not: `it('test owner permissions')`
 
-## Debugging
+### Unit Testing
 
-### Storybook
+- **Mock External Dependencies**
+  - Database calls (Prisma)
+  - API calls (fetch)
+  - Authentication (next-auth)
 
-```bash
-# Run Storybook in dev mode
-npm run storybook
+- **Test Edge Cases**
+  - Empty inputs
+  - Invalid data
+  - Boundary values
+  - Error conditions
 
-# Open specific story
-# Navigate to story and inspect in browser DevTools
-```
+- **Keep Tests Fast**
+  - No real database connections
+  - No network calls
+  - Mock time-dependent code
 
-### Playwright
+### Integration Testing
 
-```bash
-# Debug mode (step through tests)
-npx playwright test --debug
+- **Test Happy Path First**
+  - Successful operations
+  - Expected workflows
 
-# UI mode (interactive)
-npm run test:e2e:ui
+- **Then Test Error Cases**
+  - Authentication failures
+  - Authorization failures
+  - Validation errors
+  - Database errors
 
-# Headed mode (see browser)
-npx playwright test --headed
+- **Validate Response Shapes**
+  - Correct status codes
+  - Expected fields in response
+  - Error message formats
 
-# Trace viewer (after test with trace)
-npx playwright show-trace trace.zip
-```
+### E2E Testing
+
+- **Test Critical User Flows**
+  - Registration → Login → Dashboard
+  - Creating/editing content
+  - Payment flows
+
+- **Use Data Test IDs**
+  ```tsx
+  <button data-testid="submit-button">Submit</button>
+  ```
+  ```typescript
+  await page.getByTestId('submit-button').click();
+  ```
+
+- **Handle Async Operations**
+  ```typescript
+  await expect(page.locator('.success')).toBeVisible();
+  ```
+
+### Accessibility Testing
+
+- **Test Every Component**
+  - Run axe on all UI components
+  - Check keyboard navigation
+  - Verify ARIA attributes
+
+- **Test Different States**
+  - Default state
+  - Disabled state
+  - Error state
+  - Loading state
+
+- **Manual Testing**
+  - Use screen reader (VoiceOver, NVDA)
+  - Navigate with keyboard only
+  - Check color contrast tools
+
+### Security Testing
+
+- **Never Commit Secrets**
+  - Use environment variables
+  - Add secrets to .gitignore
+  - Use .env.example for templates
+
+- **Review Dependencies**
+  - Check npm audit regularly
+  - Keep dependencies updated
+  - Review security advisories
+
+- **Validate Input**
+  - Test SQL injection attempts
+  - Test XSS vectors
+  - Test authentication bypass
+
+## Troubleshooting
 
 ### Common Issues
 
-#### "Test timed out"
-- Increase timeout in test
-- Check network requests are mocked
-- Verify selectors are correct
+**1. Tests Pass Locally But Fail in CI**
+- Check environment variables
+- Verify Node.js version matches
+- Check for race conditions
+- Look for absolute paths
 
-#### "Element not found"
-- Use `page.waitForSelector()` before interacting
-- Check if element is in viewport
-- Verify correct selector
+**2. Flaky E2E Tests**
+- Add explicit waits: `await page.waitForSelector()`
+- Use `waitForLoadState('networkidle')`
+- Increase timeout for slow operations
+- Check for animation timing issues
 
-#### "Database conflict"
-- Ensure cleanup is running
-- Use unique test data (timestamps)
-- Check for orphaned data in database
+**3. Coverage Not Meeting Threshold**
+- Identify uncovered lines: Check HTML report
+- Add missing test cases
+- Consider excluding test utilities from coverage
 
----
-
-## Coverage
-
-### Current Coverage
-
-- ✅ Onboarding flow (8 tests)
-- ✅ Invite system (10 tests)
-- ✅ RBAC permissions (8 tests)
-- ✅ All UI states (Storybook)
-
-### Areas to Expand
-
-- [ ] Organization settings
-- [ ] Member management
-- [ ] Billing flows
-- [ ] Dashboard widgets
-- [ ] Multi-organization switching
-
----
+**4. Accessibility Violations**
+- Read axe error message carefully
+- Check WCAG guidelines
+- Use browser DevTools accessibility panel
+- Test with real screen readers
 
 ## Resources
 
-- [Storybook Docs](https://storybook.js.org/docs)
-- [Playwright Docs](https://playwright.dev)
-- [Testing Best Practices](https://playwright.dev/docs/best-practices)
-- [Storybook Testing](https://storybook.js.org/docs/writing-tests/introduction)
+- [Vitest Documentation](https://vitest.dev/)
+- [Playwright Documentation](https://playwright.dev/)
+- [jest-axe Documentation](https://github.com/nickcolley/jest-axe)
+- [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
+- [Lighthouse Documentation](https://developers.google.com/web/tools/lighthouse)
+- [Testing Library Best Practices](https://testing-library.com/docs/queries/about)
 
----
+## Contributing
 
-## Getting Help
+When adding new features:
 
-If tests are failing:
+1. ✅ Write unit tests for business logic
+2. ✅ Write integration tests for API endpoints
+3. ✅ Write accessibility tests for UI components
+4. ✅ Add E2E tests for critical flows
+5. ✅ Create Storybook stories for reusable components
+6. ✅ Ensure all tests pass locally
+7. ✅ Verify build succeeds: `npm run build`
+8. ✅ Check coverage meets threshold
 
-1. Check test output for specific errors
-2. Run in debug/UI mode to see what's happening
-3. Verify database state in Prisma Studio
-4. Check if recent code changes affected tested functionality
-5. Review this documentation for common issues
+## Support
+
+If you have questions about testing:
+- Check this documentation
+- Review existing test examples
+- Ask in team discussions
+- Create an issue for test infrastructure bugs

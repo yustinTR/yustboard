@@ -68,6 +68,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       posts: postsToReturn,
       nextCursor: hasMore ? postsToReturn[postsToReturn.length - 1].id : null,
+    }, {
+      headers: {
+        'Cache-Control': 'private, max-age=60, stale-while-revalidate=120'
+      }
     });
   } catch (error) {
     console.error('Error fetching timeline posts:', error);

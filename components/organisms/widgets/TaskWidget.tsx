@@ -1,74 +1,21 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { FiCheck, FiRefreshCw, FiClock } from 'react-icons/fi';
 import { format } from 'date-fns';
-
-interface Task {
-  id: string;
-  title: string;
-  description: string | null;
-  date: string;
-  completed: boolean;
-  createdAt: string;
-  user: {
-    id: string;
-    name: string | null;
-    email: string | null;
-    image: string | null;
-  };
-}
+import { useTasks, useToggleTask } from '@/hooks/queries/useTasks';
 
 const TaskWidget = React.memo(function TaskWidget() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: tasks = [], isLoading, error, refetch } = useTasks();
+  const toggleTaskMutation = useToggleTask();
 
-  useEffect(() => {
-    fetchTasks();
-  }, []);
-
-  const fetchTasks = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/tasks');
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch tasks');
-      }
-
-      const data = await response.json();
-      setTasks(data.tasks || []);
-    } catch (err) {
-      console.error('Error fetching tasks:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load tasks');
-    } finally {
-      setLoading(false);
-    }
+  const handleToggleComplete = (taskId: string) => {
+    toggleTaskMutation.mutate(taskId);
   };
 
-  const toggleComplete = async (taskId: string, currentStatus: boolean) => {
-    try {
-      const response = await fetch(`/api/tasks/${taskId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          completed: !currentStatus,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update task');
-      }
-
-      // Refresh tasks after update
-      fetchTasks();
-    } catch (err) {
-      console.error('Error updating task:', err);
-    }
+  const handleRefresh = () => {
+    refetch();
   };
 
   // Get pending tasks only, sorted by date
@@ -77,7 +24,7 @@ const TaskWidget = React.memo(function TaskWidget() {
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, 5);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="h-full backdrop-blur-xl bg-white/15 dark:bg-gray-900/15 border border-white/25 dark:border-gray-700/25 rounded-3xl shadow-2xl shadow-black/20 overflow-hidden flex flex-col">
         {/* Header with green gradient for tasks */}
@@ -113,18 +60,18 @@ const TaskWidget = React.memo(function TaskWidget() {
             Tasks
           </h3>
           <button
-            onClick={fetchTasks}
-            disabled={loading}
+            onClick={handleRefresh}
+            disabled={isLoading}
             className="text-white/90 hover:text-white hover:bg-white/20 p-2 rounded-full transition-all duration-300 disabled:opacity-50 cursor-pointer hover:scale-105"
           >
-            <FiRefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
+            <FiRefreshCw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
         </div>
 
         {/* Error Content */}
         <div className="flex-1 px-6 py-4 bg-white/5 dark:bg-gray-900/5 backdrop-blur-sm flex items-center justify-center">
           <div className="bg-red-500/15 border border-red-400/30 text-red-600 dark:text-red-400 p-4 rounded-2xl backdrop-blur-sm">
-            {error}
+            {error?.message || 'Failed to load tasks'}
           </div>
         </div>
       </div>
@@ -140,11 +87,11 @@ const TaskWidget = React.memo(function TaskWidget() {
           Tasks
         </h3>
         <button
-          onClick={fetchTasks}
-          disabled={loading}
+          onClick={handleRefresh}
+          disabled={isLoading}
           className="text-white/90 hover:text-white hover:bg-white/20 p-2 rounded-full transition-all duration-300 disabled:opacity-50 cursor-pointer hover:scale-105"
         >
-          <FiRefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
+          <FiRefreshCw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
         </button>
       </div>
 
@@ -168,7 +115,7 @@ const TaskWidget = React.memo(function TaskWidget() {
                 >
                   <div className="flex items-start gap-3">
                     <button
-                      onClick={() => toggleComplete(task.id, task.completed)}
+                      onClick={() => handleToggleComplete(task.id)}
                       className="mt-0.5 w-5 h-5 rounded border-2 border-white/40 dark:border-gray-500/40 hover:border-green-400 dark:hover:border-green-400 transition-colors flex items-center justify-center flex-shrink-0"
                     >
                       {task.completed && <FiCheck className="text-green-500 text-sm" />}

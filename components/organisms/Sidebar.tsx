@@ -113,7 +113,6 @@ export default function Sidebar({ onClose }: SidebarProps) {
                   width={32}
                   height={32}
                   className="w-full h-full object-contain"
-                  unoptimized={true}
                 />
               </div>
             )}
@@ -131,7 +130,6 @@ export default function Sidebar({ onClose }: SidebarProps) {
               width={32}
               height={32}
               className="w-full h-full object-contain"
-              unoptimized={true}
             />
           </div>
         )}
