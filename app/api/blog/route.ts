@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, excerpt, content, coverImage, published } = body;
+    const { title, excerpt, content, coverImage, headerImage, published } = body;
 
     if (!title || !excerpt || !content) {
       return NextResponse.json(
@@ -128,11 +128,11 @@ export async function POST(request: NextRequest) {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
-    
+
     // Ensure unique slug
     let slug = baseSlug;
     let counter = 1;
-    
+
     try {
       // Check if prisma.blogPost exists
       if (!prisma.blogPost) {
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         );
       }
-      
+
       while (await prisma.blogPost.findUnique({ where: { slug } })) {
         slug = `${baseSlug}-${counter}`;
         counter++;
@@ -162,6 +162,7 @@ export async function POST(request: NextRequest) {
         excerpt,
         content,
         coverImage,
+        headerImage,
         published: published || false,
         publishedAt: published ? new Date() : null,
         authorId: session.user.id,

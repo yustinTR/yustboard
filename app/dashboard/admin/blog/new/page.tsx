@@ -30,6 +30,7 @@ export default function NewBlogPostPage() {
     excerpt: '',
     content: '',
     coverImage: '',
+    headerImage: '',
     published: false,
   });
 
@@ -165,9 +166,29 @@ export default function NewBlogPostPage() {
 
           {/* Cover Image */}
           <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Cover Image (List View)
+            </label>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+              Gebruikt in de lijst van blog posts
+            </p>
             <CoverImageSelector
               value={formData.coverImage}
               onChange={(url) => setFormData({ ...formData, coverImage: url })}
+            />
+          </div>
+
+          {/* Header Image */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Header Image (Detail View)
+            </label>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+              Gebruikt bovenaan de blog post pagina
+            </p>
+            <CoverImageSelector
+              value={formData.headerImage}
+              onChange={(url) => setFormData({ ...formData, headerImage: url })}
             />
           </div>
 

@@ -305,6 +305,7 @@ model BlogPost {
   excerpt        String
   content        String       @db.Text
   coverImage     String?
+  headerImage    String?
   published      Boolean      @default(false)
   authorId       String
   organizationId String?
@@ -325,6 +326,7 @@ model Announcement {
   title          String
   content        String       @db.Text
   coverImage     String?
+  headerImage    String?
   published      Boolean      @default(false)
   authorId       String
   organizationId String

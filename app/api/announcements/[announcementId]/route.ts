@@ -80,7 +80,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { title, content, coverImage, published } = body;
+    const { title, content, coverImage, headerImage, published } = body;
 
     // If changing from unpublished to published, set publishedAt
     const shouldSetPublishedAt = published === true && !existingAnnouncement.published;
@@ -91,6 +91,7 @@ export async function PATCH(
         ...(title !== undefined && { title }),
         ...(content !== undefined && { content }),
         ...(coverImage !== undefined && { coverImage }),
+        ...(headerImage !== undefined && { headerImage }),
         ...(published !== undefined && { published }),
         ...(shouldSetPublishedAt && { publishedAt: new Date() })
       },

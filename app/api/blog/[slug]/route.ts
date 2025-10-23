@@ -108,7 +108,7 @@ export async function PUT(
       );
     }
 
-    const { title, excerpt, content, coverImage, published } = body;
+    const { title, excerpt, content, coverImage, headerImage, published } = body;
 
     // Generate new slug if title changed
     let newSlug = slug;
@@ -117,12 +117,12 @@ export async function PUT(
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '');
-      
+
       // Check if new slug is different and ensure uniqueness
       if (baseSlug !== slug) {
         newSlug = baseSlug;
         let counter = 1;
-        while (await prisma.blogPost.findUnique({ 
+        while (await prisma.blogPost.findUnique({
           where: { slug: newSlug },
           select: { id: true }
         })) {
@@ -134,8 +134,8 @@ export async function PUT(
     }
 
     // Set publishedAt if publishing for the first time
-    const publishedAt = published && !existingPost.published 
-      ? new Date() 
+    const publishedAt = published && !existingPost.published
+      ? new Date()
       : undefined;
 
     const updatedPost = await prisma.blogPost.update({
@@ -146,6 +146,7 @@ export async function PUT(
         excerpt,
         content,
         coverImage,
+        headerImage,
         published,
         publishedAt,
       },
