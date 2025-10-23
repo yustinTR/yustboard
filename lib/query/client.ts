@@ -64,7 +64,8 @@ export const queryKeys = {
   // News widget
   news: {
     all: ['news'] as const,
-    articles: () => ['news', 'articles'] as const,
+    articles: (params?: { category?: string; country?: string }) =>
+      ['news', 'articles', params] as const,
   },
 
   // Timeline widget

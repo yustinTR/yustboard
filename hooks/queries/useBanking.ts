@@ -1,14 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/query/client';
-
-interface Transaction {
-  id: string;
-  from: string;
-  subject: string;
-  amount: string;
-  date: string;
-  type: 'income' | 'expense';
-}
+import { Transaction } from '@/utils/google/gmail-transactions';
 
 interface BankingStats {
   totalIncome: number;
