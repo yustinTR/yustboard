@@ -40,7 +40,7 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    return NextResponse.json(announcement);
+    return NextResponse.json({ announcement });
   } catch (error) {
     console.error('Error fetching announcement:', error);
     return NextResponse.json(

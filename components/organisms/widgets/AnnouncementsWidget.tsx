@@ -97,9 +97,13 @@ const AnnouncementsWidget = React.memo(function AnnouncementsWidget() {
           </div>
         ) : (
           <>
-            <div className="flex-1 overflow-y-auto space-y-3">
+            <div className="flex-1 overflow-y-auto space-y-3 scrollbar-hide">
               {announcements.map((announcement) => (
-                <div key={announcement.id} className="bg-white/20 dark:bg-gray-800/20 rounded-2xl p-4 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 hover:bg-white/30 dark:hover:bg-gray-700/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg cursor-pointer group">
+                <Link
+                  key={announcement.id}
+                  href={`/dashboard/announcements/${announcement.id}`}
+                  className="block bg-white/20 dark:bg-gray-800/20 rounded-2xl p-4 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 hover:bg-white/30 dark:hover:bg-gray-700/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg cursor-pointer group"
+                >
                   <div className="flex gap-3">
                     {announcement.coverImage && (
                       <div className="flex-shrink-0">
@@ -128,7 +132,7 @@ const AnnouncementsWidget = React.memo(function AnnouncementsWidget() {
                       </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </>
