@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { FiTrash2 } from 'react-icons/fi';
 import { useComments, useDeleteComment } from '@/hooks/queries/useComments';
 import { toast } from 'sonner';
+import { renderMentionText } from '@/lib/utils/mentions';
 
 interface CommentListProps {
   postId: string;
@@ -116,7 +117,20 @@ export function CommentList({ postId }: CommentListProps) {
               </div>
 
               <div className="text-sm text-gray-700 dark:text-gray-300 bg-white/10 dark:bg-gray-800/20 rounded-lg px-3 py-2 backdrop-blur-sm border border-white/20 dark:border-gray-600/30">
-                {comment.content}
+                {renderMentionText(comment.content).map((part, index) => {
+                  if (part.type === 'mention') {
+                    return (
+                      <span
+                        key={index}
+                        className="font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-1 rounded"
+                        title={`User ID: ${part.userId}`}
+                      >
+                        @{part.content}
+                      </span>
+                    );
+                  }
+                  return <span key={index}>{part.content}</span>;
+                })}
               </div>
             </div>
           </div>

@@ -50,7 +50,6 @@ export default function PostWithInteractions({ post, onUpdate }: PostProps) {
     post.likes.some(like => like.userId === session?.user?.id)
   );
   const [likeCount, setLikeCount] = useState(post._count.likes);
-  const [commentCount, setCommentCount] = useState(post._count.comments);
   const [showComments, setShowComments] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showActions, setShowActions] = useState(false);
@@ -322,7 +321,7 @@ export default function PostWithInteractions({ post, onUpdate }: PostProps) {
               className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all transform hover:scale-105"
             >
               <FiMessageCircle className="w-5 h-5" />
-              <span className="font-medium">{commentCount} comments</span>
+              <span className="font-medium">{post._count.comments} comments</span>
             </button>
           </div>
 

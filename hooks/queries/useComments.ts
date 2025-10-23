@@ -62,13 +62,18 @@ async function deleteComment({ postId, commentId }: DeleteCommentData): Promise<
   }
 }
 
-// Hook to fetch comments
-export function useComments(postId: string) {
+// Hook to fetch comments with real-time polling
+export function useComments(postId: string, options?: { enablePolling?: boolean }) {
+  const { enablePolling = true } = options || {};
+
   return useQuery({
     queryKey: queryKeys.timeline.comments(postId),
     queryFn: () => fetchComments(postId),
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 10 * 1000, // 10 seconds
     gcTime: 5 * 60 * 1000, // 5 minutes
+    refetchInterval: enablePolling ? 10 * 1000 : false, // Poll every 10 seconds
+    refetchOnWindowFocus: true, // Refetch when user returns to tab
+    refetchIntervalInBackground: false, // Don't poll when tab is not visible
   });
 }
 
