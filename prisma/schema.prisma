@@ -130,6 +130,8 @@ model User {
 
   @@index([organizationId])
   @@index([email])
+  @@index([role])
+  @@index([authMethod])
 }
 
 model Account {
@@ -249,6 +251,7 @@ model PostComment {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([postId, createdAt])
+  @@index([userId])
 }
 
 model PostMedia {
