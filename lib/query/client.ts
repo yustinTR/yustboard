@@ -73,6 +73,7 @@ export const queryKeys = {
     all: ['timeline'] as const,
     posts: () => ['timeline', 'posts'] as const,
     post: (id: string) => ['timeline', 'post', id] as const,
+    comments: (postId: string) => ['timeline', 'comments', postId] as const,
   },
 
   // Tasks widget
