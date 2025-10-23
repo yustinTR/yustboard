@@ -2,6 +2,7 @@
 
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import CustomEditor from '@/lib/ckeditor/custom-editor';
+import 'ckeditor5/ckeditor5.css';
 import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { FiUpload, FiX, FiImage, FiLoader, FiCheck } from 'react-icons/fi';
@@ -25,6 +26,8 @@ export default function BlogEditorCK({ content, onChange, onImageUpload }: BlogE
   const [uploading, setUploading] = useState(false);
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [loadingMedia, setLoadingMedia] = useState(false);
+  const [editorReady, setEditorReady] = useState(false);
+  const [editorError, setEditorError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const editorRef = useRef<any>(null);
@@ -130,47 +133,76 @@ export default function BlogEditorCK({ content, onChange, onImageUpload }: BlogE
 
   return (
     <div className="relative">
-      {/* CKEditor */}
-      <CKEditor
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        editor={CustomEditor as any}
-        data={content}
-        onReady={(editor) => {
-          editorRef.current = editor;
-          
-          // Add custom upload adapter
+      {/* CKEditor or Fallback */}
+      {editorError ? (
+        <div className="border border-red-300 bg-red-50 dark:bg-red-900/20 rounded-lg p-4 mb-4">
+          <p className="text-red-700 dark:text-red-300 text-sm mb-2">
+            Rich text editor failed to load. Using fallback textarea.
+          </p>
+          <p className="text-red-600 dark:text-red-400 text-xs">{editorError}</p>
+        </div>
+      ) : null}
+
+      {!editorError ? (
+        <CKEditor
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          editor.plugins.get('FileRepository').createUploadAdapter = (loader: any) => {
-            return {
-              upload: async () => {
-                const file = await loader.file;
-                const formData = new FormData();
-                formData.append('file', file);
+          editor={CustomEditor as any}
+          data={content || ''}
+          onReady={(editor) => {
+            editorRef.current = editor;
+            setEditorReady(true);
 
-                const response = await fetch('/api/upload', {
-                  method: 'POST',
-                  body: formData,
-                });
+            try {
+              // Add custom upload adapter
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              editor.plugins.get('FileRepository').createUploadAdapter = (loader: any) => {
+                return {
+                  upload: async () => {
+                    const file = await loader.file;
+                    const formData = new FormData();
+                    formData.append('file', file);
 
-                if (!response.ok) {
-                  throw new Error('Upload failed');
-                }
+                    const response = await fetch('/api/upload', {
+                      method: 'POST',
+                      body: formData,
+                    });
 
-                const data = await response.json();
-                return { default: data.url };
-              },
-              abort: () => {
-                // Handle abort
-              }
-            };
-          };
-        }}
-        onChange={(event, editor) => {
-          const data = editor.getData();
-          onChange(data);
-        }}
-        config={{}}
-      />
+                    if (!response.ok) {
+                      throw new Error('Upload failed');
+                    }
+
+                    const data = await response.json();
+                    return { default: data.url };
+                  },
+                  abort: () => {
+                    // Handle abort
+                  }
+                };
+              };
+            } catch (err) {
+              console.error('Error setting up upload adapter:', err);
+            }
+          }}
+          onError={(error) => {
+            console.error('CKEditor error:', error);
+            setEditorError(error?.message || 'Unknown editor error');
+          }}
+          onChange={(event, editor) => {
+            const data = editor.getData();
+            onChange(data);
+          }}
+          config={{
+            licenseKey: process.env.NEXT_PUBLIC_CKEDITOR_LICENSE_KEY || '',
+          }}
+        />
+      ) : (
+        <textarea
+          value={content}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full min-h-[400px] px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-mono text-sm"
+          placeholder="Enter HTML content..."
+        />
+      )}
 
       {/* Media Library Button */}
       <button
@@ -192,6 +224,7 @@ export default function BlogEditorCK({ content, onChange, onImageUpload }: BlogE
             <div className="p-4 border-b flex justify-between items-center">
               <h3 className="text-lg font-semibold">Media Library</h3>
               <button
+                type="button"
                 onClick={() => setShowMediaLibrary(false)}
                 className="p-1 hover:bg-gray-100 rounded"
               >
@@ -208,6 +241,7 @@ export default function BlogEditorCK({ content, onChange, onImageUpload }: BlogE
                 className="hidden"
               />
               <button
+                type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
                 className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center"

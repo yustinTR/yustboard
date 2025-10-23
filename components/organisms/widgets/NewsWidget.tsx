@@ -1,12 +1,13 @@
 'use client'
 
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { FiFileText, FiExternalLink, FiRefreshCw, FiCalendar } from 'react-icons/fi'
 import { formatDistanceToNow } from 'date-fns'
 import { nl } from 'date-fns/locale'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
+import { useNews } from '@/hooks/queries/useNews'
 
 const NewsModal = dynamic(() => import('./NewsModal'), { ssr: false })
 
@@ -14,7 +15,7 @@ interface NewsArticle {
   title: string
   description: string
   url: string
-  urlToImage?: string
+  image?: string | null
   publishedAt: string
   source: {
     name: string
@@ -23,13 +24,16 @@ interface NewsArticle {
 }
 
 const NewsWidget = React.memo(function NewsWidget() {
-  const [articles, setArticles] = useState<NewsArticle[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [selectedCategory, setSelectedCategory] = useState('general')
   const [selectedCountry, setSelectedCountry] = useState('us')
   const [selectedArticle, setSelectedArticle] = useState<NewsArticle | null>(null)
   const [isMounted, setIsMounted] = useState(false)
+
+  // Use React Query hook with category and country filters
+  const { data: articles = [], isLoading, error, refetch } = useNews({
+    category: selectedCategory,
+    country: selectedCountry,
+  })
 
   useEffect(() => {
     setIsMounted(true)
@@ -52,28 +56,6 @@ const NewsWidget = React.memo(function NewsWidget() {
     { value: 'de', label: '🇩🇪 DE' }
   ]
 
-  const fetchNews = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    
-    try {
-      const response = await fetch(`/api/news?category=${selectedCategory}&country=${selectedCountry}`)
-      if (!response.ok) throw new Error('Failed to fetch news')
-      
-      const data = await response.json()
-      setArticles(data.articles || [])
-    } catch (error) {
-      console.error('Error fetching news:', error)
-      setError('Nieuws kon niet worden geladen')
-    } finally {
-      setLoading(false)
-    }
-  }, [selectedCategory, selectedCountry])
-
-  useEffect(() => {
-    fetchNews()
-  }, [fetchNews])
-
   return (
     <div className="h-full backdrop-blur-xl bg-white/15 dark:bg-gray-900/15 border border-white/25 dark:border-gray-700/25 rounded-3xl shadow-2xl shadow-black/20 overflow-hidden flex flex-col">
       {/* Header with purple gradient for news */}
@@ -84,11 +66,11 @@ const NewsWidget = React.memo(function NewsWidget() {
             Nieuws
           </h3>
           <button
-            onClick={fetchNews}
-            disabled={loading}
+            onClick={() => refetch()}
+            disabled={isLoading}
             className="text-white/90 hover:text-white hover:bg-white/20 p-2 rounded-full transition-all duration-300 disabled:opacity-50 cursor-pointer hover:scale-105"
           >
-            <FiRefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
+            <FiRefreshCw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
         </div>
 
@@ -130,7 +112,7 @@ const NewsWidget = React.memo(function NewsWidget() {
 
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto px-6 py-4 bg-white/5 dark:bg-gray-900/5 backdrop-blur-sm space-y-4">
-        {loading && (
+        {isLoading && (
           <div className="flex items-center justify-center py-12">
             <FiRefreshCw className="h-8 w-8 animate-spin text-purple-500 mr-3" />
             <span className="text-gray-600 dark:text-gray-400 text-sm">Loading news...</span>
@@ -139,11 +121,11 @@ const NewsWidget = React.memo(function NewsWidget() {
 
         {error && (
           <div className="bg-red-500/15 border border-red-400/30 text-red-600 dark:text-red-400 p-4 rounded-2xl backdrop-blur-sm">
-            {error}
+            {error.message || 'Nieuws kon niet worden geladen'}
           </div>
         )}
 
-        {!loading && !error && articles.length === 0 && (
+        {!isLoading && !error && articles.length === 0 && (
           <div className="text-center py-8 space-y-3">
             <div className="bg-yellow-500/15 border border-yellow-400/30 text-yellow-600 dark:text-yellow-400 p-4 rounded-2xl backdrop-blur-sm">
               <p className="text-sm font-medium mb-2">Geen nieuws gevonden</p>
@@ -160,16 +142,16 @@ const NewsWidget = React.memo(function NewsWidget() {
           </div>
         )}
 
-        {!loading && !error && articles.slice(0, 3).map((article, index) => (
+        {!isLoading && !error && articles.slice(0, 3).map((article, index) => (
           <div
             key={index}
             className="bg-white/20 dark:bg-gray-800/20 rounded-2xl p-4 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 hover:bg-white/30 dark:hover:bg-gray-700/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg cursor-pointer"
             onClick={() => setSelectedArticle(article)}
           >
-            {article.urlToImage && (
+            {article.image && (
               <div className="mb-3">
                 <Image
-                  src={article.urlToImage}
+                  src={article.image}
                   alt={article.title}
                   width={400}
                   height={200}

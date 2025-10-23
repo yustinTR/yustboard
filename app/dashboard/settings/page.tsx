@@ -10,13 +10,11 @@ import { Switch } from '@/components/atoms/switch'
 import { Label } from '@/components/atoms/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/molecules/tabs'
 import { Badge } from '@/components/atoms/badge'
-import { FiMenu, FiShield, FiSave, FiRefreshCw, FiCalendar, FiSettings, FiLayout, FiGrid, FiUser, FiMail, FiUsers, FiUserPlus, FiTrash2, FiDroplet, FiUpload, FiCamera, FiCreditCard } from 'react-icons/fi'
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
+import { FiMenu, FiShield, FiSave, FiRefreshCw, FiCalendar, FiSettings, FiLayout, FiUser, FiMail, FiUsers, FiUserPlus, FiTrash2, FiDroplet, FiUpload, FiCamera, FiCreditCard } from 'react-icons/fi'
 import { toast } from 'sonner'
-import ColorPicker from '@/components/ui/ColorPicker'
 import { useBranding } from '@/contexts/BrandingContext'
 
-// Lazy load BillingDashboard (only for OWNER/ADMIN users)
+// Lazy load heavy components (only loaded when needed)
 const BillingDashboard = dynamic(
   () => import('@/components/billing/BillingDashboard').then(mod => ({ default: mod.BillingDashboard })),
   {
@@ -28,6 +26,33 @@ const BillingDashboard = dynamic(
     )
   }
 )
+
+const ColorPicker = dynamic(() => import('@/components/ui/ColorPicker'), {
+  ssr: false,
+  loading: () => <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse"></div>
+})
+
+const DragDropMenuManager = dynamic(() => import('@/components/settings/DragDropMenuManager').then(mod => ({ default: mod.DragDropMenuManager })), {
+  ssr: false,
+  loading: () => (
+    <div className="space-y-2">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
+      ))}
+    </div>
+  )
+})
+
+const DragDropWidgetManager = dynamic(() => import('@/components/settings/DragDropWidgetManager').then(mod => ({ default: mod.DragDropWidgetManager })), {
+  ssr: false,
+  loading: () => (
+    <div className="space-y-2">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
+      ))}
+    </div>
+  )
+})
 
 interface Widget {
   id: string
@@ -557,45 +582,11 @@ export default function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <DragDropContext onDragEnd={handleWidgetDragEnd}>
-                <Droppable droppableId="widgets">
-                  {(provided) => (
-                    <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2">
-                      {widgets.map((widget, index) => (
-                        <Draggable key={widget.id} draggableId={widget.id} index={index}>
-                          {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              className={`flex items-center justify-between p-3 rounded-lg border border-white/20 dark:border-gray-700/30 backdrop-blur-sm ${
-                                snapshot.isDragging ? 'bg-white/20 dark:bg-gray-800/20 shadow-lg' : 'bg-white/10 dark:bg-gray-900/10 hover:bg-white/20 dark:hover:bg-gray-800/20'
-                              } transition-all duration-200`}
-                            >
-                              <div className="flex items-center gap-3">
-                                <div {...provided.dragHandleProps}>
-                                  <FiGrid className="h-4 w-4 text-muted-foreground" />
-                                </div>
-                                <div>
-                                  <Label htmlFor={`widget-${widget.id}`} className="font-medium">
-                                    {widget.name}
-                                  </Label>
-                                  <p className="text-sm text-muted-foreground">{widget.description}</p>
-                                </div>
-                              </div>
-                              <Switch
-                                id={`widget-${widget.id}`}
-                                checked={widget.enabled}
-                                onCheckedChange={() => handleWidgetToggle(widget.id)}
-                              />
-                            </div>
-                          )}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              </DragDropContext>
+              <DragDropWidgetManager
+                widgets={widgets}
+                onDragEnd={handleWidgetDragEnd}
+                onToggle={handleWidgetToggle}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -1088,46 +1079,11 @@ export default function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <DragDropContext onDragEnd={handleMenuDragEnd}>
-                <Droppable droppableId="menu">
-                  {(provided) => (
-                    <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2">
-                      {menuItems.map((item, index) => (
-                        <Draggable key={item.id} draggableId={item.id} index={index}>
-                          {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              className={`flex items-center justify-between p-3 rounded-lg border border-white/20 dark:border-gray-700/30 backdrop-blur-sm ${
-                                snapshot.isDragging ? 'bg-white/20 dark:bg-gray-800/20 shadow-lg' : 'bg-white/10 dark:bg-gray-900/10 hover:bg-white/20 dark:hover:bg-gray-800/20'
-                              } transition-all duration-200`}
-                            >
-                              <div className="flex items-center gap-3">
-                                <div {...provided.dragHandleProps}>
-                                  <FiGrid className="h-4 w-4 text-muted-foreground" />
-                                </div>
-                                <div>
-                                  <Label htmlFor={`menu-${item.id}`} className="font-medium">
-                                    {item.label}
-                                  </Label>
-                                  <p className="text-sm text-muted-foreground">{item.path}</p>
-                                </div>
-                              </div>
-                              <Switch
-                                id={`menu-${item.id}`}
-                                checked={item.enabled}
-                                onCheckedChange={() => handleMenuToggle(item.id)}
-                                disabled={item.id === 'dashboard'} // Dashboard moet altijd enabled zijn
-                              />
-                            </div>
-                          )}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              </DragDropContext>
+              <DragDropMenuManager
+                menuItems={menuItems}
+                onDragEnd={handleMenuDragEnd}
+                onToggle={handleMenuToggle}
+              />
             </CardContent>
           </Card>
         </TabsContent>

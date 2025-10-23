@@ -187,6 +187,7 @@ export default function CoverImageSelector({ value, onChange }: CoverImageSelect
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setShowMediaLibrary(false)}
                 className="absolute top-6 right-6 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors group"
               >
@@ -203,6 +204,7 @@ export default function CoverImageSelector({ value, onChange }: CoverImageSelect
                 className="hidden"
               />
               <button
+                type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
                 className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center"
@@ -260,6 +262,7 @@ export default function CoverImageSelector({ value, onChange }: CoverImageSelect
                         )}
                         {/* Delete button - only show on hover */}
                         <button
+                          type="button"
                           onClick={(e) => handleDeleteMedia(item.id, e)}
                           className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all opacity-0 group-hover:opacity-100"
                           title="Delete image"

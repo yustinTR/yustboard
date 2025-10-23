@@ -1,55 +1,20 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { FiBell, FiCalendar, FiUser, FiRefreshCw } from 'react-icons/fi';
 import Image from 'next/image';
-
-interface Announcement {
-  id: string;
-  title: string;
-  content: string;
-  coverImage: string | null;
-  published: boolean;
-  publishedAt: string | null;
-  createdAt: string;
-  author: {
-    id: string;
-    name: string | null;
-  };
-}
+import { useAnnouncements } from '@/hooks/queries/useAnnouncements';
 
 const AnnouncementsWidget = React.memo(function AnnouncementsWidget() {
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Use React Query hook for announcements (published only)
+  const { data: allAnnouncements = [], isLoading, error, refetch } = useAnnouncements(true);
 
-  useEffect(() => {
-    fetchLatestAnnouncements();
-  }, []);
+  // Limit to 5 most recent announcements
+  const announcements = allAnnouncements.slice(0, 5);
 
-  const fetchLatestAnnouncements = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/announcements?published=true');
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch announcements');
-      }
-
-      const data = await response.json();
-      // Limit to 5 most recent announcements
-      setAnnouncements((data.announcements || []).slice(0, 5));
-    } catch (err) {
-      console.error('Error fetching announcements:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load announcements');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="h-full backdrop-blur-xl bg-white/15 dark:bg-gray-900/15 border border-white/25 dark:border-gray-700/25 rounded-3xl shadow-2xl shadow-black/20 overflow-hidden flex flex-col">
         {/* Header with purple gradient for announcements */}
@@ -85,18 +50,18 @@ const AnnouncementsWidget = React.memo(function AnnouncementsWidget() {
             Announcements
           </h3>
           <button
-            onClick={fetchLatestAnnouncements}
-            disabled={loading}
+            onClick={() => refetch()}
+            disabled={isLoading}
             className="text-white/90 hover:text-white hover:bg-white/20 p-2 rounded-full transition-all duration-300 disabled:opacity-50 cursor-pointer hover:scale-105"
           >
-            <FiRefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
+            <FiRefreshCw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
         </div>
 
         {/* Error Content */}
         <div className="flex-1 px-6 py-4 bg-white/5 dark:bg-gray-900/5 backdrop-blur-sm flex items-center justify-center">
           <div className="bg-red-500/15 border border-red-400/30 text-red-600 dark:text-red-400 p-4 rounded-2xl backdrop-blur-sm">
-            {error}
+            {error?.message || 'Failed to load announcements'}
           </div>
         </div>
       </div>
@@ -112,11 +77,11 @@ const AnnouncementsWidget = React.memo(function AnnouncementsWidget() {
           Announcements
         </h3>
         <button
-          onClick={fetchLatestAnnouncements}
-          disabled={loading}
+          onClick={() => refetch()}
+          disabled={isLoading}
           className="text-white/90 hover:text-white hover:bg-white/20 p-2 rounded-full transition-all duration-300 disabled:opacity-50 cursor-pointer hover:scale-105"
         >
-          <FiRefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
+          <FiRefreshCw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
         </button>
       </div>
 
@@ -132,9 +97,13 @@ const AnnouncementsWidget = React.memo(function AnnouncementsWidget() {
           </div>
         ) : (
           <>
-            <div className="flex-1 overflow-y-auto space-y-3">
+            <div className="flex-1 overflow-y-auto space-y-3 scrollbar-hide">
               {announcements.map((announcement) => (
-                <div key={announcement.id} className="bg-white/20 dark:bg-gray-800/20 rounded-2xl p-4 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 hover:bg-white/30 dark:hover:bg-gray-700/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg cursor-pointer group">
+                <Link
+                  key={announcement.id}
+                  href={`/dashboard/announcements/${announcement.id}`}
+                  className="block bg-white/20 dark:bg-gray-800/20 rounded-2xl p-4 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 hover:bg-white/30 dark:hover:bg-gray-700/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg cursor-pointer group"
+                >
                   <div className="flex gap-3">
                     {announcement.coverImage && (
                       <div className="flex-shrink-0">
@@ -163,7 +132,7 @@ const AnnouncementsWidget = React.memo(function AnnouncementsWidget() {
                       </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </>

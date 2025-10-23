@@ -34,8 +34,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'User is already a member of this organization' }, { status: 400 })
     }
 
-    // Check if invite already exists
-    const existingInvite = await prisma.organizationInvite.findFirst({
+    // Check if an active (non-expired, non-accepted) invite exists
+    const activeInvite = await prisma.organizationInvite.findFirst({
       where: {
         organizationId: context.organizationId,
         email,
@@ -46,9 +46,17 @@ export async function POST(request: Request) {
       }
     })
 
-    if (existingInvite) {
+    if (activeInvite) {
       return NextResponse.json({ error: 'An active invite already exists for this email' }, { status: 400 })
     }
+
+    // Delete any old invites (expired or accepted) for this email to avoid unique constraint conflict
+    await prisma.organizationInvite.deleteMany({
+      where: {
+        organizationId: context.organizationId,
+        email
+      }
+    })
 
     // Generate invite token
     const token = randomBytes(32).toString('hex')

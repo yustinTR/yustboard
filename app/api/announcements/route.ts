@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden: Only admins can create announcements' }, { status: 403 });
     }
 
-    const { title, content, coverImage, published } = await request.json();
+    const { title, content, coverImage, headerImage, published } = await request.json();
 
     if (!title?.trim()) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 });
@@ -103,6 +103,7 @@ export async function POST(request: NextRequest) {
         title,
         content,
         coverImage,
+        headerImage,
         published: published || false,
         publishedAt: published ? new Date() : null,
         authorId: session.user.id,

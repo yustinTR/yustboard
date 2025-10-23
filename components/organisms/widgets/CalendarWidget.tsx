@@ -1,20 +1,18 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { FiCalendar, FiClock, FiRefreshCw } from 'react-icons/fi';
 import { format, startOfDay, addDays, endOfDay } from 'date-fns';
 import { Task } from '@/utils/google/google-calendar';
 import dynamic from 'next/dynamic';
+import { useCalendar } from '@/hooks/queries/useCalendar';
 
 const EventModal = dynamic(() => import('./EventModal'), { ssr: false });
 
 const CalendarWidget = React.memo(function CalendarWidget() {
   const { data: session, status } = useSession();
-  const [events, setEvents] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<Task | null>(null);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -22,57 +20,45 @@ const CalendarWidget = React.memo(function CalendarWidget() {
     setIsMounted(true);
   }, []);
 
-  // Fetch upcoming events from Google Calendar
-  const fetchUpcomingEvents = async () => {
-    try {
-      setLoading(true);
-      const timeMin = startOfDay(new Date()).toISOString();
-      const timeMax = endOfDay(addDays(new Date(), 7)).toISOString(); // Next 7 days
+  // Calculate time range for next 7 days
+  const timeMin = useMemo(() => startOfDay(new Date()).toISOString(), []);
+  const timeMax = useMemo(() => endOfDay(addDays(new Date(), 7)).toISOString(), []);
 
-      const res = await fetch(`/api/calendar?timeMin=${timeMin}&timeMax=${timeMax}`);
+  // Use React Query hook for calendar events
+  const { data: rawEvents = [], isLoading, error, refetch } = useCalendar({
+    timeMin,
+    timeMax,
+  });
 
-      if (!res.ok) {
-        throw new Error('Failed to fetch calendar events');
-      }
-
-      const data = await res.json();
-      // parse the date strings into Date objects
-      const eventsWithDates: Task[] = data.map((t: { id: string; title: string; description?: string; date: string; endDate?: string; completed: boolean; location?: string }) => ({
-        ...t,
-        date: new Date(t.date),
-        endDate: t.endDate ? new Date(t.endDate) : undefined,
-      }));
-      setEvents(eventsWithDates);
-    } catch (err) {
-      console.error('Error fetching calendar events:', err);
-      setError('Failed to load your calendar events');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Load events when the component mounts
-  useEffect(() => {
-    // Only fetch if authenticated and not using test credentials
-    if (status === 'authenticated' && session?.accessToken) {
-      fetchUpcomingEvents();
-    } else if (status === 'authenticated') {
-      // If using test credentials, load mock data
-      setLoading(false);
-      setEvents([
+  // Parse date strings into Date objects and map to Task format
+  const events: Task[] = useMemo(() => {
+    if (!session?.accessToken && status === 'authenticated') {
+      // Mock data for test credentials
+      return [
         { id: '1', title: 'Complete dashboard UI', date: new Date(2023, 5, 15), completed: false },
         { id: '2', title: 'Meeting with client', date: new Date(2023, 5, 16), completed: false },
         { id: '3', title: 'Submit project proposal', date: new Date(2023, 5, 17), completed: false },
-      ]);
+      ];
     }
-  }, [status, session]);
+
+    return rawEvents.map((event) => ({
+      id: event.id,
+      title: event.summary || 'Untitled Event',
+      description: event.description,
+      date: new Date(event.start?.dateTime || event.start?.date || new Date()),
+      endDate: (event.end?.dateTime || event.end?.date) ? new Date(event.end.dateTime || event.end.date || new Date()) : undefined,
+      completed: false,
+      location: event.location,
+    }));
+  }, [rawEvents, session, status]);
 
   // Get the next 5 upcoming events
-  const upcomingEvents = events
-    .sort((a, b) => a.date.getTime() - b.date.getTime())
-    .slice(0, 5);
+  const upcomingEvents = useMemo(
+    () => events.sort((a, b) => a.date.getTime() - b.date.getTime()).slice(0, 5),
+    [events]
+  );
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="h-full backdrop-blur-xl bg-white/15 dark:bg-gray-900/15 border border-white/25 dark:border-gray-700/25 rounded-3xl shadow-2xl shadow-black/20 overflow-hidden flex flex-col">
         {/* Header with blue gradient for calendar */}
@@ -108,18 +94,18 @@ const CalendarWidget = React.memo(function CalendarWidget() {
             Agenda
           </h3>
           <button
-            onClick={fetchUpcomingEvents}
-            disabled={loading}
+            onClick={() => refetch()}
+            disabled={isLoading}
             className="text-white/90 hover:text-white hover:bg-white/20 p-2 rounded-full transition-all duration-300 disabled:opacity-50 cursor-pointer hover:scale-105"
           >
-            <FiRefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
+            <FiRefreshCw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
         </div>
 
         {/* Error Content */}
         <div className="flex-1 px-6 py-4 bg-white/5 dark:bg-gray-900/5 backdrop-blur-sm flex items-center justify-center">
           <div className="bg-red-500/15 border border-red-400/30 text-red-600 dark:text-red-400 p-4 rounded-2xl backdrop-blur-sm">
-            {error}
+            {error?.message || 'Failed to load calendar events'}
           </div>
         </div>
       </div>
@@ -135,11 +121,11 @@ const CalendarWidget = React.memo(function CalendarWidget() {
           Agenda
         </h3>
         <button
-          onClick={fetchUpcomingEvents}
-          disabled={loading}
+          onClick={() => refetch()}
+          disabled={isLoading}
           className="text-white/90 hover:text-white hover:bg-white/20 p-2 rounded-full transition-all duration-300 disabled:opacity-50 cursor-pointer hover:scale-105"
         >
-          <FiRefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
+          <FiRefreshCw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
         </button>
       </div>
 

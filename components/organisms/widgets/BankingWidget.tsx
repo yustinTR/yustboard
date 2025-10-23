@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React from 'react';
 import { FiArrowUp, FiArrowDown, FiRefreshCw } from 'react-icons/fi';
 import { format } from 'date-fns';
-import { useSession } from 'next-auth/react';
+import { useBanking } from '@/hooks/queries/useBanking';
 import { Transaction } from '@/utils/google/gmail-transactions';
 
 interface BankingWidgetProps {
@@ -12,56 +12,15 @@ interface BankingWidgetProps {
 }
 
 const BankingWidget = React.memo(function BankingWidget({ initialTransactions = [], initialBalance = 0 }: BankingWidgetProps) {
-  const { data: session } = useSession();
-  const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
-  const [balance, setBalance] = useState<number>(initialBalance);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const hasFetchedRef = useRef(false);
 
-  const fetchTransactions = useCallback(async () => {
-    if (!session?.accessToken) return;
+  // Use React Query hook for banking data
+  const { data, isLoading, error, refetch } = useBanking({
+    days: 30,
+    statsOnly: false
+  });
 
-    setIsLoading(true);
-    setError('');
-    hasFetchedRef.current = true;
-    
-    try {
-      const response = await fetch('/api/banking/transactions?days=30&statsOnly=false');
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch transactions: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      
-      if (data.error) {
-        throw new Error(data.error);
-      }
-      
-      setTransactions(data.transactions || []);
-      setBalance(data.stats?.balance || 0);
-    } catch (error) {
-      console.error('Error fetching transactions:', error);
-      setError('Failed to load transactions');
-      
-      // If we have initial data, use it as fallback
-      if (initialTransactions.length > 0) {
-        setTransactions(initialTransactions);
-        setBalance(initialBalance);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  }, [session?.accessToken, initialTransactions, initialBalance]);
-
-  useEffect(() => {
-    if (session?.accessToken && transactions.length === 0 && !isLoading && !hasFetchedRef.current) {
-      hasFetchedRef.current = true;
-      fetchTransactions();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session?.accessToken]); // Only depend on accessToken to prevent infinite loops
+  const transactions = data?.transactions || initialTransactions;
+  const balance = data?.stats?.balance || initialBalance;
 
   // Sort and limit transactions for display
   const recentTransactions = transactions
@@ -77,7 +36,7 @@ const BankingWidget = React.memo(function BankingWidget({ initialTransactions = 
           Banking
         </h3>
         <button
-          onClick={fetchTransactions}
+          onClick={() => refetch()}
           disabled={isLoading}
           className="text-white/90 hover:text-white hover:bg-white/20 p-2 rounded-full transition-all duration-300 disabled:opacity-50 cursor-pointer hover:scale-105"
           aria-label="Refresh transactions"
@@ -101,7 +60,7 @@ const BankingWidget = React.memo(function BankingWidget({ initialTransactions = 
 
         {error && (
           <div className="bg-red-500/15 border border-red-400/30 text-red-600 dark:text-red-400 p-4 rounded-2xl backdrop-blur-sm">
-            {error}
+            {error.message || 'Failed to load transactions'}
           </div>
         )}
 
