@@ -1,23 +1,24 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React from 'react';
 import { FiFile, FiRefreshCw, FiClock } from 'react-icons/fi';
-import { useSession } from 'next-auth/react';
-import { DriveFile } from '@/utils/google/google-drive';
+import { useDrive } from '@/hooks/queries/useDrive';
 
 interface FilesWidgetProps {
-  initialFiles?: DriveFile[];
   maxFiles?: number;
 }
 
-const FilesWidget = React.memo(function FilesWidget({ initialFiles = [], maxFiles = 5 }: FilesWidgetProps) {
-  const { data: session } = useSession();
-  const [files, setFiles] = useState<DriveFile[]>(initialFiles);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+const FilesWidget = React.memo(function FilesWidget({ maxFiles = 5 }: FilesWidgetProps) {
+  // Use React Query hook
+  const { data, isLoading, error, refetch } = useDrive({
+    type: 'recent',
+    max: maxFiles
+  });
+
+  const files = data?.files || [];
 
   // Format the file's modified date
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string) => {
     if (!dateString) return '';
     
     const date = new Date(dateString);
@@ -63,80 +64,6 @@ const FilesWidget = React.memo(function FilesWidget({ initialFiles = [], maxFile
     return 'File';
   };
 
-  const fetchFiles = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      // Use the API route to fetch files
-      const response = await fetch(`/api/drive?max=${maxFiles}`);
-      const data = await response.json();
-      
-      if (!response.ok) {
-        // Handle authentication errors specifically
-        if (response.status === 401) {
-          setError('Google Drive authentication failed. Please sign out and sign in again.');
-          return;
-        }
-        throw new Error(data.error || `Failed to fetch files: ${response.statusText}`);
-      }
-      
-      setFiles(data.files || []);
-    } catch (error) {
-      console.error('Error fetching recent files:', error);
-      setError(error instanceof Error ? error.message : 'Failed to fetch files');
-      
-      // Fallback to mock data for development/testing
-      if (process.env.NODE_ENV === 'development') {
-        const mockFiles: DriveFile[] = [
-          {
-            id: 'file1',
-            name: 'Project Proposal',
-            mimeType: 'application/vnd.google-apps.document',
-            createdTime: new Date(Date.now() - 86400000 * 2).toISOString(), // 2 days ago
-            modifiedTime: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-            webViewLink: 'https://docs.google.com',
-            iconLink: 'https://drive-thirdparty.googleusercontent.com/16/type/application/vnd.google-apps.document',
-            owners: [{ displayName: 'John Doe', emailAddress: 'john@example.com' }],
-            shared: true,
-            size: '25.5 KB'
-          },
-          {
-            id: 'file2',
-            name: 'Budget 2025',
-            mimeType: 'application/vnd.google-apps.spreadsheet',
-            createdTime: new Date(Date.now() - 86400000 * 5).toISOString(), // 5 days ago
-            modifiedTime: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-            webViewLink: 'https://sheets.google.com',
-            iconLink: 'https://drive-thirdparty.googleusercontent.com/16/type/application/vnd.google-apps.spreadsheet',
-            owners: [{ displayName: 'Jane Smith', emailAddress: 'jane@example.com' }],
-            shared: true,
-            size: '102 KB'
-          },
-          {
-            id: 'file3',
-            name: 'Team Meeting Notes',
-            mimeType: 'application/vnd.google-apps.document',
-            createdTime: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-            modifiedTime: new Date(Date.now() - 3600000 * 2).toISOString(), // 2 hours ago
-            webViewLink: 'https://docs.google.com',
-            iconLink: 'https://drive-thirdparty.googleusercontent.com/16/type/application/vnd.google-apps.document',
-            owners: [{ displayName: 'John Doe', emailAddress: 'john@example.com' }],
-            shared: false,
-            size: '15 KB'
-          }
-        ];
-        setFiles(mockFiles);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  }, [maxFiles]);
-
-  useEffect(() => {
-    if (session?.accessToken && files.length === 0) {
-      fetchFiles();
-    }
-  }, [session?.accessToken, files.length, fetchFiles]);
 
   return (
     <div className="h-full backdrop-blur-xl bg-white/15 dark:bg-gray-900/15 border border-white/25 dark:border-gray-700/25 rounded-3xl shadow-2xl shadow-black/20 overflow-hidden flex flex-col">
@@ -147,7 +74,7 @@ const FilesWidget = React.memo(function FilesWidget({ initialFiles = [], maxFile
           Recent Files
         </h3>
         <button
-          onClick={fetchFiles}
+          onClick={() => refetch()}
           disabled={isLoading}
           className="text-white/90 hover:text-white hover:bg-white/20 p-2 rounded-full transition-all duration-300 disabled:opacity-50 cursor-pointer hover:scale-105"
           aria-label="Refresh files"
@@ -162,9 +89,9 @@ const FilesWidget = React.memo(function FilesWidget({ initialFiles = [], maxFile
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center space-y-4">
               <div className="bg-red-500/15 border border-red-400/30 text-red-600 dark:text-red-400 p-4 rounded-2xl backdrop-blur-sm">
-                <p className="text-sm font-medium mb-2">{error}</p>
+                <p className="text-sm font-medium mb-2">{error.message || 'Failed to load files'}</p>
                 <button
-                  onClick={fetchFiles}
+                  onClick={() => refetch()}
                   className="bg-blue-500/20 hover:bg-blue-500/30 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium py-2 px-4 rounded-xl transition-all duration-300 border border-blue-400/30 backdrop-blur-sm"
                 >
                   Try again

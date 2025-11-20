@@ -100,6 +100,10 @@ export async function GET() {
       },
       subscription: subscriptionDetails,
       canManageBilling: user.organizationRole === 'OWNER',
+    }, {
+      headers: {
+        'Cache-Control': 'private, max-age=120, stale-while-revalidate=240'
+      }
     });
   } catch (error) {
     console.error('Error fetching billing status:', error);

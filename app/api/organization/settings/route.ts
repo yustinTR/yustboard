@@ -36,7 +36,11 @@ export async function GET() {
       });
     }
 
-    return NextResponse.json({ settings });
+    return NextResponse.json({ settings }, {
+      headers: {
+        'Cache-Control': 'private, max-age=300, stale-while-revalidate=600'
+      }
+    });
   } catch (error) {
     console.error('Error fetching organization settings:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

@@ -46,7 +46,11 @@ export async function GET() {
     // Sort by position
     widgets.sort((a, b) => a.position - b.position)
 
-    return NextResponse.json({ widgets })
+    return NextResponse.json({ widgets }, {
+      headers: {
+        'Cache-Control': 'private, max-age=180, stale-while-revalidate=360'
+      }
+    })
   } catch (error) {
     console.error('Error fetching widget preferences:', error)
     return NextResponse.json(

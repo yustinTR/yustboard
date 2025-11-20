@@ -179,7 +179,11 @@ export async function GET(request: NextRequest) {
       return b.date.getTime() - a.date.getTime();
     });
 
-    return NextResponse.json({ results: results.slice(0, 20) });
+    return NextResponse.json({ results: results.slice(0, 20) }, {
+      headers: {
+        'Cache-Control': 'private, max-age=60, stale-while-revalidate=120'
+      }
+    });
   } catch (error) {
     console.error('Search error:', error);
     return NextResponse.json({ error: 'Search failed' }, { status: 500 });
