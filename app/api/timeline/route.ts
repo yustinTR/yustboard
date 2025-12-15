@@ -149,13 +149,16 @@ export async function POST(request: NextRequest) {
 
     // Extract mentions and send notifications
     const mentions = extractMentions(content);
+    console.log('Extracted mentions from post:', mentions);
+
     if (mentions.length > 0) {
       const posterName = session.user.name || session.user.email?.split('@')[0] || 'Iemand';
 
       // Send notification to each mentioned user (except self)
       for (const mention of mentions) {
+        console.log('Processing mention:', mention, 'Current user:', session.user.id);
         if (mention.userId !== session.user.id) {
-          await createNotification({
+          const result = await createNotification({
             userId: mention.userId,
             organizationId: user.organizationId,
             type: 'COMMENT_MENTION',
@@ -163,6 +166,9 @@ export async function POST(request: NextRequest) {
             message: `${posterName} heeft je genoemd in een tijdlijn post`,
             link: `/dashboard/timeline?post=${post.id}`,
           });
+          console.log('Notification creation result:', result);
+        } else {
+          console.log('Skipping self-mention');
         }
       }
     }

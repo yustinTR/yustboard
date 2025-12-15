@@ -92,6 +92,8 @@ export async function POST(
 
     // Extract mentions and send notifications
     const mentions = extractMentions(content);
+    console.log('Extracted mentions from comment:', mentions);
+
     if (mentions.length > 0) {
       const commenterName = session.user.name || session.user.email?.split('@')[0] || 'Iemand';
 
@@ -103,8 +105,9 @@ export async function POST(
 
       // Send notification to each mentioned user (except self)
       for (const mention of mentions) {
+        console.log('Processing mention:', mention, 'Current user:', session.user.id);
         if (mention.userId !== session.user.id) {
-          await createNotification({
+          const result = await createNotification({
             userId: mention.userId,
             organizationId: user?.organizationId || undefined,
             type: 'COMMENT_MENTION',
@@ -112,6 +115,9 @@ export async function POST(
             message: `${commenterName} heeft je genoemd in een reactie`,
             link: `/dashboard/timeline?post=${postId}`,
           });
+          console.log('Notification creation result:', result);
+        } else {
+          console.log('Skipping self-mention');
         }
       }
     }
