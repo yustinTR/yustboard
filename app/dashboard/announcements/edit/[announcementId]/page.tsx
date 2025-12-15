@@ -51,12 +51,13 @@ export default function EditAnnouncementPage({
         }
 
         const data = await response.json();
+        const announcement = data.announcement;
         setFormData({
-          title: data.title,
-          content: data.content,
-          coverImage: data.coverImage || '',
-          headerImage: data.headerImage || '',
-          published: data.published,
+          title: announcement.title,
+          content: announcement.content,
+          coverImage: announcement.coverImage || '',
+          headerImage: announcement.headerImage || '',
+          published: announcement.published,
         });
       } catch (err) {
         console.error('Error fetching announcement:', err);
@@ -75,8 +76,8 @@ export default function EditAnnouncementPage({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.title || !formData.content) {
-      alert('Please fill in all required fields');
+    if (!formData.title) {
+      alert('Please fill in the title');
       return;
     }
 
@@ -226,7 +227,7 @@ export default function EditAnnouncementPage({
           {/* Content */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Content *
+              Content
             </label>
             <BlogEditor
               content={formData.content}

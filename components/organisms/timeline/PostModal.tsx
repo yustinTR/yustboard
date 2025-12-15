@@ -230,7 +230,7 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 pt-20 animate-in fade-in duration-200">
       <div className="backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 rounded-3xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl shadow-black/20 border border-white/25 dark:border-gray-700/25 animate-in slide-in-from-bottom-4 duration-300">
         {/* Header */}
-        <div className="relative p-6 border-b border-white/20 dark:border-gray-700/30 bg-gradient-to-r from-indigo-500/80 to-indigo-600/80 backdrop-blur-sm text-white rounded-t-3xl">
+        <div className="relative z-[2] p-6 border-b border-white/20 dark:border-gray-700/30 bg-gradient-to-r from-indigo-500/80 to-indigo-600/80 backdrop-blur-sm text-white rounded-t-3xl">
           <div className="flex items-center space-x-4">
             {post.user.image ? (
               <Image
@@ -258,19 +258,19 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
           </div>
           
           {/* Action buttons */}
-          <div className="absolute top-6 right-16 flex items-center space-x-2">
+          <div className="absolute top-6 right-6 flex items-center space-x-3">
             {canEdit && (
               <div className="relative">
                 <button
                   data-actions-button
                   onClick={() => setShowActions(!showActions)}
-                  className="p-2 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-xl transition-all duration-300 hover:scale-105 group"
+                  className="p-2.5 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-xl transition-all duration-300 hover:scale-105 group"
                 >
                   <FiMoreHorizontal className="w-5 h-5 text-white/80 group-hover:text-white" />
                 </button>
-                
+
                 {showActions && (
-                  <div data-actions-menu className="absolute right-0 top-12 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 py-2 min-w-[140px] z-10">
+                  <div data-actions-menu className="absolute right-0 top-12 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 py-2 min-w-[140px]">
                     <button
                       onClick={() => {
                         setIsEditing(true);
@@ -294,14 +294,14 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
                 )}
               </div>
             )}
+
+            <button
+              onClick={onClose}
+              className="p-2.5 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-xl transition-all duration-300 hover:scale-105 group"
+            >
+              <FiX className="w-5 h-5 text-white/80 group-hover:text-white" />
+            </button>
           </div>
-          
-          <button
-            onClick={onClose}
-            className="absolute top-6 right-6 p-2 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-xl transition-all duration-300 hover:scale-105 group"
-          >
-            <FiX className="w-6 h-6 text-white/80 group-hover:text-white" />
-          </button>
         </div>
 
         {/* Content */}

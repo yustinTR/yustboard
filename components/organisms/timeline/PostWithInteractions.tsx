@@ -199,7 +199,7 @@ export default function PostWithInteractions({ post, onUpdate }: PostProps) {
                     <FiMoreHorizontal className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                   </button>
                   {showActions && (
-                    <div data-actions-menu className="absolute right-0 top-8 backdrop-blur-md bg-white/90 dark:bg-gray-800/90 rounded-xl shadow-lg border border-white/20 dark:border-gray-700/30 py-2 min-w-[120px] z-10">
+                    <div data-actions-menu className="absolute right-0 top-8 backdrop-blur-md bg-white/90 dark:bg-gray-800/90 rounded-xl shadow-lg border border-white/20 dark:border-gray-700/30 py-2 min-w-[120px] z-50">
                       <button
                         onClick={() => {
                           setIsEditing(true);
