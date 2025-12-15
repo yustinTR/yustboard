@@ -684,10 +684,10 @@ Aanbevolen volgorde voor Phase 2 (vervolg):
      - [ ] Time to First Byte (TTFB) verbeteren
      - [ ] Total Blocking Time (TBT) reduceren
 
-2. **Team Collaboration Features** - Week 9-10 🔄 **SUGGESTED NEXT**
+2. **Team Collaboration Features** - Week 9-10 🔄 **IN PROGRESS**
    - [ ] Real-time collaborative editing
-   - [ ] Comments op timeline posts (already partially implemented)
-   - [ ] @mentions in comments
+   - [x] Comments op timeline posts (fully implemented with React Query)
+   - [x] @mentions in comments (autocomplete, parsing, styling, notifications)
    - [ ] Activity feed voor team acties
    - [ ] Shared widgets configuratie
 
