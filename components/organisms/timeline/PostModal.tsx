@@ -6,6 +6,7 @@ import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
 import { FiHeart, FiMessageCircle, FiX, FiSend, FiFile, FiDownload, FiEdit3, FiTrash2, FiMoreHorizontal } from 'react-icons/fi';
 import { useSession } from 'next-auth/react';
+import { renderMentionText } from '@/lib/utils/mentions';
 
 interface PostUser {
   id: string;
@@ -337,7 +338,19 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
             </div>
           ) : (
             <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words mb-4">
-              {post.content}
+              {renderMentionText(post.content).map((part, index) => {
+                if (part.type === 'mention') {
+                  return (
+                    <span
+                      key={index}
+                      className="font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-1 rounded"
+                    >
+                      @{part.content}
+                    </span>
+                  );
+                }
+                return <span key={index}>{part.content}</span>;
+              })}
             </p>
           )}
 
