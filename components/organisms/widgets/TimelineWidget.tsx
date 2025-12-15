@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { FiSend, FiRefreshCw, FiMessageSquare, FiHeart, FiMessageCircle, FiImage } from 'react-icons/fi';
 import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
 import PostModal from '../timeline/PostModal';
+import { getMentionQuery, insertMention, renderMentionText, type MentionUser } from '@/lib/utils/mentions';
 
 interface TimelinePost {
   id: string;
@@ -42,6 +43,12 @@ const TimelineWidget = React.memo(function TimelineWidget() {
   const [selectedPost, setSelectedPost] = useState<TimelinePost | null>(null);
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
 
+  // @mentions state
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+  const [mentionSuggestions, setMentionSuggestions] = useState<MentionUser[]>([]);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const fetchPosts = useCallback(async () => {
     try {
       setError(null);
@@ -74,6 +81,85 @@ const TimelineWidget = React.memo(function TimelineWidget() {
     });
     setLikedPosts(liked);
   }, [posts, session?.user?.id]);
+
+  // Fetch mention suggestions when typing @
+  useEffect(() => {
+    if (!mentionQuery) {
+      setMentionSuggestions([]);
+      setSelectedSuggestionIndex(0);
+      return;
+    }
+
+    const fetchMentions = async () => {
+      try {
+        const response = await fetch(`/api/organization/members?q=${encodeURIComponent(mentionQuery)}`);
+        if (response.ok) {
+          const data = await response.json();
+          setMentionSuggestions(data.members || []);
+          setSelectedSuggestionIndex(0);
+        }
+      } catch (error) {
+        console.error('Error fetching mentions:', error);
+      }
+    };
+
+    fetchMentions();
+  }, [mentionQuery]);
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newContent = e.target.value;
+    const cursorPosition = e.target.selectionStart || 0;
+
+    setContent(newContent);
+
+    // Check if we're in a mention context
+    const query = getMentionQuery(newContent, cursorPosition);
+    setMentionQuery(query);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Handle mention suggestions navigation
+    if (mentionSuggestions.length > 0 && mentionQuery !== null) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedSuggestionIndex((prev) =>
+          prev < mentionSuggestions.length - 1 ? prev + 1 : prev
+        );
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedSuggestionIndex((prev) => (prev > 0 ? prev - 1 : 0));
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        selectMention(mentionSuggestions[selectedSuggestionIndex]);
+      } else if (e.key === 'Escape') {
+        setMentionQuery(null);
+        setMentionSuggestions([]);
+      }
+    }
+  };
+
+  const selectMention = (user: MentionUser) => {
+    if (!inputRef.current) return;
+
+    const cursorPosition = inputRef.current.selectionStart || 0;
+    const { newText, newCursorPosition } = insertMention(content, cursorPosition, {
+      name: user.name || user.email.split('@')[0],
+      id: user.id,
+    });
+
+    setContent(newText);
+    setMentionQuery(null);
+    setMentionSuggestions([]);
+
+    // Restore cursor position
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.selectionStart = newCursorPosition;
+        inputRef.current.selectionEnd = newCursorPosition;
+        inputRef.current.focus();
+      }
+    }, 0);
+  };
 
   const handleLike = async (postId: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent opening modal
@@ -165,15 +251,57 @@ const TimelineWidget = React.memo(function TimelineWidget() {
         <div className="px-6 py-4 border-b border-white/20 dark:border-gray-600/20">
           <form onSubmit={handleSubmit}>
             <div className="flex gap-3">
-              <input
-                type="text"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Wat houdt je bezig?"
-                className="flex-1 px-4 py-3 border border-white/30 dark:border-gray-600/30 rounded-2xl bg-white/20 dark:bg-gray-800/20 backdrop-blur-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-300"
-                maxLength={280}
-                disabled={isPosting}
-              />
+              <div className="flex-1 relative">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={content}
+                  onChange={handleTextChange}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Wat houdt je bezig? (@ om te taggen)"
+                  className="w-full px-4 py-3 border border-white/30 dark:border-gray-600/30 rounded-2xl bg-white/20 dark:bg-gray-800/20 backdrop-blur-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-300"
+                  maxLength={280}
+                  disabled={isPosting}
+                />
+
+                {/* Mention suggestions dropdown */}
+                {mentionSuggestions.length > 0 && mentionQuery !== null && (
+                  <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 max-h-48 overflow-y-auto">
+                    {mentionSuggestions.map((user, index) => (
+                      <button
+                        key={user.id}
+                        type="button"
+                        onClick={() => selectMention(user)}
+                        className={`w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                          index === selectedSuggestionIndex ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''
+                        }`}
+                      >
+                        {user.image ? (
+                          <Image
+                            src={user.image}
+                            alt={user.name || 'User'}
+                            width={24}
+                            height={24}
+                            className="rounded-full"
+                          />
+                        ) : (
+                          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-medium">
+                            {(user.name || user.email)[0].toUpperCase()}
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                            {user.name || user.email.split('@')[0]}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            {user.email}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               <button
                 type="submit"
                 disabled={!content.trim() || isPosting}
@@ -244,7 +372,19 @@ const TimelineWidget = React.memo(function TimelineWidget() {
                         </p>
                       </div>
                       <p className="text-sm text-gray-900 dark:text-gray-100 break-words leading-relaxed mb-3">
-                        {post.content}
+                        {renderMentionText(post.content).map((part, index) => {
+                          if (part.type === 'mention') {
+                            return (
+                              <span
+                                key={index}
+                                className="font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-1 rounded"
+                              >
+                                @{part.content}
+                              </span>
+                            );
+                          }
+                          return <span key={index}>{part.content}</span>;
+                        })}
                       </p>
 
                       {/* Show media indicator */}
