@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
-import { FiBell, FiCheck } from 'react-icons/fi';
+import { FiBell, FiCheck, FiWifi, FiWifiOff } from 'react-icons/fi';
 import { createPortal } from 'react-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import Link from 'next/link';
+import { useRealtimeNotifications } from '@/hooks/queries/useRealtimeNotifications';
 
 interface Notification {
   id: string;
@@ -21,41 +22,25 @@ interface Notification {
 
 export default function NotificationBell() {
   const { data: session } = useSession();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [showDropdown, setShowDropdown] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [buttonRect, setButtonRect] = useState<DOMRect | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
+  // Use Realtime-enabled notifications hook
+  const {
+    notifications,
+    unreadCount,
+    isLoading,
+    isUsingRealtime,
+    markAsRead,
+    markAllAsRead,
+  } = useRealtimeNotifications({ limit: 10 });
+
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  // Fetch notifications
-  useEffect(() => {
-    if (!session?.user?.id) return;
-
-    const fetchNotifications = async () => {
-      try {
-        const response = await fetch('/api/notifications?limit=10');
-        if (response.ok) {
-          const data = await response.json();
-          setNotifications(data.notifications || []);
-          setUnreadCount(data.unreadCount || 0);
-        }
-      } catch (error) {
-        console.error('Error fetching notifications:', error);
-      }
-    };
-
-    fetchNotifications();
-
-    // Poll every 10 seconds for faster notification updates
-    const interval = setInterval(fetchNotifications, 10000);
-    return () => clearInterval(interval);
-  }, [session]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -78,31 +63,12 @@ export default function NotificationBell() {
     }
   }, [showDropdown]);
 
-  const markAsRead = async (notificationId: string) => {
-    try {
-      await fetch(`/api/notifications/${notificationId}/read`, {
-        method: 'PATCH',
-      });
-
-      setNotifications((prev) =>
-        prev.map((n) =>
-          n.id === notificationId ? { ...n, read: true, readAt: new Date() } : n
-        )
-      );
-      setUnreadCount((prev) => Math.max(0, prev - 1));
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
+  const handleMarkAsRead = async (notificationId: string) => {
+    await markAsRead(notificationId);
   };
 
-  const markAllAsRead = async () => {
-    try {
-      await fetch('/api/notifications', { method: 'POST' });
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true, readAt: new Date() })));
-      setUnreadCount(0);
-    } catch (error) {
-      console.error('Error marking all as read:', error);
-    }
+  const handleMarkAllAsRead = async () => {
+    await markAllAsRead();
   };
 
   if (!session?.user) return null;
@@ -126,6 +92,10 @@ export default function NotificationBell() {
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
+        {/* Realtime connection indicator */}
+        {isUsingRealtime && (
+          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border border-white dark:border-gray-900" title="Real-time verbonden" />
+        )}
       </button>
 
       {/* Dropdown - render via portal */}
@@ -144,10 +114,21 @@ export default function NotificationBell() {
         >
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-white/10 dark:border-gray-700/30">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Notificaties</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100">Notificaties</h3>
+              {isUsingRealtime ? (
+                <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400" title="Real-time updates actief">
+                  <FiWifi className="h-3 w-3" />
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 text-xs text-gray-400" title="Polling modus">
+                  <FiWifiOff className="h-3 w-3" />
+                </span>
+              )}
+            </div>
             {unreadCount > 0 && (
               <button
-                onClick={markAllAsRead}
+                onClick={handleMarkAllAsRead}
                 className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
               >
                 <FiCheck className="h-4 w-4" />
@@ -158,12 +139,17 @@ export default function NotificationBell() {
 
           {/* Notifications List */}
           <div className="overflow-y-auto flex-1">
-            {notifications.length === 0 ? (
+            {isLoading ? (
+              <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                <div className="animate-spin rounded-full h-6 w-6 border-2 border-gray-300 border-t-blue-500 mx-auto mb-2" />
+                Laden...
+              </div>
+            ) : notifications.length === 0 ? (
               <div className="p-8 text-center text-gray-500 dark:text-gray-400">
                 Geen notificaties
               </div>
             ) : (
-              notifications.map((notification) => (
+              notifications.map((notification: Notification) => (
                 <div
                   key={notification.id}
                   className={`p-4 border-b border-white/10 dark:border-gray-700/30 hover:bg-white/20 dark:hover:bg-gray-800/20 transition-colors ${
@@ -174,7 +160,7 @@ export default function NotificationBell() {
                     <Link
                       href={notification.link}
                       onClick={() => {
-                        if (!notification.read) markAsRead(notification.id);
+                        if (!notification.read) handleMarkAsRead(notification.id);
                         setShowDropdown(false);
                       }}
                       className="block"
@@ -184,7 +170,7 @@ export default function NotificationBell() {
                   ) : (
                     <div
                       onClick={() => {
-                        if (!notification.read) markAsRead(notification.id);
+                        if (!notification.read) handleMarkAsRead(notification.id);
                       }}
                       className="cursor-pointer"
                     >

@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
-import { FiSend, FiRefreshCw, FiMessageSquare, FiHeart, FiMessageCircle, FiImage } from 'react-icons/fi';
+import { FiSend, FiRefreshCw, FiMessageSquare, FiHeart, FiMessageCircle, FiImage, FiWifi } from 'react-icons/fi';
 import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
 import PostModal from '../timeline/PostModal';
 import { getMentionQuery, insertMention, renderMentionText, type MentionUser } from '@/lib/utils/mentions';
+import { useRealtimeTimeline, useCreatePost, useLikePost } from '@/hooks/queries/useRealtimeTimeline';
 
 // Check if text contains mentions
 const hasMentions = (text: string): boolean => {
@@ -40,41 +41,29 @@ interface TimelinePost {
 
 const TimelineWidget = React.memo(function TimelineWidget() {
   const { data: session } = useSession();
-  const [posts, setPosts] = useState<TimelinePost[]>([]);
   const [content, setContent] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [isPosting, setIsPosting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [postError, setPostError] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<TimelinePost | null>(null);
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
+
+  // Use Realtime-enabled timeline hook
+  const {
+    posts,
+    isLoading,
+    error,
+    isUsingRealtime,
+    refresh: fetchPosts,
+  } = useRealtimeTimeline({ limit: 5, fallbackPollingInterval: 30000 });
+
+  // Mutations
+  const createPostMutation = useCreatePost();
+  const { toggleLike } = useLikePost();
 
   // @mentions state
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const [mentionSuggestions, setMentionSuggestions] = useState<MentionUser[]>([]);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  const fetchPosts = useCallback(async () => {
-    try {
-      setError(null);
-      const response = await fetch('/api/timeline?limit=5');
-      if (!response.ok) throw new Error('Failed to fetch posts');
-      
-      const data = await response.json();
-      setPosts(data.posts);
-    } catch (error) {
-      console.error('Error fetching posts:', error);
-      setError('Failed to load timeline');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchPosts();
-    const interval = setInterval(fetchPosts, 30000); // Update every 30 seconds
-    return () => clearInterval(interval);
-  }, [fetchPosts]);
 
   useEffect(() => {
     // Initialize liked posts
@@ -168,66 +157,39 @@ const TimelineWidget = React.memo(function TimelineWidget() {
 
   const handleLike = async (postId: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent opening modal
-    
+
     try {
       const isLiked = likedPosts.has(postId);
-      const method = isLiked ? 'DELETE' : 'POST';
-      const response = await fetch(`/api/timeline/${postId}/like`, { method });
-      
-      if (response.ok) {
-        const newLikedPosts = new Set(likedPosts);
-        if (isLiked) {
-          newLikedPosts.delete(postId);
-        } else {
-          newLikedPosts.add(postId);
-        }
-        setLikedPosts(newLikedPosts);
-        
-        // Update the post count locally
-        setPosts(posts.map(post => {
-          if (post.id === postId) {
-            return {
-              ...post,
-              _count: {
-                ...post._count,
-                likes: isLiked ? post._count.likes - 1 : post._count.likes + 1
-              }
-            };
-          }
-          return post;
-        }));
+
+      // Optimistic update
+      const newLikedPosts = new Set(likedPosts);
+      if (isLiked) {
+        newLikedPosts.delete(postId);
+      } else {
+        newLikedPosts.add(postId);
       }
+      setLikedPosts(newLikedPosts);
+
+      // Use the toggle like mutation
+      await toggleLike(postId, isLiked);
     } catch (error) {
       console.error('Error toggling like:', error);
+      // Revert on error
+      fetchPosts();
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim() || isPosting) return;
+    if (!content.trim() || createPostMutation.isPending) return;
 
-    setIsPosting(true);
-    setError(null);
+    setPostError(null);
 
     try {
-      const response = await fetch('/api/timeline', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to create post');
-      }
-
-      const newPost = await response.json();
-      setPosts([newPost, ...posts.slice(0, 4)]); // Keep only 5 posts
+      await createPostMutation.mutateAsync({ content });
       setContent('');
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to post');
-    } finally {
-      setIsPosting(false);
+    } catch (err) {
+      setPostError(err instanceof Error ? err.message : 'Failed to post');
     }
   };
 
@@ -239,6 +201,11 @@ const TimelineWidget = React.memo(function TimelineWidget() {
           <h3 className="text-lg font-medium tracking-wide flex items-center gap-2">
             <FiMessageSquare className="h-5 w-5" />
             Timeline
+            {isUsingRealtime && (
+              <span className="flex items-center gap-1 text-xs text-white/70" title="Real-time updates actief">
+                <FiWifi className="h-3 w-3" />
+              </span>
+            )}
           </h3>
           <button
             onClick={fetchPosts}
@@ -266,7 +233,7 @@ const TimelineWidget = React.memo(function TimelineWidget() {
                   placeholder="Wat houdt je bezig? (@ om te taggen)"
                   className="w-full px-4 py-3 border border-white/30 dark:border-gray-600/30 rounded-2xl bg-white/20 dark:bg-gray-800/20 backdrop-blur-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-300"
                   maxLength={280}
-                  disabled={isPosting}
+                  disabled={createPostMutation.isPending}
                 />
 
                 {/* Mention suggestions dropdown */}
@@ -309,10 +276,10 @@ const TimelineWidget = React.memo(function TimelineWidget() {
               </div>
               <button
                 type="submit"
-                disabled={!content.trim() || isPosting}
+                disabled={!content.trim() || createPostMutation.isPending}
                 className="w-12 h-12 flex items-center justify-center bg-gradient-to-r from-indigo-500/90 to-purple-500/90 hover:from-indigo-600/90 hover:to-purple-600/90 disabled:opacity-50 disabled:cursor-not-allowed rounded-2xl text-white backdrop-blur-sm border border-indigo-400/30 shadow-lg shadow-indigo-500/20 transition-all duration-300 hover:scale-105"
               >
-                <FiSend className="h-5 w-5" />
+                <FiSend className={`h-5 w-5 ${createPostMutation.isPending ? 'animate-pulse' : ''}`} />
               </button>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-500 mt-2 text-right">{content.length}/280</p>
@@ -339,9 +306,9 @@ const TimelineWidget = React.memo(function TimelineWidget() {
         </div>
 
         {/* Error message */}
-        {error && (
+        {(postError || error) && (
           <div className="mx-6 mt-4 bg-red-500/15 border border-red-400/30 text-red-600 dark:text-red-400 p-4 rounded-2xl backdrop-blur-sm">
-            {error}
+            {postError || error?.message || 'An error occurred'}
           </div>
         )}
 

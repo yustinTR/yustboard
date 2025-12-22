@@ -13,9 +13,10 @@ import {
   FiCheckCircle,
   FiBell,
   FiUserPlus,
-  FiMessageCircle
+  FiMessageCircle,
+  FiWifi
 } from 'react-icons/fi';
-import { useActivity } from '@/hooks/queries/useActivity';
+import { useRealtimeActivity } from '@/hooks/queries/useRealtimeActivity';
 import type { ActivityItem } from '@/app/api/activity/route';
 
 const activityIcons: Record<ActivityItem['type'], React.ReactNode> = {
@@ -75,7 +76,7 @@ function getActivityDescription(activity: ActivityItem): string | null {
 }
 
 const ActivityWidget = React.memo(function ActivityWidget() {
-  const { data: activities = [], isLoading, error, refetch } = useActivity(15);
+  const { activities, isLoading, error, isUsingRealtime, refresh: refetch } = useRealtimeActivity({ limit: 15, fallbackPollingInterval: 60000 });
 
   if (isLoading) {
     return (
@@ -146,6 +147,11 @@ const ActivityWidget = React.memo(function ActivityWidget() {
         <h3 className="text-lg font-medium tracking-wide flex items-center gap-2">
           <FiActivity className="h-5 w-5" />
           Activiteit
+          {isUsingRealtime && (
+            <span className="flex items-center gap-1 text-xs text-white/70" title="Real-time updates actief">
+              <FiWifi className="h-3 w-3" />
+            </span>
+          )}
         </h3>
         <button
           onClick={() => refetch()}
