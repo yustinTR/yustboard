@@ -8,6 +8,11 @@ import { FiHeart, FiMessageCircle, FiX, FiSend, FiFile, FiDownload, FiEdit3, FiT
 import { useSession } from 'next-auth/react';
 import { renderMentionText, getMentionQuery, insertMention, type MentionUser } from '@/lib/utils/mentions';
 
+// Check if text contains mentions
+const hasMentions = (text: string): boolean => {
+  return /@\[([^\]]+)\]\([^)]+\)/.test(text);
+};
+
 interface PostUser {
   id: string;
   name: string | null;
@@ -563,6 +568,25 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
                 <FiSend className={isSubmittingComment ? 'animate-pulse' : ''} />
               </button>
             </form>
+
+            {/* Mention preview */}
+            {hasMentions(newComment) && (
+              <div className="mb-4 p-3 bg-blue-50/50 dark:bg-blue-900/20 rounded-xl border border-blue-200/50 dark:border-blue-700/30">
+                <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">Preview:</p>
+                <p className="text-sm text-gray-800 dark:text-gray-200">
+                  {renderMentionText(newComment).map((part, index) => {
+                    if (part.type === 'mention') {
+                      return (
+                        <span key={index} className="font-semibold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40 px-1 rounded">
+                          @{part.content}
+                        </span>
+                      );
+                    }
+                    return <span key={index}>{part.content}</span>;
+                  })}
+                </p>
+              </div>
+            )}
 
             {/* Comments list */}
             {isLoadingComments ? (

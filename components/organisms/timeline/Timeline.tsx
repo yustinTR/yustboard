@@ -5,7 +5,12 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import PostWithInteractions from './PostWithInteractions';
 import { FiSend, FiRefreshCw, FiPaperclip, FiX, FiImage, FiFile, FiMessageSquare } from 'react-icons/fi';
-import { getMentionQuery, insertMention, type MentionUser } from '@/lib/utils/mentions';
+import { getMentionQuery, insertMention, renderMentionText, type MentionUser } from '@/lib/utils/mentions';
+
+// Check if content contains any mentions
+const hasMentions = (text: string): boolean => {
+  return /@\[([^\]]+)\]\([^)]+\)/.test(text);
+};
 
 interface TimelinePost {
   id: string;
@@ -316,6 +321,28 @@ export default function Timeline() {
                 </div>
               )}
             </div>
+
+            {/* Mention preview - shows how mentions will look */}
+            {hasMentions(content) && (
+              <div className="mt-3 p-3 bg-blue-50/50 dark:bg-blue-900/20 rounded-xl border border-blue-200/50 dark:border-blue-700/30">
+                <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">Preview:</p>
+                <p className="text-sm text-gray-800 dark:text-gray-200">
+                  {renderMentionText(content).map((part, index) => {
+                    if (part.type === 'mention') {
+                      return (
+                        <span
+                          key={index}
+                          className="font-semibold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40 px-1 rounded"
+                        >
+                          @{part.content}
+                        </span>
+                      );
+                    }
+                    return <span key={index}>{part.content}</span>;
+                  })}
+                </p>
+              </div>
+            )}
 
             {/* Attachments preview */}
             {attachments.length > 0 && (

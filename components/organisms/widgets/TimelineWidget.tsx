@@ -8,6 +8,11 @@ import Image from 'next/image';
 import PostModal from '../timeline/PostModal';
 import { getMentionQuery, insertMention, renderMentionText, type MentionUser } from '@/lib/utils/mentions';
 
+// Check if text contains mentions
+const hasMentions = (text: string): boolean => {
+  return /@\[([^\]]+)\]\([^)]+\)/.test(text);
+};
+
 interface TimelinePost {
   id: string;
   content: string;
@@ -311,6 +316,25 @@ const TimelineWidget = React.memo(function TimelineWidget() {
               </button>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-500 mt-2 text-right">{content.length}/280</p>
+
+            {/* Mention preview */}
+            {hasMentions(content) && (
+              <div className="mt-3 p-3 bg-indigo-50/50 dark:bg-indigo-900/20 rounded-xl border border-indigo-200/50 dark:border-indigo-700/30">
+                <p className="text-xs text-indigo-600 dark:text-indigo-400 font-medium mb-1">Preview:</p>
+                <p className="text-sm text-gray-800 dark:text-gray-200">
+                  {renderMentionText(content).map((part, index) => {
+                    if (part.type === 'mention') {
+                      return (
+                        <span key={index} className="font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/40 px-1 rounded">
+                          @{part.content}
+                        </span>
+                      );
+                    }
+                    return <span key={index}>{part.content}</span>;
+                  })}
+                </p>
+              </div>
+            )}
           </form>
         </div>
 
