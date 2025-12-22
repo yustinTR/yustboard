@@ -102,4 +102,10 @@ export const queryKeys = {
     list: (params?: { published?: boolean }) => ['announcements', 'list', params] as const,
     announcement: (id: string) => ['announcements', 'announcement', id] as const,
   },
+
+  // Activity feed
+  activity: {
+    all: ['activity'] as const,
+    feed: (limit?: number) => ['activity', 'feed', { limit }] as const,
+  },
 };

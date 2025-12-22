@@ -19,6 +19,7 @@ export async function GET() {
     // Define all available widgets
     const allWidgets = [
       { id: 'timeline', name: 'Timeline', description: 'Sociale tijdlijn met posts' },
+      { id: 'activity', name: 'Activiteit', description: 'Team activiteiten feed' },
       { id: 'tasks', name: 'Taken', description: 'Team taken en to-dos' },
       { id: 'calendar', name: 'Agenda', description: 'Google Calendar evenementen' },
       { id: 'banking', name: 'Banking', description: 'Financiële transacties' },
