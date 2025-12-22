@@ -2,6 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from '@/lib/auth/server';
 import prisma from '@/lib/database/prisma';
 
+/**
+ * Strip mention syntax from text for preview
+ * Converts @[name](id) to @name
+ */
+function stripMentionSyntax(text: string): string {
+  return text.replace(/@\[([^\]]+)\]\([^)]+\)/g, '@$1');
+}
+
+/**
+ * Create a clean preview of post content
+ */
+function createPreview(content: string, maxLength: number): string {
+  const cleaned = stripMentionSyntax(content);
+  return cleaned.substring(0, maxLength) + (cleaned.length > maxLength ? '...' : '');
+}
+
 export interface ActivityItem {
   id: string;
   type: 'post' | 'comment' | 'like' | 'task_completed' | 'member_joined' | 'announcement';
@@ -151,7 +167,7 @@ export async function GET(request: NextRequest) {
         user: post.user,
         metadata: {
           postId: post.id,
-          postContent: post.content.substring(0, 100) + (post.content.length > 100 ? '...' : '')
+          postContent: createPreview(post.content, 100)
         },
         createdAt: post.createdAt.toISOString()
       });
@@ -166,7 +182,7 @@ export async function GET(request: NextRequest) {
         user: comment.user,
         metadata: {
           postId: comment.post.id,
-          postContent: comment.post.content.substring(0, 50) + (comment.post.content.length > 50 ? '...' : '')
+          postContent: createPreview(comment.post.content, 50)
         },
         createdAt: comment.createdAt.toISOString()
       });
@@ -181,7 +197,7 @@ export async function GET(request: NextRequest) {
         user: like.user,
         metadata: {
           postId: like.post.id,
-          postContent: like.post.content.substring(0, 50) + (like.post.content.length > 50 ? '...' : '')
+          postContent: createPreview(like.post.content, 50)
         },
         createdAt: like.createdAt.toISOString()
       });

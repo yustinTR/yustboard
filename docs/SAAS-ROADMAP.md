@@ -688,7 +688,7 @@ Aanbevolen volgorde voor Phase 2 (vervolg):
    - [ ] Real-time collaborative editing
    - [x] Comments op timeline posts (fully implemented with React Query)
    - [x] @mentions in comments (autocomplete, parsing, styling, notifications)
-   - [ ] Activity feed voor team acties
+   - [x] Activity feed voor team acties (ActivityWidget met aggregatie van posts, comments, likes, tasks, announcements, members)
    - [ ] Shared widgets configuratie
 
 3. **Admin Dashboard Enhancements** - Week 9
