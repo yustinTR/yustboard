@@ -696,7 +696,11 @@ Aanbevolen volgorde voor Phase 2 (vervolg):
      - [x] Agenda widget en pagina werken zonder Google koppeling
      - [x] Auteur/Admin kan events bewerken/verwijderen
      - [x] Google events read-only met source indicator
-   - [ ] Shared widgets configuratie
+   - [x] **Shared widgets configuratie** (22 December 2025)
+     - [x] Admin kan widget layout opslaan als team standaard
+     - [x] Team leden kunnen resetten naar team standaard
+     - [x] Nieuwe users krijgen automatisch team defaults
+     - [x] OrganizationWidgetDefault database model
 
 3. **Admin Dashboard Enhancements** - Week 9
    - [ ] Organization analytics dashboard

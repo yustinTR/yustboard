@@ -662,7 +662,9 @@ const HeavyComponent = dynamic(
      - [x] `/api/calendar/events` CRUD routes met RBAC
      - [x] Merged view: lokale events + Google Calendar (indien gekoppeld)
      - [x] Agenda widget en pagina werken zonder Google koppeling
-   - [ ] Shared widgets configuratie
+   - [x] **Shared widgets configuratie** (22 December 2025)
+     - [x] Admin kan widget layout opslaan als team standaard
+     - [x] Team leden kunnen resetten naar team standaard
 
 2. **Admin Dashboard Enhancements** (Week 8-9)
    - [ ] Organization analytics dashboard
