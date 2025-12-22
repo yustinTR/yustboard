@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from '@/lib/auth/server';
 import prisma from '@/lib/database/prisma';
+import { extractMentions } from '@/lib/utils/mentions';
+import { createNotification } from '@/lib/notifications/create';
 
 export async function GET(
   request: NextRequest,
@@ -87,6 +89,38 @@ export async function POST(
         },
       },
     });
+
+    // Extract mentions and send notifications
+    const mentions = extractMentions(content);
+    console.log('Extracted mentions from comment:', mentions);
+
+    if (mentions.length > 0) {
+      const commenterName = session.user.name || session.user.email?.split('@')[0] || 'Iemand';
+
+      // Get user's organization for the notification
+      const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { organizationId: true }
+      });
+
+      // Send notification to each mentioned user (except self)
+      for (const mention of mentions) {
+        console.log('Processing mention:', mention, 'Current user:', session.user.id);
+        if (mention.userId !== session.user.id) {
+          const result = await createNotification({
+            userId: mention.userId,
+            organizationId: user?.organizationId || undefined,
+            type: 'COMMENT_MENTION',
+            title: 'Je bent genoemd in een reactie',
+            message: `${commenterName} heeft je genoemd in een reactie`,
+            link: `/dashboard/timeline?post=${postId}`,
+          });
+          console.log('Notification creation result:', result);
+        } else {
+          console.log('Skipping self-mention');
+        }
+      }
+    }
 
     return NextResponse.json(comment, { status: 201 });
   } catch (error) {

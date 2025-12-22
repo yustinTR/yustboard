@@ -1,29 +1,32 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   FiStar, FiRefreshCw,
   FiPaperclip, FiSearch
 } from 'react-icons/fi';
-import { useSession } from 'next-auth/react';
 import { EmailMessage } from '@/utils/google/google-gmail';
 import dynamic from 'next/dynamic';
+import { useGmail } from '@/hooks/queries/useGmail';
 
 const EmailModal = dynamic(() => import('./EmailModal'), { ssr: false });
 
 interface GmailWidgetProps {
-  initialEmails?: EmailMessage[];
   maxEmails?: number;
 }
 
-const GmailWidget = React.memo(function GmailWidget({ initialEmails = [], maxEmails = 5 }: GmailWidgetProps) {
-  const { data: session } = useSession();
-  const [emails, setEmails] = useState<EmailMessage[]>(initialEmails);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+const GmailWidget = React.memo(function GmailWidget({ maxEmails = 5 }: GmailWidgetProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+
+  // Use React Query hook
+  const { data, isLoading, error, refetch } = useGmail({
+    max: maxEmails,
+    query: searchQuery || 'in:inbox'
+  });
+
+  const emails = data?.messages || [];
 
   useEffect(() => {
     setIsMounted(true);
@@ -67,107 +70,11 @@ const GmailWidget = React.memo(function GmailWidget({ initialEmails = [], maxEma
     setSelectedEmailId(emailId);
   };
 
-  // Fetch emails from Gmail
-  const fetchGmailEmails = useCallback(async () => {
-    setIsLoading(true);
-    setError('');
-    
-    try {
-      // Build the query string
-      let queryParams = `max=${maxEmails}`;
-      if (searchQuery) {
-        queryParams += `&query=${encodeURIComponent(searchQuery)}`;
-      }
-      
-      // Use the API route to fetch emails
-      const response = await fetch(`/api/gmail?${queryParams}`);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch emails: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      
-      if (data.error) {
-        throw new Error(data.error);
-      }
-      
-      // Process emails to ensure dates are properly handled
-      const processedEmails = (data.emails || []).map((email: EmailMessage) => ({
-        ...email,
-        // Ensure date is a Date object if it's a string
-        date: typeof email.date === 'string' ? new Date(email.date) : email.date
-      }));
-      
-      setEmails(processedEmails);
-    } catch (error) {
-      console.error('Error fetching emails:', error);
-      setError('Failed to load emails. Please try again.');
-      
-      // Fallback to mock data for development/testing
-      if (process.env.NODE_ENV === 'development') {
-        const mockEmails: EmailMessage[] = [
-          {
-            id: 'email1',
-            threadId: 'thread1',
-            from: { name: 'John Doe', email: 'john@example.com' },
-            to: ['you@example.com'],
-            subject: 'Project Update: Dashboard Development',
-            snippet: 'Hey, I wanted to check in on the dashboard project. We need to finalize the design by...',
-            date: new Date(Date.now() - 3600000), // 1 hour ago
-            isRead: false,
-            isStarred: true,
-            hasAttachments: true,
-            labels: ['INBOX', 'UNREAD', 'STARRED'],
-            sizeEstimate: 15420
-          },
-          {
-            id: 'email2',
-            threadId: 'thread2',
-            from: { name: 'Team Notifications', email: 'notifications@example.com' },
-            to: ['you@example.com'],
-            subject: 'Your weekly summary report',
-            snippet: 'Here is your weekly activity report. Your team completed 87% of the assigned tasks...',
-            date: new Date(Date.now() - 86400000), // 1 day ago
-            isRead: true,
-            isStarred: false,
-            hasAttachments: false,
-            labels: ['INBOX', 'CATEGORY_UPDATES'],
-            sizeEstimate: 8250
-          },
-          {
-            id: 'email3',
-            threadId: 'thread3',
-            from: { name: 'Sarah Johnson', email: 'sarah@example.com' },
-            to: ['you@example.com', 'team@example.com'],
-            subject: 'Meeting notes - Product roadmap',
-            snippet: 'Hi everyone, Attached are the notes from our product roadmap meeting yesterday...',
-            date: new Date(Date.now() - 86400000 * 2), // 2 days ago
-            isRead: true,
-            isStarred: false,
-            hasAttachments: true,
-            labels: ['INBOX'],
-            sizeEstimate: 24680
-          }
-        ];
-        setEmails(mockEmails);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  }, [maxEmails, searchQuery]);
-
   // Handle search
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchGmailEmails();
+    refetch();
   };
-
-  useEffect(() => {
-    if (session?.accessToken && emails.length === 0) {
-      fetchGmailEmails();
-    }
-  }, [session?.accessToken, emails.length, fetchGmailEmails]);
 
   return (
     <div className="backdrop-blur-xl bg-white/15 dark:bg-gray-900/15 border border-white/25 dark:border-gray-700/25 rounded-3xl shadow-2xl shadow-black/20 overflow-hidden">
@@ -175,7 +82,7 @@ const GmailWidget = React.memo(function GmailWidget({ initialEmails = [], maxEma
       <div className="px-6 py-4 bg-gradient-to-r from-red-500/90 to-pink-500/90 backdrop-blur-sm text-white flex justify-between items-center">
         <h3 className="text-lg font-medium tracking-wide">Gmail</h3>
         <button
-          onClick={fetchGmailEmails}
+          onClick={() => refetch()}
           disabled={isLoading}
           className="text-white/90 hover:text-white hover:bg-white/20 p-2 rounded-full transition-all duration-300 disabled:opacity-50 cursor-pointer hover:scale-105"
           aria-label="Refresh emails"
@@ -202,10 +109,10 @@ const GmailWidget = React.memo(function GmailWidget({ initialEmails = [], maxEma
 
       {/* Content Area */}
       <div className="px-6 pb-4 bg-white/5 dark:bg-gray-900/5 backdrop-blur-sm">
-        
+
         {error && (
           <div className="bg-red-500/15 border border-red-400/30 text-red-600 dark:text-red-400 p-4 rounded-2xl mb-4 backdrop-blur-sm">
-            {error}
+            {error.message || 'Failed to load emails'}
           </div>
         )}
 

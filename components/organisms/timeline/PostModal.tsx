@@ -1,11 +1,17 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
 import { FiHeart, FiMessageCircle, FiX, FiSend, FiFile, FiDownload, FiEdit3, FiTrash2, FiMoreHorizontal } from 'react-icons/fi';
 import { useSession } from 'next-auth/react';
+import { renderMentionText, getMentionQuery, insertMention, type MentionUser } from '@/lib/utils/mentions';
+
+// Check if text contains mentions
+const hasMentions = (text: string): boolean => {
+  return /@\[([^\]]+)\]\([^)]+\)/.test(text);
+};
 
 interface PostUser {
   id: string;
@@ -70,6 +76,12 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
   const [isDeleting, setIsDeleting] = useState(false);
   const [showActions, setShowActions] = useState(false);
 
+  // @mentions state for comments
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+  const [mentionSuggestions, setMentionSuggestions] = useState<MentionUser[]>([]);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
+  const commentInputRef = useRef<HTMLInputElement>(null);
+
   const loadComments = useCallback(async () => {
     setIsLoadingComments(true);
     try {
@@ -120,6 +132,85 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
       };
     }
   }, [showActions]);
+
+  // Fetch mention suggestions when typing @
+  useEffect(() => {
+    if (!mentionQuery) {
+      setMentionSuggestions([]);
+      setSelectedSuggestionIndex(0);
+      return;
+    }
+
+    const fetchMentions = async () => {
+      try {
+        const response = await fetch(`/api/organization/members?q=${encodeURIComponent(mentionQuery)}`);
+        if (response.ok) {
+          const data = await response.json();
+          setMentionSuggestions(data.members || []);
+          setSelectedSuggestionIndex(0);
+        }
+      } catch (error) {
+        console.error('Error fetching mentions:', error);
+      }
+    };
+
+    fetchMentions();
+  }, [mentionQuery]);
+
+  const handleCommentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const cursorPosition = e.target.selectionStart || 0;
+
+    setNewComment(value);
+
+    // Check if we're in a mention context
+    const query = getMentionQuery(value, cursorPosition);
+    setMentionQuery(query);
+  };
+
+  const handleCommentKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Handle mention suggestions navigation
+    if (mentionSuggestions.length > 0 && mentionQuery !== null) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedSuggestionIndex((prev) =>
+          prev < mentionSuggestions.length - 1 ? prev + 1 : prev
+        );
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedSuggestionIndex((prev) => (prev > 0 ? prev - 1 : 0));
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        selectMention(mentionSuggestions[selectedSuggestionIndex]);
+      } else if (e.key === 'Escape') {
+        setMentionQuery(null);
+        setMentionSuggestions([]);
+      }
+    }
+  };
+
+  const selectMention = (user: MentionUser) => {
+    if (!commentInputRef.current) return;
+
+    const cursorPosition = commentInputRef.current.selectionStart || 0;
+    const { newText, newCursorPosition } = insertMention(newComment, cursorPosition, {
+      name: user.name || user.email.split('@')[0],
+      id: user.id,
+    });
+
+    setNewComment(newText);
+    setMentionQuery(null);
+    setMentionSuggestions([]);
+
+    // Restore cursor position
+    setTimeout(() => {
+      if (commentInputRef.current) {
+        commentInputRef.current.selectionStart = newCursorPosition;
+        commentInputRef.current.selectionEnd = newCursorPosition;
+        commentInputRef.current.focus();
+      }
+    }, 0);
+  };
 
   const handleLike = async () => {
     try {
@@ -230,7 +321,7 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 pt-20 animate-in fade-in duration-200">
       <div className="backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 rounded-3xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl shadow-black/20 border border-white/25 dark:border-gray-700/25 animate-in slide-in-from-bottom-4 duration-300">
         {/* Header */}
-        <div className="relative p-6 border-b border-white/20 dark:border-gray-700/30 bg-gradient-to-r from-indigo-500/80 to-indigo-600/80 backdrop-blur-sm text-white rounded-t-3xl">
+        <div className="relative z-[2] p-6 border-b border-white/20 dark:border-gray-700/30 bg-gradient-to-r from-indigo-500/80 to-indigo-600/80 backdrop-blur-sm text-white rounded-t-3xl">
           <div className="flex items-center space-x-4">
             {post.user.image ? (
               <Image
@@ -258,19 +349,19 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
           </div>
           
           {/* Action buttons */}
-          <div className="absolute top-6 right-16 flex items-center space-x-2">
+          <div className="absolute top-6 right-6 flex items-center space-x-3">
             {canEdit && (
               <div className="relative">
                 <button
                   data-actions-button
                   onClick={() => setShowActions(!showActions)}
-                  className="p-2 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-xl transition-all duration-300 hover:scale-105 group"
+                  className="p-2.5 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-xl transition-all duration-300 hover:scale-105 group"
                 >
                   <FiMoreHorizontal className="w-5 h-5 text-white/80 group-hover:text-white" />
                 </button>
-                
+
                 {showActions && (
-                  <div data-actions-menu className="absolute right-0 top-12 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 py-2 min-w-[140px] z-10">
+                  <div data-actions-menu className="absolute right-0 top-12 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 py-2 min-w-[140px]">
                     <button
                       onClick={() => {
                         setIsEditing(true);
@@ -294,14 +385,14 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
                 )}
               </div>
             )}
+
+            <button
+              onClick={onClose}
+              className="p-2.5 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-xl transition-all duration-300 hover:scale-105 group"
+            >
+              <FiX className="w-5 h-5 text-white/80 group-hover:text-white" />
+            </button>
           </div>
-          
-          <button
-            onClick={onClose}
-            className="absolute top-6 right-6 p-2 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-xl transition-all duration-300 hover:scale-105 group"
-          >
-            <FiX className="w-6 h-6 text-white/80 group-hover:text-white" />
-          </button>
         </div>
 
         {/* Content */}
@@ -337,7 +428,19 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
             </div>
           ) : (
             <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words mb-4">
-              {post.content}
+              {renderMentionText(post.content).map((part, index) => {
+                if (part.type === 'mention') {
+                  return (
+                    <span
+                      key={index}
+                      className="font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-1 rounded"
+                    >
+                      @{part.content}
+                    </span>
+                  );
+                }
+                return <span key={index}>{part.content}</span>;
+              })}
             </p>
           )}
 
@@ -407,14 +510,56 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
             
             {/* Comment form */}
             <form onSubmit={handleSubmitComment} className="flex space-x-3 mb-6">
-              <input
-                type="text"
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Write a comment..."
-                className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-all"
-                disabled={isSubmittingComment}
-              />
+              <div className="flex-1 relative">
+                <input
+                  ref={commentInputRef}
+                  type="text"
+                  value={newComment}
+                  onChange={handleCommentChange}
+                  onKeyDown={handleCommentKeyDown}
+                  placeholder="Write a comment... (@ to tag)"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-all"
+                  disabled={isSubmittingComment}
+                />
+
+                {/* Mention suggestions dropdown */}
+                {mentionSuggestions.length > 0 && mentionQuery !== null && (
+                  <div className="absolute z-[10001] w-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 max-h-48 overflow-y-auto">
+                    {mentionSuggestions.map((user, index) => (
+                      <button
+                        key={user.id}
+                        type="button"
+                        onClick={() => selectMention(user)}
+                        className={`w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                          index === selectedSuggestionIndex ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                        }`}
+                      >
+                        {user.image ? (
+                          <Image
+                            src={user.image}
+                            alt={user.name || 'User'}
+                            width={24}
+                            height={24}
+                            className="rounded-full"
+                          />
+                        ) : (
+                          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-xs font-medium">
+                            {(user.name || user.email)[0].toUpperCase()}
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                            {user.name || user.email.split('@')[0]}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            {user.email}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               <button
                 type="submit"
                 disabled={!newComment.trim() || isSubmittingComment}
@@ -423,6 +568,25 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
                 <FiSend className={isSubmittingComment ? 'animate-pulse' : ''} />
               </button>
             </form>
+
+            {/* Mention preview */}
+            {hasMentions(newComment) && (
+              <div className="mb-4 p-3 bg-blue-50/50 dark:bg-blue-900/20 rounded-xl border border-blue-200/50 dark:border-blue-700/30">
+                <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">Preview:</p>
+                <p className="text-sm text-gray-800 dark:text-gray-200">
+                  {renderMentionText(newComment).map((part, index) => {
+                    if (part.type === 'mention') {
+                      return (
+                        <span key={index} className="font-semibold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40 px-1 rounded">
+                          @{part.content}
+                        </span>
+                      );
+                    }
+                    return <span key={index}>{part.content}</span>;
+                  })}
+                </p>
+              </div>
+            )}
 
             {/* Comments list */}
             {isLoadingComments ? (
@@ -466,7 +630,21 @@ export default function PostModal({ post, isOpen, onClose, onUpdate }: PostModal
                         <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">
                           {comment.user.name || comment.user.email?.split('@')[0] || 'Anonymous'}
                         </p>
-                        <p className="text-sm text-gray-700 dark:text-gray-300">{comment.content}</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                          {renderMentionText(comment.content).map((part, index) => {
+                            if (part.type === 'mention') {
+                              return (
+                                <span
+                                  key={index}
+                                  className="font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-1 rounded"
+                                >
+                                  @{part.content}
+                                </span>
+                              );
+                            }
+                            return <span key={index}>{part.content}</span>;
+                          })}
+                        </p>
                       </div>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 ml-4">
                         {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}

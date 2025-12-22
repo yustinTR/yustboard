@@ -15,12 +15,17 @@ export const supabaseAdmin = supabaseUrl && supabaseServiceRoleKey
     })
   : null;
 
-// Create public client only if we have the required environment variables
+// Create public client with Realtime support
 export const supabase = supabaseUrl && supabaseAnonKey
   ? createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
         autoRefreshToken: true,
         persistSession: true
-      }
+      },
+      realtime: {
+        params: {
+          eventsPerSecond: 10, // Rate limiting to prevent overwhelming
+        },
+      },
     })
   : null;

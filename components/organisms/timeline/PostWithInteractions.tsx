@@ -7,6 +7,7 @@ import { FiHeart, FiMessageCircle, FiFile, FiDownload, FiX, FiMoreHorizontal, Fi
 import { useSession } from 'next-auth/react';
 import { CommentInput } from '@/components/timeline/CommentInput';
 import { CommentList } from '@/components/timeline/CommentList';
+import { renderMentionText } from '@/lib/utils/mentions';
 
 interface PostUser {
   id: string;
@@ -199,7 +200,7 @@ export default function PostWithInteractions({ post, onUpdate }: PostProps) {
                     <FiMoreHorizontal className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                   </button>
                   {showActions && (
-                    <div data-actions-menu className="absolute right-0 top-8 backdrop-blur-md bg-white/90 dark:bg-gray-800/90 rounded-xl shadow-lg border border-white/20 dark:border-gray-700/30 py-2 min-w-[120px] z-10">
+                    <div data-actions-menu className="absolute right-0 top-8 backdrop-blur-md bg-white/90 dark:bg-gray-800/90 rounded-xl shadow-lg border border-white/20 dark:border-gray-700/30 py-2 min-w-[120px] z-50">
                       <button
                         onClick={() => {
                           setIsEditing(true);
@@ -257,7 +258,19 @@ export default function PostWithInteractions({ post, onUpdate }: PostProps) {
             </div>
           ) : (
             <p className="mt-3 text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words leading-relaxed">
-              {post.content}
+              {renderMentionText(post.content).map((part, index) => {
+                if (part.type === 'mention') {
+                  return (
+                    <span
+                      key={index}
+                      className="font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-1 rounded"
+                    >
+                      @{part.content}
+                    </span>
+                  );
+                }
+                return <span key={index}>{part.content}</span>;
+              })}
             </p>
           )}
 

@@ -65,6 +65,10 @@ export async function GET() {
     return NextResponse.json({
       organizations,
       current: user.organization
+    }, {
+      headers: {
+        'Cache-Control': 'private, max-age=180, stale-while-revalidate=360'
+      }
     })
   } catch (error) {
     console.error('Error fetching user organizations:', error)

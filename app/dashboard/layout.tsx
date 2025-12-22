@@ -7,6 +7,7 @@ import Sidebar from '@/components/organisms/Sidebar';
 import Header from '@/components/organisms/Header';
 import { SidebarProvider } from '@/contexts/SidebarContext';
 import { BrandingProvider } from '@/contexts/BrandingContext';
+import { RealtimeProvider } from '@/contexts/RealtimeContext';
 import { pollingManager } from '@/lib/api/polling-manager';
 import { OnboardingCheck } from '@/components/providers/OnboardingCheck';
 
@@ -115,8 +116,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <OnboardingCheck>
-      <BrandingProvider>
-        <SidebarProvider>
+      <RealtimeProvider fallbackToPolling={true}>
+        <BrandingProvider>
+          <SidebarProvider>
           <div className="flex h-screen bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-pink-50/50 dark:from-gray-900/50 dark:via-gray-800/30 dark:to-gray-900/50 backdrop-blur-3xl overflow-hidden">
             {/* Mobile sidebar backdrop */}
             {isSidebarOpen && (
@@ -138,8 +140,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </main>
             </div>
           </div>
-        </SidebarProvider>
-      </BrandingProvider>
+          </SidebarProvider>
+        </BrandingProvider>
+      </RealtimeProvider>
     </OnboardingCheck>
   );
 }

@@ -169,7 +169,10 @@ export default function AnnouncementsPage() {
                 announcements.map((announcement) => (
                   <tr key={announcement.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4">
-                      <div className="flex items-center">
+                      <Link
+                        href={`/dashboard/announcements/${announcement.id}`}
+                        className="flex items-center hover:opacity-80 transition-opacity"
+                      >
                         {announcement.coverImage && (
                           <Image
                             src={announcement.coverImage}
@@ -180,10 +183,10 @@ export default function AnnouncementsPage() {
                             unoptimized={true}
                           />
                         )}
-                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100 hover:text-purple-600 dark:hover:text-purple-400">
                           {announcement.title}
                         </div>
-                      </div>
+                      </Link>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900 dark:text-gray-100">

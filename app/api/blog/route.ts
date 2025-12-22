@@ -70,6 +70,10 @@ export async function GET(request: NextRequest) {
         limit,
         totalPages: Math.ceil(total / limit)
       }
+    }, {
+      headers: {
+        'Cache-Control': 'private, max-age=300, stale-while-revalidate=600'
+      }
     });
   } catch (error) {
     console.error('Error fetching blog posts:', error);

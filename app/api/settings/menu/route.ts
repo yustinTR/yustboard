@@ -42,10 +42,18 @@ export async function GET() {
         { id: 'settings', label: 'Instellingen', path: '/dashboard/settings', icon: 'Settings', enabled: true, position: 11 }
       ]
 
-      return NextResponse.json({ menuItems: defaultMenuItems })
+      return NextResponse.json({ menuItems: defaultMenuItems }, {
+        headers: {
+          'Cache-Control': 'private, max-age=300, stale-while-revalidate=600'
+        }
+      })
     }
 
-    return NextResponse.json({ menuItems: menuSettings })
+    return NextResponse.json({ menuItems: menuSettings }, {
+      headers: {
+        'Cache-Control': 'private, max-age=300, stale-while-revalidate=600'
+      }
+    })
   } catch (error) {
     console.error('Error fetching menu settings:', error)
     return NextResponse.json(

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from '@/lib/auth/server';
 import prisma from '@/lib/database/prisma';
+import { extractMentions } from '@/lib/utils/mentions';
+import { createNotification } from '@/lib/notifications/create';
 
 export async function GET(request: NextRequest) {
   try {
@@ -144,6 +146,32 @@ export async function POST(request: NextRequest) {
         media: true,
       },
     });
+
+    // Extract mentions and send notifications
+    const mentions = extractMentions(content);
+    console.log('Extracted mentions from post:', mentions);
+
+    if (mentions.length > 0) {
+      const posterName = session.user.name || session.user.email?.split('@')[0] || 'Iemand';
+
+      // Send notification to each mentioned user (except self)
+      for (const mention of mentions) {
+        console.log('Processing mention:', mention, 'Current user:', session.user.id);
+        if (mention.userId !== session.user.id) {
+          const result = await createNotification({
+            userId: mention.userId,
+            organizationId: user.organizationId,
+            type: 'COMMENT_MENTION',
+            title: 'Je bent genoemd in een post',
+            message: `${posterName} heeft je genoemd in een tijdlijn post`,
+            link: `/dashboard/timeline?post=${post.id}`,
+          });
+          console.log('Notification creation result:', result);
+        } else {
+          console.log('Skipping self-mention');
+        }
+      }
+    }
 
     return NextResponse.json(post);
   } catch (error) {

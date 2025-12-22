@@ -1,4 +1,5 @@
 import { QueryClient } from '@tanstack/react-query';
+import { REALTIME_TABLES, type RealtimeTable } from '@/lib/realtime/supabase-realtime';
 
 // Create a client with optimized defaults for dashboard widgets
 export const queryClient = new QueryClient({
@@ -102,4 +103,57 @@ export const queryKeys = {
     list: (params?: { published?: boolean }) => ['announcements', 'list', params] as const,
     announcement: (id: string) => ['announcements', 'announcement', id] as const,
   },
+
+  // Activity feed
+  activity: {
+    all: ['activity'] as const,
+    feed: (limit?: number) => ['activity', 'feed', { limit }] as const,
+  },
+
+  // Notifications
+  notifications: {
+    all: ['notifications'] as const,
+    list: (limit?: number) => ['notifications', 'list', { limit }] as const,
+  },
+
+  // Realtime status
+  realtime: {
+    status: () => ['realtime', 'status'] as const,
+    channel: (name: string) => ['realtime', 'channel', name] as const,
+  },
 };
+
+/**
+ * Invalidate queries related to a Realtime table change
+ */
+export function invalidateRelatedQueries(
+  client: QueryClient,
+  table: RealtimeTable
+): void {
+  const invalidations: Record<RealtimeTable, (() => void)[]> = {
+    [REALTIME_TABLES.POST]: [
+      () => client.invalidateQueries({ queryKey: queryKeys.timeline.posts() }),
+      () => client.invalidateQueries({ queryKey: queryKeys.activity.all }),
+    ],
+    [REALTIME_TABLES.POST_COMMENT]: [
+      () => client.invalidateQueries({ queryKey: queryKeys.timeline.all }),
+      () => client.invalidateQueries({ queryKey: queryKeys.activity.all }),
+    ],
+    [REALTIME_TABLES.POST_LIKE]: [
+      () => client.invalidateQueries({ queryKey: queryKeys.timeline.posts() }),
+      () => client.invalidateQueries({ queryKey: queryKeys.activity.all }),
+    ],
+    [REALTIME_TABLES.NOTIFICATION]: [
+      () => client.invalidateQueries({ queryKey: queryKeys.notifications.all }),
+    ],
+    [REALTIME_TABLES.TASK]: [
+      () => client.invalidateQueries({ queryKey: queryKeys.tasks.all }),
+      () => client.invalidateQueries({ queryKey: queryKeys.activity.all }),
+    ],
+  };
+
+  const actions = invalidations[table];
+  if (actions) {
+    actions.forEach(action => action());
+  }
+}
