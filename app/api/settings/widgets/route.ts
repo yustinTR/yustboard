@@ -7,7 +7,7 @@ const allWidgets = [
   { id: 'timeline', name: 'Timeline', description: 'Sociale tijdlijn met posts', requiresGoogle: false },
   { id: 'activity', name: 'Activiteit', description: 'Team activiteiten feed', requiresGoogle: false },
   { id: 'tasks', name: 'Taken', description: 'Team taken en to-dos', requiresGoogle: false },
-  { id: 'calendar', name: 'Agenda', description: 'Google Calendar evenementen', requiresGoogle: true },
+  { id: 'calendar', name: 'Agenda', description: 'Team agenda en evenementen', requiresGoogle: false },
   { id: 'banking', name: 'Banking', description: 'Financiële transacties', requiresGoogle: false },
   { id: 'gmail', name: 'Gmail', description: 'Recente emails', requiresGoogle: true },
   { id: 'files', name: 'Bestanden', description: 'Google Drive bestanden', requiresGoogle: true },

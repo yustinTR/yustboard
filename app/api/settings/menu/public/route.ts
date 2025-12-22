@@ -7,7 +7,7 @@ const allMenuItems = [
   { id: 'dashboard', label: 'Dashboard', path: '/dashboard', icon: 'Home', requiresGoogle: false },
   { id: 'timeline', label: 'Timeline', path: '/dashboard/timeline', icon: 'MessageSquare', requiresGoogle: false },
   { id: 'mail', label: 'Mail', path: '/dashboard/mail', icon: 'Mail', requiresGoogle: true },
-  { id: 'agenda', label: 'Agenda', path: '/dashboard/agenda', icon: 'Calendar', requiresGoogle: true },
+  { id: 'agenda', label: 'Agenda', path: '/dashboard/agenda', icon: 'Calendar', requiresGoogle: false },
   { id: 'banking', label: 'Banking', path: '/dashboard/banking', icon: 'DollarSign', requiresGoogle: false },
   { id: 'blog', label: 'Blog', path: '/dashboard/blog', icon: 'FileText', requiresGoogle: false },
   { id: 'news', label: 'Nieuws', path: '/dashboard/news', icon: 'Globe', requiresGoogle: false },

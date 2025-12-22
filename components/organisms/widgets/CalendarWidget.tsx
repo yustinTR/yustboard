@@ -3,17 +3,23 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { FiCalendar, FiClock, FiRefreshCw } from 'react-icons/fi';
+import { FiCalendar, FiClock, FiRefreshCw, FiUser } from 'react-icons/fi';
+import { FcGoogle } from 'react-icons/fc';
 import { format, startOfDay, addDays, endOfDay } from 'date-fns';
-import { Task } from '@/utils/google/google-calendar';
 import dynamic from 'next/dynamic';
-import { useCalendar } from '@/hooks/queries/useCalendar';
+import { useCalendar, CalendarEvent } from '@/hooks/queries/useCalendar';
 
 const EventModal = dynamic(() => import('./EventModal'), { ssr: false });
 
+// Internal event format with Date objects
+interface CalendarEventUI extends Omit<CalendarEvent, 'startDate' | 'endDate'> {
+  date: Date;
+  endDate?: Date;
+}
+
 const CalendarWidget = React.memo(function CalendarWidget() {
-  const { data: session, status } = useSession();
-  const [selectedEvent, setSelectedEvent] = useState<Task | null>(null);
+  useSession(); // Needed to trigger re-render when session changes
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEventUI | null>(null);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -30,27 +36,14 @@ const CalendarWidget = React.memo(function CalendarWidget() {
     timeMax,
   });
 
-  // Parse date strings into Date objects and map to Task format
-  const events: Task[] = useMemo(() => {
-    if (!session?.accessToken && status === 'authenticated') {
-      // Mock data for test credentials
-      return [
-        { id: '1', title: 'Complete dashboard UI', date: new Date(2023, 5, 15), completed: false },
-        { id: '2', title: 'Meeting with client', date: new Date(2023, 5, 16), completed: false },
-        { id: '3', title: 'Submit project proposal', date: new Date(2023, 5, 17), completed: false },
-      ];
-    }
-
+  // Parse date strings into Date objects
+  const events: CalendarEventUI[] = useMemo(() => {
     return rawEvents.map((event) => ({
-      id: event.id,
-      title: event.summary || 'Untitled Event',
-      description: event.description,
-      date: new Date(event.start?.dateTime || event.start?.date || new Date()),
-      endDate: (event.end?.dateTime || event.end?.date) ? new Date(event.end.dateTime || event.end.date || new Date()) : undefined,
-      completed: false,
-      location: event.location,
+      ...event,
+      date: new Date(event.startDate),
+      endDate: event.endDate ? new Date(event.endDate) : undefined,
     }));
-  }, [rawEvents, session, status]);
+  }, [rawEvents]);
 
   // Get the next 5 upcoming events
   const upcomingEvents = useMemo(
@@ -146,17 +139,33 @@ const CalendarWidget = React.memo(function CalendarWidget() {
                 <div
                   key={event.id}
                   onClick={() => setSelectedEvent(event)}
-                  className="bg-white/20 dark:bg-gray-800/20 rounded-2xl p-4 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 hover:bg-white/30 dark:hover:bg-gray-700/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg cursor-pointer group"
+                  className={`rounded-2xl p-4 backdrop-blur-sm border transition-all duration-300 hover:scale-[1.02] hover:shadow-lg cursor-pointer group ${
+                    event.source === 'google'
+                      ? 'bg-red-50/20 dark:bg-red-900/10 border-red-200/30 dark:border-red-700/30 hover:bg-red-100/30 dark:hover:bg-red-800/20'
+                      : 'bg-white/20 dark:bg-gray-800/20 border-white/30 dark:border-gray-600/30 hover:bg-white/30 dark:hover:bg-gray-700/30'
+                  }`}
                 >
                   <div>
-                    <h4 className="font-semibold text-sm mb-2 text-gray-900 dark:text-gray-100 leading-snug group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                      {event.title}
-                    </h4>
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <h4 className="font-semibold text-sm text-gray-900 dark:text-gray-100 leading-snug group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors flex-1">
+                        {event.title}
+                      </h4>
+                      {event.source === 'google' ? (
+                        <FcGoogle className="w-4 h-4 flex-shrink-0" />
+                      ) : (
+                        <div className="flex items-center gap-1 text-blue-500">
+                          <FiUser className="w-3 h-3" />
+                        </div>
+                      )}
+                    </div>
 
                     <div className="flex items-center text-xs text-gray-600 dark:text-gray-400 mb-2">
                       <FiClock className="mr-2 w-4 h-4 text-blue-500" />
                       <span>
-                        {format(event.date, 'MMM d')} at {format(event.date, 'h:mm a')}
+                        {event.allDay
+                          ? format(event.date, 'MMM d')
+                          : `${format(event.date, 'MMM d')} at ${format(event.date, 'h:mm a')}`
+                        }
                       </span>
                     </div>
 
@@ -164,6 +173,13 @@ const CalendarWidget = React.memo(function CalendarWidget() {
                       <p className="text-xs text-gray-600 dark:text-gray-400 flex items-center">
                         <span className="mr-1">📍</span>
                         {event.location}
+                      </p>
+                    )}
+
+                    {event.source === 'local' && event.authorName && (
+                      <p className="text-xs text-blue-500 dark:text-blue-400 mt-1 flex items-center gap-1">
+                        <FiUser className="w-3 h-3" />
+                        {event.authorName}
                       </p>
                     )}
                   </div>

@@ -47,7 +47,8 @@ export default auth((req) => {
   }
 
   // Check for Google API routes - only allow for OAuth users
-  const googleApiRoutes = ['/api/gmail', '/api/calendar', '/api/drive', '/api/fitness', '/dashboard/mail', '/dashboard/agenda'];
+  // Note: /api/calendar and /dashboard/agenda removed - local events work without Google
+  const googleApiRoutes = ['/api/gmail', '/api/drive', '/api/fitness', '/dashboard/mail'];
   const isGoogleApiRoute = googleApiRoutes.some(route => pathname.startsWith(route));
 
   if (isGoogleApiRoute) {

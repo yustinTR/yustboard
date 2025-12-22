@@ -30,6 +30,7 @@ model Organization {
   memberships       OrganizationMembership[]
   posts             Post[]
   tasks             Task[]
+  calendarEvents    CalendarEvent[]
   transactions      Transaction[]
   widgetPreferences UserWidgetPreference[]
   widgetDefaults    OrganizationWidgetDefault[]
@@ -123,6 +124,7 @@ model User {
   likes             PostLike[]
   sessions          Session[]
   tasks             Task[]
+  calendarEvents    CalendarEvent[]
   transactions      Transaction[]
   widgetPreferences UserWidgetPreference[]
   blogPosts         BlogPost[]
@@ -191,6 +193,29 @@ model Task {
   @@index([organizationId, date])
   @@index([userId, completed])
   @@index([date])
+}
+
+// Local calendar events (works without Google)
+// Visible to all team members, editable by author or admin
+model CalendarEvent {
+  id             String       @id @default(cuid())
+  title          String
+  description    String?      @db.Text
+  startDate      DateTime
+  endDate        DateTime
+  allDay         Boolean      @default(false)
+  location       String?
+  authorId       String
+  organizationId String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  author         User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([authorId])
+  @@index([startDate, endDate])
 }
 
 model Transaction {

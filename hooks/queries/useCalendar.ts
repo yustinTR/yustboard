@@ -1,20 +1,21 @@
 import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/query/client';
 
-interface CalendarEvent {
+// Unified calendar event format from API
+export interface CalendarEvent {
   id: string;
-  summary: string;
-  start: {
-    dateTime?: string;
-    date?: string;
-  };
-  end: {
-    dateTime?: string;
-    date?: string;
-  };
-  description?: string;
-  location?: string;
-  htmlLink?: string;
+  title: string;
+  description?: string | null;
+  startDate: string;
+  endDate: string;
+  allDay: boolean;
+  location?: string | null;
+  source: 'google' | 'local';
+  authorId?: string;
+  authorName?: string | null;
+  authorImage?: string | null;
+  canEdit?: boolean;
+  canDelete?: boolean;
 }
 
 async function fetchCalendarEvents(params: { maxResults?: number; timeMin?: string; timeMax?: string } = {}): Promise<CalendarEvent[]> {
@@ -28,7 +29,8 @@ async function fetchCalendarEvents(params: { maxResults?: number; timeMin?: stri
     throw new Error('Failed to fetch calendar events');
   }
   const data = await response.json();
-  return data.events || [];
+  // The API now returns an array directly (not wrapped in events property)
+  return Array.isArray(data) ? data : [];
 }
 
 export function useCalendar(params: { maxResults?: number; timeMin?: string; timeMax?: string } = {}) {
