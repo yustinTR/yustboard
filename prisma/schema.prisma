@@ -32,6 +32,7 @@ model Organization {
   tasks             Task[]
   transactions      Transaction[]
   widgetPreferences UserWidgetPreference[]
+  widgetDefaults    OrganizationWidgetDefault[]
   blogPosts         BlogPost[]
   announcements     Announcement[]
   mediaFiles        MediaFile[]
@@ -283,6 +284,23 @@ model UserWidgetPreference {
 
   @@unique([userId, widgetId, organizationId])
   @@index([userId])
+  @@index([organizationId])
+}
+
+// Organization-level default widget configuration
+// Admins can save a default layout that new team members receive
+model OrganizationWidgetDefault {
+  id             String       @id @default(cuid())
+  organizationId String
+  widgetId       String
+  enabled        Boolean      @default(true)
+  position       Int          @default(0)
+  settings       Json?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, widgetId])
   @@index([organizationId])
 }
 

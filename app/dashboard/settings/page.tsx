@@ -159,6 +159,11 @@ export default function SettingsPage() {
   const [savingBranding, setSavingBranding] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
 
+  // Team widget defaults state
+  const [hasOrgDefaults, setHasOrgDefaults] = useState(false)
+  const [isSavingDefaults, setIsSavingDefaults] = useState(false)
+  const [isApplyingDefaults, setIsApplyingDefaults] = useState(false)
+
   const isAdmin = session?.user?.role === 'ADMIN'
   const isOwnerOrAdmin = session?.user?.organizationRole === 'OWNER' || session?.user?.organizationRole === 'ADMIN'
 
@@ -192,6 +197,13 @@ export default function SettingsPage() {
         setLogoUrl(data.settings?.logoUrl || '')
         setPrimaryColor(data.settings?.primaryColor || '#3B82F6')
         setSecondaryColor(data.settings?.secondaryColor || '#8B5CF6')
+      }
+
+      // Fetch organization widget defaults
+      const defaultsRes = await fetch('/api/organization/widgets/defaults')
+      if (defaultsRes.ok) {
+        const data = await defaultsRes.json()
+        setHasOrgDefaults(data.hasDefaults || false)
       }
 
       // Fetch global menu settings (if admin)
@@ -483,9 +495,68 @@ export default function SettingsPage() {
     }
   }
 
+  const saveAsTeamDefault = async () => {
+    setIsSavingDefaults(true)
+    try {
+      const response = await fetch('/api/organization/widgets/defaults', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          widgets: widgets.map(w => ({
+            widgetId: w.id,
+            enabled: w.enabled,
+            position: w.position,
+            settings: null
+          }))
+        })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to save team defaults')
+      }
+
+      setHasOrgDefaults(true)
+      toast.success('Widget layout opgeslagen als team standaard')
+    } catch (error) {
+      console.error('Error saving team defaults:', error)
+      toast.error(error instanceof Error ? error.message : 'Fout bij het opslaan van team standaard')
+    } finally {
+      setIsSavingDefaults(false)
+    }
+  }
+
+  const applyTeamDefaults = async () => {
+    setIsApplyingDefaults(true)
+    try {
+      const response = await fetch('/api/organization/widgets/apply-defaults', {
+        method: 'POST'
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to apply team defaults')
+      }
+
+      // Refetch widgets to get the updated preferences
+      const widgetRes = await fetch('/api/settings/widgets')
+      if (widgetRes.ok) {
+        const data = await widgetRes.json()
+        setWidgets(data.widgets)
+      }
+
+      toast.success('Team standaard toegepast')
+    } catch (error) {
+      console.error('Error applying team defaults:', error)
+      toast.error(error instanceof Error ? error.message : 'Fout bij het toepassen van team standaard')
+    } finally {
+      setIsApplyingDefaults(false)
+    }
+  }
+
   const saveSettings = async () => {
     setSaving(true)
-    
+
     try {
       // FiSave widget preferences
       const widgetRes = await fetch('/api/settings/widgets', {
@@ -586,6 +657,12 @@ export default function SettingsPage() {
                 widgets={widgets}
                 onDragEnd={handleWidgetDragEnd}
                 onToggle={handleWidgetToggle}
+                canManageOrganization={isOwnerOrAdmin}
+                hasOrgDefaults={hasOrgDefaults}
+                onSaveAsTeamDefault={saveAsTeamDefault}
+                onApplyTeamDefaults={applyTeamDefaults}
+                isSavingDefaults={isSavingDefaults}
+                isApplyingDefaults={isApplyingDefaults}
               />
             </CardContent>
           </Card>
