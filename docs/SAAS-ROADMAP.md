@@ -689,7 +689,18 @@ Aanbevolen volgorde voor Phase 2 (vervolg):
    - [x] Comments op timeline posts (fully implemented with React Query)
    - [x] @mentions in comments (autocomplete, parsing, styling, notifications)
    - [x] Activity feed voor team acties (ActivityWidget met aggregatie van posts, comments, likes, tasks, announcements, members)
-   - [ ] Shared widgets configuratie
+   - [x] **Team Agenda zonder Google** (22 December 2025)
+     - [x] CalendarEvent database model met organization-scoped events
+     - [x] `/api/calendar/events` CRUD routes met RBAC
+     - [x] Merged view: lokale events + Google Calendar (indien gekoppeld)
+     - [x] Agenda widget en pagina werken zonder Google koppeling
+     - [x] Auteur/Admin kan events bewerken/verwijderen
+     - [x] Google events read-only met source indicator
+   - [x] **Shared widgets configuratie** (22 December 2025)
+     - [x] Admin kan widget layout opslaan als team standaard
+     - [x] Team leden kunnen resetten naar team standaard
+     - [x] Nieuwe users krijgen automatisch team defaults
+     - [x] OrganizationWidgetDefault database model
 
 3. **Admin Dashboard Enhancements** - Week 9
    - [ ] Organization analytics dashboard

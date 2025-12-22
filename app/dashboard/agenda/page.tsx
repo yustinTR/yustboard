@@ -2,28 +2,51 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { FiPlus, FiCalendar, FiClock, FiEdit, FiTrash2, FiLoader, FiX, FiList, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiPlus, FiCalendar, FiClock, FiEdit, FiTrash2, FiLoader, FiX, FiList, FiChevronLeft, FiChevronRight, FiUser } from 'react-icons/fi';
+import { FcGoogle } from 'react-icons/fc';
 import { format, parseISO, addHours, startOfDay, endOfDay, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
-import { Task } from '@/utils/google/google-calendar';
 
-// Helper function to ensure a task has proper Date objects
-function ensureTaskDates(task: { id: string; title: string; description?: string; date: Date | string; endDate?: Date | string; completed: boolean }): Task {
+// Unified calendar event interface matching API response
+interface CalendarEvent {
+  id: string;
+  title: string;
+  description?: string | null;
+  startDate: string;
+  endDate: string;
+  allDay: boolean;
+  location?: string | null;
+  source: 'google' | 'local';
+  authorId?: string;
+  authorName?: string | null;
+  authorImage?: string | null;
+  canEdit?: boolean;
+  canDelete?: boolean;
+}
+
+// Internal event with Date objects for UI
+interface CalendarEventUI extends Omit<CalendarEvent, 'startDate' | 'endDate'> {
+  date: Date;
+  endDate?: Date;
+}
+
+// Helper function to convert API event to UI event with Date objects
+function toUIEvent(event: CalendarEvent): CalendarEventUI {
   return {
-    ...task,
-    date: task.date instanceof Date ? task.date : new Date(task.date),
-    endDate: task.endDate ? (task.endDate instanceof Date ? task.endDate : new Date(task.endDate)) : undefined,
+    ...event,
+    date: new Date(event.startDate),
+    endDate: event.endDate ? new Date(event.endDate) : undefined,
   };
 }
 
 // Calendar Grid Component
 interface CalendarGridProps {
   currentMonth: Date;
-  tasks: Task[];
+  events: CalendarEventUI[];
   onDateClick: (date: Date) => void;
-  onTaskClick: (task: Task) => void;
+  onEventClick: (event: CalendarEventUI) => void;
 }
 
-function CalendarGrid({ currentMonth, tasks, onDateClick, onTaskClick }: CalendarGridProps) {
+function CalendarGrid({ currentMonth, events, onDateClick, onEventClick }: CalendarGridProps) {
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(monthStart);
   const startDate = startOfDay(monthStart);
@@ -47,10 +70,10 @@ function CalendarGrid({ currentMonth, tasks, onDateClick, onTaskClick }: Calenda
 
   // Add days of the month
   daysInMonth.forEach((day) => {
-    const dayTasks = tasks.filter(task => 
-      isSameDay(task.date, day)
+    const dayEvents = events.filter(event =>
+      isSameDay(event.date, day)
     );
-    
+
     const isToday = isSameDay(day, new Date());
     const isCurrentMonth = isSameMonth(day, monthStart);
 
@@ -66,25 +89,30 @@ function CalendarGrid({ currentMonth, tasks, onDateClick, onTaskClick }: Calenda
           {format(day, dateFormat)}
         </div>
         <div className="mt-1 space-y-1 overflow-y-auto max-h-20">
-          {dayTasks.slice(0, 3).map((task) => (
+          {dayEvents.slice(0, 3).map((event) => (
             <div
-              key={task.id}
-              className="text-xs p-1 bg-blue-100 text-blue-800 rounded truncate hover:bg-blue-200 transition-colors"
+              key={event.id}
+              className={`text-xs p-1 rounded truncate hover:opacity-80 transition-colors flex items-center gap-1 ${
+                event.source === 'google'
+                  ? 'bg-red-100 text-red-800'
+                  : 'bg-blue-100 text-blue-800'
+              }`}
               onClick={(e) => {
                 e.stopPropagation();
-                onTaskClick(task);
+                onEventClick(event);
               }}
             >
-              {task.isAllDay ? (
-                <span>{task.title}</span>
+              {event.source === 'google' && <FcGoogle className="w-3 h-3 flex-shrink-0" />}
+              {event.allDay ? (
+                <span className="truncate">{event.title}</span>
               ) : (
-                <span>{format(task.date, 'HH:mm')} {task.title}</span>
+                <span className="truncate">{format(event.date, 'HH:mm')} {event.title}</span>
               )}
             </div>
           ))}
-          {dayTasks.length > 3 && (
+          {dayEvents.length > 3 && (
             <div className="text-xs text-gray-500 dark:text-gray-400">
-              +{dayTasks.length - 3} more
+              +{dayEvents.length - 3} more
             </div>
           )}
         </div>
@@ -136,12 +164,13 @@ function CalendarGrid({ currentMonth, tasks, onDateClick, onTaskClick }: Calenda
 
 export default function AgendaPage() {
   const { status } = useSession();
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [events, setEvents] = useState<CalendarEventUI[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [currentTask, setCurrentTask] = useState<Task | null>(null);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [currentEvent, setCurrentEvent] = useState<CalendarEventUI | null>(null);
   const [viewType, setViewType] = useState<'list' | 'calendar'>('list');
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [formData, setFormData] = useState({
@@ -154,185 +183,205 @@ export default function AgendaPage() {
     isAllDay: false,
   });
 
-  // Fetch tasks from Google Calendar
-  const fetchTasks = useCallback(async () => {
+  // Fetch calendar events (local + Google)
+  const fetchEvents = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       const timeMin = startOfMonth(subMonths(currentMonth, 1)).toISOString();
       const timeMax = endOfMonth(addMonths(currentMonth, 1)).toISOString();
-      
+
       const res = await fetch(`/api/calendar?timeMin=${timeMin}&timeMax=${timeMax}`);
-      
+
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.error || 'Failed to fetch calendar events');
       }
-      
-      const data = await res.json();
-      
-      // Ensure all tasks have proper Date objects
-      const tasksWithDates = data.map(ensureTaskDates);
-      setTasks(tasksWithDates);
+
+      const data: CalendarEvent[] = await res.json();
+
+      // Convert API events to UI events with Date objects
+      const eventsWithDates = data.map(toUIEvent);
+      setEvents(eventsWithDates);
     } catch (err) {
-      console.error('Error fetching tasks:', err);
+      console.error('Error fetching events:', err);
       setError(err instanceof Error ? err.message : 'Failed to load your calendar events');
     } finally {
       setLoading(false);
     }
   }, [currentMonth]);
 
-  // Create a new task
-  const createTask = async () => {
+  // Create a new event
+  const createEvent = async () => {
     try {
       setError(null);
-      
-      let dateObj: Date;
-      let endDateObj: Date | undefined;
-      
+
+      let startDate: Date;
+      let endDate: Date;
+
       if (formData.isAllDay) {
-        dateObj = new Date(formData.date);
-        endDateObj = formData.endTime 
-          ? new Date(`${formData.date}T${formData.endTime}`)
-          : undefined;
+        startDate = new Date(formData.date);
+        endDate = new Date(formData.date);
+        // Set end of day for all-day events
+        endDate.setHours(23, 59, 59);
       } else {
-        dateObj = new Date(`${formData.date}T${formData.time || '00:00'}`);
-        endDateObj = formData.endTime 
-          ? new Date(`${formData.date}T${formData.endTime}`) 
-          : addHours(dateObj, 1);
+        startDate = new Date(`${formData.date}T${formData.time || '00:00'}`);
+        endDate = formData.endTime
+          ? new Date(`${formData.date}T${formData.endTime}`)
+          : addHours(startDate, 1);
       }
-      
-      const newTask: Omit<Task, 'id'> = {
+
+      const newEvent = {
         title: formData.title,
-        description: formData.description || undefined,
-        date: dateObj,
-        endDate: endDateObj,
-        completed: false,
-        location: formData.location || undefined,
-        isAllDay: formData.isAllDay,
+        description: formData.description || null,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        allDay: formData.isAllDay,
+        location: formData.location || null,
       };
-      
+
       const res = await fetch('/api/calendar', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(newTask),
+        body: JSON.stringify(newEvent),
       });
-      
+
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.error || 'Failed to create event');
       }
-      
-      const createdTaskData = await res.json();
-      const createdTask = ensureTaskDates(createdTaskData);
-      
-      setTasks([...tasks, createdTask]);
+
+      const createdEvent: CalendarEvent = await res.json();
+      const eventUI = toUIEvent(createdEvent);
+
+      setEvents([...events, eventUI]);
       setShowAddModal(false);
       resetForm();
     } catch (err) {
-      console.error('Error creating task:', err);
+      console.error('Error creating event:', err);
       setError(err instanceof Error ? err.message : 'Failed to create the event');
     }
   };
 
-  // Update an existing task
-  const updateTask = async () => {
-    if (!currentTask) return;
-    
+  // Update an existing event (only for local events)
+  const updateEvent = async () => {
+    if (!currentEvent) return;
+
+    // Cannot edit Google events
+    if (currentEvent.source === 'google') {
+      setError('Google Calendar events cannot be edited here. Please edit in Google Calendar.');
+      return;
+    }
+
     try {
       setError(null);
-      
-      let dateObj: Date;
-      let endDateObj: Date | undefined;
-      
+
+      let startDate: Date;
+      let endDate: Date;
+
       if (formData.isAllDay) {
-        dateObj = new Date(formData.date);
-        endDateObj = formData.endTime 
-          ? new Date(`${formData.date}T${formData.endTime}`)
-          : undefined;
+        startDate = new Date(formData.date);
+        endDate = new Date(formData.date);
+        endDate.setHours(23, 59, 59);
       } else {
-        dateObj = new Date(`${formData.date}T${formData.time || '00:00'}`);
-        endDateObj = formData.endTime 
-          ? new Date(`${formData.date}T${formData.endTime}`) 
-          : addHours(dateObj, 1);
+        startDate = new Date(`${formData.date}T${formData.time || '00:00'}`);
+        endDate = formData.endTime
+          ? new Date(`${formData.date}T${formData.endTime}`)
+          : addHours(startDate, 1);
       }
-      
-      const updatedTask: Task = {
-        ...currentTask,
+
+      const updateData = {
+        id: currentEvent.id,
         title: formData.title,
-        description: formData.description || undefined,
-        date: dateObj,
-        endDate: endDateObj,
-        location: formData.location || undefined,
-        isAllDay: formData.isAllDay,
+        description: formData.description || null,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        allDay: formData.isAllDay,
+        location: formData.location || null,
+        source: currentEvent.source,
       };
-      
+
       const res = await fetch('/api/calendar', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(updatedTask),
+        body: JSON.stringify(updateData),
       });
-      
+
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.error || 'Failed to update event');
       }
-      
-      const updatedTaskData = await res.json();
-      const updatedTaskWithDates = ensureTaskDates(updatedTaskData);
-      
-      setTasks(tasks.map(task => task.id === updatedTaskWithDates.id ? updatedTaskWithDates : task));
+
+      const updatedEvent: CalendarEvent = await res.json();
+      const eventUI = toUIEvent(updatedEvent);
+
+      setEvents(events.map(e => e.id === eventUI.id ? eventUI : e));
       setShowEditModal(false);
-      setCurrentTask(null);
+      setCurrentEvent(null);
       resetForm();
     } catch (err) {
-      console.error('Error updating task:', err);
+      console.error('Error updating event:', err);
       setError(err instanceof Error ? err.message : 'Failed to update the event');
     }
   };
 
-  // Delete a task
-  const deleteTask = async (id: string) => {
+  // Delete an event (only for local events)
+  const deleteEvent = async (event: CalendarEventUI) => {
+    // Cannot delete Google events
+    if (event.source === 'google') {
+      setError('Google Calendar events cannot be deleted here. Please delete in Google Calendar.');
+      return;
+    }
+
     try {
       setError(null);
-      const res = await fetch(`/api/calendar?id=${id}`, {
+      const res = await fetch(`/api/calendar?id=${event.id}&source=${event.source}`, {
         method: 'DELETE',
       });
-      
+
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.error || 'Failed to delete event');
       }
-      
-      setTasks(tasks.filter(task => task.id !== id));
+
+      setEvents(events.filter(e => e.id !== event.id));
+      setShowViewModal(false);
+      setCurrentEvent(null);
     } catch (err) {
-      console.error('Error deleting task:', err);
+      console.error('Error deleting event:', err);
       setError(err instanceof Error ? err.message : 'Failed to delete the event');
     }
   };
 
-  // Load task data into form for editing
-  const editTask = (task: Task) => {
-    const date = format(task.date, 'yyyy-MM-dd');
-    const time = task.isAllDay ? '' : format(task.date, 'HH:mm');
-    const endTime = task.endDate && !task.isAllDay ? format(task.endDate, 'HH:mm') : '';
-    
-    setFormData({
-      title: task.title,
-      description: task.description || '',
-      date,
-      time,
-      endTime,
-      location: task.location || '',
-      isAllDay: task.isAllDay || false,
-    });
-    
-    setCurrentTask(task);
-    setShowEditModal(true);
+  // Handle event click - show view modal for all, edit only for local with permission
+  const handleEventClick = (event: CalendarEventUI) => {
+    setCurrentEvent(event);
+
+    // For Google events or events without edit permission, show view modal
+    if (event.source === 'google' || !event.canEdit) {
+      setShowViewModal(true);
+    } else {
+      // For local events with edit permission, open edit modal
+      const date = format(event.date, 'yyyy-MM-dd');
+      const time = event.allDay ? '' : format(event.date, 'HH:mm');
+      const endTime = event.endDate && !event.allDay ? format(event.endDate, 'HH:mm') : '';
+
+      setFormData({
+        title: event.title,
+        description: event.description || '',
+        date,
+        time,
+        endTime,
+        location: event.location || '',
+        isAllDay: event.allDay || false,
+      });
+
+      setShowEditModal(true);
+    }
   };
 
   // Reset form data
@@ -366,29 +415,26 @@ export default function AgendaPage() {
     }
   };
 
-  // Load tasks on component mount or when month changes
+  // Load events on component mount or when month changes
   useEffect(() => {
     if (status === 'authenticated') {
-      fetchTasks();
+      fetchEvents();
     }
-  }, [status, fetchTasks]);
+  }, [status, fetchEvents]);
 
-  // Make sure all tasks have Date objects before sorting
-  const tasksWithDates = tasks.map(task => ensureTaskDates(task));
-
-  // Sort tasks by date
-  const sortedTasks = [...tasksWithDates].sort((a, b) => {
+  // Sort events by date
+  const sortedEvents = [...events].sort((a, b) => {
     return a.date.getTime() - b.date.getTime();
   });
 
-  // Group tasks by date
-  const tasksByDate: Record<string, Task[]> = {};
-  sortedTasks.forEach(task => {
-    const dateKey = format(task.date, 'yyyy-MM-dd');
-    if (!tasksByDate[dateKey]) {
-      tasksByDate[dateKey] = [];
+  // Group events by date
+  const eventsByDate: Record<string, CalendarEventUI[]> = {};
+  sortedEvents.forEach(event => {
+    const dateKey = format(event.date, 'yyyy-MM-dd');
+    if (!eventsByDate[dateKey]) {
+      eventsByDate[dateKey] = [];
     }
-    tasksByDate[dateKey].push(task);
+    eventsByDate[dateKey].push(event);
   });
 
   // If not authenticated or still loading session, show loading
@@ -402,7 +448,7 @@ export default function AgendaPage() {
   }
 
   // If there's a persistent error, show a retry button
-  if (error && !loading && tasks.length === 0) {
+  if (error && !loading && events.length === 0) {
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl">
         <div className="flex justify-between items-center mb-6">
@@ -421,7 +467,7 @@ export default function AgendaPage() {
           <h2 className="text-xl font-semibold mb-2">Failed to load calendar events</h2>
           <p className="mb-4">{error}</p>
           <button
-            onClick={() => fetchTasks()}
+            onClick={() => fetchEvents()}
             className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
           >
             Try Again
@@ -494,11 +540,11 @@ export default function AgendaPage() {
               <FiLoader className="animate-spin h-6 w-6 text-blue-500 mr-2" />
               <span>Loading events...</span>
             </div>
-          ) : sortedTasks.length === 0 ? (
+          ) : sortedEvents.length === 0 ? (
             <p className="text-gray-500 dark:text-gray-400 text-center py-8">No events found. Add your first event!</p>
           ) : (
             <div>
-              {Object.entries(tasksByDate).map(([dateKey, dateTasks]) => (
+              {Object.entries(eventsByDate).map(([dateKey, dateEvents]) => (
                 <div key={dateKey} className="border-b border-gray-100 last:border-b-0">
                   <div className="px-4 py-2 bg-gray-50">
                     <h3 className="font-medium text-gray-700 dark:text-gray-300">
@@ -506,52 +552,76 @@ export default function AgendaPage() {
                     </h3>
                   </div>
                   <ul className="divide-y divide-gray-100">
-                    {dateTasks.map((task) => (
-                      <li key={task.id} className="p-4 hover:bg-gray-50">
+                    {dateEvents.map((event) => (
+                      <li
+                        key={event.id}
+                        className="p-4 hover:bg-gray-50 cursor-pointer"
+                        onClick={() => handleEventClick(event)}
+                      >
                         <div className="flex items-start">
-                          <div className="mt-1 mr-4 text-gray-300 dark:text-gray-600">
-                            <FiCalendar size={20} />
+                          <div className={`mt-1 mr-4 ${event.source === 'google' ? 'text-red-400' : 'text-blue-400'}`}>
+                            {event.source === 'google' ? <FcGoogle size={20} /> : <FiCalendar size={20} />}
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center justify-between">
-                              <h3 className="font-medium text-gray-900 dark:text-gray-100">
-                                {task.title}
-                                {task.isAllDay && (
-                                  <span className="ml-2 text-xs font-normal text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                                  {event.title}
+                                </h3>
+                                {event.allDay && (
+                                  <span className="text-xs font-normal text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">
                                     All day
                                   </span>
                                 )}
-                              </h3>
-                              <div className="flex space-x-2">
-                                <button 
-                                  onClick={() => editTask(task)}
-                                  className="p-1 text-gray-500 dark:text-gray-400 hover:text-blue-500"
-                                >
-                                  <FiEdit size={16} />
-                                </button>
-                                <button 
-                                  onClick={() => deleteTask(task.id)}
-                                  className="p-1 text-gray-500 dark:text-gray-400 hover:text-red-500"
-                                >
-                                  <FiTrash2 size={16} />
-                                </button>
+                                {event.source === 'google' && (
+                                  <span className="text-xs font-normal text-red-600 bg-red-50 px-2 py-0.5 rounded">
+                                    Google
+                                  </span>
+                                )}
+                                {event.source === 'local' && event.authorName && (
+                                  <span className="text-xs font-normal text-blue-600 bg-blue-50 px-2 py-0.5 rounded flex items-center gap-1">
+                                    <FiUser size={10} />
+                                    {event.authorName}
+                                  </span>
+                                )}
                               </div>
+                              {/* Only show edit/delete for local events with permission */}
+                              {event.source === 'local' && (
+                                <div className="flex space-x-2" onClick={(e) => e.stopPropagation()}>
+                                  {event.canEdit && (
+                                    <button
+                                      onClick={() => handleEventClick(event)}
+                                      className="p-1 text-gray-500 dark:text-gray-400 hover:text-blue-500"
+                                    >
+                                      <FiEdit size={16} />
+                                    </button>
+                                  )}
+                                  {event.canDelete && (
+                                    <button
+                                      onClick={() => deleteEvent(event)}
+                                      className="p-1 text-gray-500 dark:text-gray-400 hover:text-red-500"
+                                    >
+                                      <FiTrash2 size={16} />
+                                    </button>
+                                  )}
+                                </div>
+                              )}
                             </div>
-                            {task.description && (
-                              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{task.description}</p>
+                            {event.description && (
+                              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{event.description}</p>
                             )}
                             <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400">
-                              {!task.isAllDay && (
+                              {!event.allDay && (
                                 <>
                                   <FiClock className="mr-1" />
                                   <span className="mr-4">
-                                    {format(task.date, 'h:mm a')} 
-                                    {task.endDate && ` - ${format(task.endDate, 'h:mm a')}`}
+                                    {format(event.date, 'h:mm a')}
+                                    {event.endDate && ` - ${format(event.endDate, 'h:mm a')}`}
                                   </span>
                                 </>
                               )}
-                              {task.location && (
-                                <span className="text-sm text-gray-500 dark:text-gray-400">📍 {task.location}</span>
+                              {event.location && (
+                                <span className="text-sm text-gray-500 dark:text-gray-400">📍 {event.location}</span>
                               )}
                             </div>
                           </div>
@@ -609,7 +679,7 @@ export default function AgendaPage() {
             ) : (
               <CalendarGrid
                 currentMonth={currentMonth}
-                tasks={tasks}
+                events={events}
                 onDateClick={(date) => {
                   setFormData({
                     ...formData,
@@ -617,7 +687,7 @@ export default function AgendaPage() {
                   });
                   setShowAddModal(true);
                 }}
-                onTaskClick={editTask}
+                onEventClick={handleEventClick}
               />
             )}
           </div>
@@ -646,7 +716,7 @@ export default function AgendaPage() {
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-6">
-              <form onSubmit={(e) => { e.preventDefault(); createTask(); }} className="space-y-6">
+              <form onSubmit={(e) => { e.preventDefault(); createEvent(); }} className="space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Event Title</label>
                   <input
@@ -753,7 +823,7 @@ export default function AgendaPage() {
       )}
 
       {/* Edit Event Modal */}
-      {showEditModal && (
+      {showEditModal && currentEvent && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200 p-4">
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-lg w-full border border-gray-200 dark:border-gray-700 animate-in slide-in-from-bottom-4 duration-300 max-h-[90vh] flex flex-col">
             <div className="relative p-6 border-b border-gray-200 dark:border-gray-700">
@@ -766,15 +836,15 @@ export default function AgendaPage() {
                   <p className="text-gray-600 dark:text-gray-400">Update your calendar event</p>
                 </div>
               </div>
-              <button 
-                onClick={() => setShowEditModal(false)} 
+              <button
+                onClick={() => { setShowEditModal(false); setCurrentEvent(null); }}
                 className="absolute top-6 right-6 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors group"
               >
                 <FiX className="w-6 h-6 text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300" />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-6">
-              <form onSubmit={(e) => { e.preventDefault(); updateTask(); }} className="space-y-6">
+              <form onSubmit={(e) => { e.preventDefault(); updateEvent(); }} className="space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Event Title</label>
                   <input
@@ -861,7 +931,7 @@ export default function AgendaPage() {
                 <div className="flex justify-end space-x-3 pt-4">
                   <button
                     type="button"
-                    onClick={() => setShowEditModal(false)}
+                    onClick={() => { setShowEditModal(false); setCurrentEvent(null); }}
                     className="px-6 py-3 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 font-medium transition-colors"
                   >
                     Cancel
@@ -875,6 +945,103 @@ export default function AgendaPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Event Modal (for Google events and events without edit permission) */}
+      {showViewModal && currentEvent && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200 p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-lg w-full border border-gray-200 dark:border-gray-700 animate-in slide-in-from-bottom-4 duration-300 max-h-[90vh] flex flex-col">
+            <div className="relative p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center">
+                <div className={`p-3 rounded-xl mr-4 ${currentEvent.source === 'google' ? 'bg-red-100 dark:bg-red-900' : 'bg-blue-100 dark:bg-blue-900'}`}>
+                  {currentEvent.source === 'google' ? (
+                    <FcGoogle className="h-6 w-6" />
+                  ) : (
+                    <FiCalendar className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{currentEvent.title}</h3>
+                  <p className="text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                    {currentEvent.source === 'google' ? (
+                      <span className="text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded">Google Calendar</span>
+                    ) : (
+                      <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded flex items-center gap-1">
+                        <FiUser size={10} />
+                        {currentEvent.authorName || 'Team Event'}
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => { setShowViewModal(false); setCurrentEvent(null); }}
+                className="absolute top-6 right-6 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors group"
+              >
+                <FiX className="w-6 h-6 text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {currentEvent.description && (
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Description</h4>
+                  <p className="text-gray-600 dark:text-gray-400">{currentEvent.description}</p>
+                </div>
+              )}
+
+              <div>
+                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Date & Time</h4>
+                <div className="flex items-center text-gray-600 dark:text-gray-400">
+                  <FiCalendar className="mr-2" />
+                  <span>{format(currentEvent.date, 'EEEE, MMMM d, yyyy')}</span>
+                </div>
+                {!currentEvent.allDay && (
+                  <div className="flex items-center text-gray-600 dark:text-gray-400 mt-1">
+                    <FiClock className="mr-2" />
+                    <span>
+                      {format(currentEvent.date, 'h:mm a')}
+                      {currentEvent.endDate && ` - ${format(currentEvent.endDate, 'h:mm a')}`}
+                    </span>
+                  </div>
+                )}
+                {currentEvent.allDay && (
+                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded mt-1 inline-block">All day</span>
+                )}
+              </div>
+
+              {currentEvent.location && (
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Location</h4>
+                  <p className="text-gray-600 dark:text-gray-400">📍 {currentEvent.location}</p>
+                </div>
+              )}
+
+              {currentEvent.source === 'google' && (
+                <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-xl">
+                  <p className="text-sm text-red-700 dark:text-red-400">
+                    This event is from Google Calendar. To edit or delete it, please use Google Calendar.
+                  </p>
+                </div>
+              )}
+
+              {currentEvent.source === 'local' && !currentEvent.canEdit && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl">
+                  <p className="text-sm text-blue-700 dark:text-blue-400">
+                    You don&apos;t have permission to edit this event. Only the author or admin can modify it.
+                  </p>
+                </div>
+              )}
+            </div>
+            <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+              <button
+                onClick={() => { setShowViewModal(false); setCurrentEvent(null); }}
+                className="px-6 py-3 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 font-medium transition-colors"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

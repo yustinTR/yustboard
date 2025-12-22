@@ -1,6 +1,6 @@
 # Production Readiness Report
 
-Generated: 2025-10-20
+Generated: 2025-12-22
 
 ## ✅ Current Status: PRODUCTION READY with Recommendations
 
@@ -165,13 +165,16 @@ See [Performance Optimizations](PERFORMANCE-OPTIMIZATIONS.md) for detailed bench
 - ✅ Subscription management
 
 #### Dashboard Features
-- ✅ Timeline (social posts)
-- ✅ Tasks (Google Calendar sync)
-- ✅ Gmail integration
+- ✅ Timeline (social posts with comments, likes, @mentions)
+- ✅ Team Calendar (local events + optional Google sync)
+- ✅ Tasks management
+- ✅ Gmail integration (requires Google OAuth)
 - ✅ Weather widget
 - ✅ News widget
 - ✅ Banking transactions (via Gmail)
 - ✅ File management (Google Drive)
+- ✅ Activity feed (team activity aggregation)
+- ✅ Announcements system
 
 ## 🔍 Production Checklist
 
@@ -206,8 +209,8 @@ Production environment must have:
 - ✅ STRIPE_WEBHOOK_SECRET (production webhook)
 - ✅ RESEND_API_KEY (production API key)
 - ✅ RESEND_FROM_EMAIL (verified domain)
-- ⚠️ GOOGLE_CLIENT_ID (optional, for Gmail/Calendar)
-- ⚠️ GOOGLE_CLIENT_SECRET (optional, for Gmail/Calendar)
+- ⚠️ GOOGLE_CLIENT_ID (optional, for Gmail/Drive/Fitness - Calendar works without)
+- ⚠️ GOOGLE_CLIENT_SECRET (optional, for Gmail/Drive/Fitness - Calendar works without)
 
 ## 📊 Metrics Summary
 
@@ -286,6 +289,6 @@ npm run build      # Must pass
 
 ---
 
-**Last Updated**: 2025-10-20
+**Last Updated**: 2025-12-22
 **Version**: 1.0.0
 **Status**: ✅ PRODUCTION READY

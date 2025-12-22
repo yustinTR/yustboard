@@ -55,7 +55,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   // Google-dependent widgets that require OAuth authentication
-  const googleDependentWidgets = ['gmail', 'calendar', 'fitness', 'files'];
+  // Note: 'calendar' removed - local calendar events work without Google
+  const googleDependentWidgets = ['gmail', 'fitness', 'files'];
 
   useEffect(() => {
     if (session) {

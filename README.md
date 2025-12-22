@@ -20,7 +20,8 @@ YustBoard is a fully-featured SaaS dashboard application built with Next.js 15, 
 - ✅ **Email System** - Automated notifications via Resend
 - ✅ **Dashboard Widgets** - Timeline, Gmail, Calendar, Weather, News, Banking, Files
 - ✅ **Organization Branding** - Custom logos and color schemes
-- ✅ **Team Collaboration** - Invite system with role management
+- ✅ **Team Collaboration** - Invite system, @mentions, comments, activity feed
+- ✅ **Team Calendar** - Local events without Google, merged view for OAuth users
 - ✅ **High Performance** - React Query caching, HTTP caching, optimized database queries
 - ✅ **Production Ready** - 88 passing tests, CI/CD pipeline, monitoring
 
@@ -69,7 +70,8 @@ DIRECT_URL="postgresql://..."
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=your_secret_here  # Generate: openssl rand -base64 32
 
-# Google OAuth (Optional)
+# Google OAuth (Optional - for Gmail, Drive, Fitness widgets)
+# Calendar works without Google using local events
 GOOGLE_CLIENT_ID=your_client_id
 GOOGLE_CLIENT_SECRET=your_client_secret
 
@@ -258,14 +260,16 @@ See [Performance Optimizations](docs/PERFORMANCE-OPTIMIZATIONS.md) for detailed 
 - Customer portal
 
 ### Dashboard Widgets ✅
-- Timeline (social posts with comments & likes)
-- Gmail integration
-- Google Calendar sync
+- Timeline (social posts with comments, likes & @mentions)
+- Gmail integration (requires Google OAuth)
+- Team Calendar (local events + optional Google Calendar sync)
 - Weather widget
 - News aggregator
 - Banking transactions (via Gmail parsing)
-- File management (Google Drive)
+- File management (Google Drive, requires OAuth)
 - Announcements system
+- Activity feed (aggregates team activity)
+- Tasks management
 
 ## 🚢 Deployment
 
@@ -319,9 +323,9 @@ npm run test:coverage  # With coverage report
 ## 📈 Roadmap
 
 See [SAAS-ROADMAP.md](docs/SAAS-ROADMAP.md) for:
-- ✅ Completed features (Phases 1.1-2.2)
-- 🔄 In progress features
-- 📋 Planned features (Team collaboration, Admin dashboard, Marketing website)
+- ✅ Completed features (Phases 1.1-2.3)
+- 🔄 In progress: Team collaboration (comments, @mentions, local calendar ✅)
+- 📋 Planned features (Admin dashboard, Marketing website, Real-time editing)
 
 ## 🤝 Contributing
 
@@ -390,4 +394,4 @@ For issues or questions:
 
 ---
 
-**Status**: ✅ Production Ready | **Version**: 1.0.0 | **Last Updated**: 2025-10-20
+**Status**: ✅ Production Ready | **Version**: 1.0.0 | **Last Updated**: 2025-12-22

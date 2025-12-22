@@ -67,7 +67,8 @@ export default function Sidebar({ onClose }: SidebarProps) {
   const hasGoogleAccess = authMethod === 'OAUTH';
 
   // Google-dependent menu items that should only be shown to OAuth users
-  const googleDependentItems = ['mail', 'agenda'];
+  // Note: 'agenda' removed - local calendar events work without Google
+  const googleDependentItems = ['mail'];
 
   useEffect(() => {
     fetchMenuSettings();

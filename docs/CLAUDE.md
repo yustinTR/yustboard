@@ -652,12 +652,19 @@ const HeavyComponent = dynamic(
 ### 🔄 **VOLGENDE PRIORITEITEN**
 **Referentie**: Zie `SAAS-ROADMAP.md` voor volledige details
 
-1. **Team Collaboration Features** (Week 8) 🔄 **SUGGESTED NEXT**
+1. **Team Collaboration Features** (Week 8) 🔄 **IN PROGRESS**
    - [ ] Real-time collaborative editing
-   - [ ] Comments op timeline posts
-   - [ ] @mentions in comments
-   - [ ] Activity feed voor team acties
-   - [ ] Shared widgets configuratie
+   - [x] Comments op timeline posts (fully implemented with React Query)
+   - [x] @mentions in comments (autocomplete, parsing, styling, notifications)
+   - [x] Activity feed voor team acties (ActivityWidget met aggregatie)
+   - [x] **Team Agenda zonder Google** (22 December 2025)
+     - [x] CalendarEvent database model met organization-scoped events
+     - [x] `/api/calendar/events` CRUD routes met RBAC
+     - [x] Merged view: lokale events + Google Calendar (indien gekoppeld)
+     - [x] Agenda widget en pagina werken zonder Google koppeling
+   - [x] **Shared widgets configuratie** (22 December 2025)
+     - [x] Admin kan widget layout opslaan als team standaard
+     - [x] Team leden kunnen resetten naar team standaard
 
 2. **Admin Dashboard Enhancements** (Week 8-9)
    - [ ] Organization analytics dashboard
