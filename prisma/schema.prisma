@@ -32,6 +32,8 @@ model Organization {
   tasks             Task[]
   transactions      Transaction[]
   widgetPreferences UserWidgetPreference[]
+  widgetDefaults    OrganizationWidgetDefault[]
+  menuDefaults      OrganizationMenuDefault[]
   blogPosts         BlogPost[]
   announcements     Announcement[]
   mediaFiles        MediaFile[]
@@ -286,6 +288,23 @@ model UserWidgetPreference {
   @@index([organizationId])
 }
 
+// Organization-level default widget configuration
+// Admins can save a default layout that new team members receive
+model OrganizationWidgetDefault {
+  id             String       @id @default(cuid())
+  organizationId String
+  widgetId       String
+  enabled        Boolean      @default(true)
+  position       Int          @default(0)
+  settings       Json?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, widgetId])
+  @@index([organizationId])
+}
+
 model GlobalMenuSetting {
   id        String   @id @default(cuid())
   menuItem  String   @unique
@@ -296,6 +315,22 @@ model GlobalMenuSetting {
   label     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// Organization-level menu configuration
+// Admins can configure the menu for all team members
+model OrganizationMenuDefault {
+  id             String       @id @default(cuid())
+  organizationId String
+  menuItemId     String
+  enabled        Boolean      @default(true)
+  position       Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, menuItemId])
+  @@index([organizationId])
 }
 
 model BlogPost {

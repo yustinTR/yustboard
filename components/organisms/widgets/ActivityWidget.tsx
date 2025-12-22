@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';
@@ -14,10 +14,14 @@ import {
   FiBell,
   FiUserPlus,
   FiMessageCircle,
-  FiWifi
+  FiWifi,
+  FiChevronDown
 } from 'react-icons/fi';
 import { useRealtimeActivity } from '@/hooks/queries/useRealtimeActivity';
 import type { ActivityItem } from '@/app/api/activity/route';
+
+const INITIAL_ITEMS = 5;
+const LOAD_MORE_COUNT = 5;
 
 const activityIcons: Record<ActivityItem['type'], React.ReactNode> = {
   post: <FiMessageSquare className="h-4 w-4 text-indigo-500" />,
@@ -76,7 +80,15 @@ function getActivityDescription(activity: ActivityItem): string | null {
 }
 
 const ActivityWidget = React.memo(function ActivityWidget() {
-  const { activities, isLoading, error, isUsingRealtime, refresh: refetch } = useRealtimeActivity({ limit: 15, fallbackPollingInterval: 60000 });
+  const { activities, isLoading, error, isUsingRealtime, refresh: refetch } = useRealtimeActivity({ limit: 20, fallbackPollingInterval: 60000 });
+  const [visibleCount, setVisibleCount] = useState(INITIAL_ITEMS);
+
+  const visibleActivities = activities.slice(0, visibleCount);
+  const hasMore = activities.length > visibleCount;
+
+  const handleLoadMore = () => {
+    setVisibleCount(prev => Math.min(prev + LOAD_MORE_COUNT, activities.length));
+  };
 
   if (isLoading) {
     return (
@@ -174,7 +186,7 @@ const ActivityWidget = React.memo(function ActivityWidget() {
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto space-y-2 scrollbar-hide">
-            {activities.map((activity) => {
+            {visibleActivities.map((activity) => {
               const link = getActivityLink(activity);
               const description = getActivityDescription(activity);
 
@@ -249,6 +261,17 @@ const ActivityWidget = React.memo(function ActivityWidget() {
                 </div>
               );
             })}
+
+            {/* Load More Button */}
+            {hasMore && (
+              <button
+                onClick={handleLoadMore}
+                className="w-full py-2 px-4 mt-2 bg-white/10 dark:bg-gray-800/10 hover:bg-white/20 dark:hover:bg-gray-700/20 rounded-xl border border-white/20 dark:border-gray-600/20 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-all duration-300 flex items-center justify-center gap-2"
+              >
+                <FiChevronDown className="h-4 w-4" />
+                Meer laden ({activities.length - visibleCount} resterend)
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -256,7 +279,7 @@ const ActivityWidget = React.memo(function ActivityWidget() {
       {/* Footer */}
       <div className="px-6 py-4 bg-white/10 dark:bg-gray-800/15 backdrop-blur-sm border-t border-white/20 dark:border-gray-600/20">
         <div className="text-center text-xs text-gray-500 dark:text-gray-400">
-          Laatste {activities.length} activiteiten
+          {visibleCount} van {activities.length} activiteiten
         </div>
       </div>
     </div>
