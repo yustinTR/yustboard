@@ -123,12 +123,15 @@ const defaultMenuItems: MenuItem[] = [
   { id: 'dashboard', label: 'Dashboard', path: '/dashboard', icon: 'Home', enabled: true, position: 0 },
   { id: 'timeline', label: 'Timeline', path: '/dashboard/timeline', icon: 'MessageSquare', enabled: true, position: 1 },
   { id: 'mail', label: 'Mail', path: '/dashboard/mail', icon: 'Mail', enabled: true, position: 2 },
-  { id: 'agenda', label: 'Agenda', path: '/dashboard/agenda', icon: 'FiCalendar', enabled: true, position: 3 },
+  { id: 'agenda', label: 'Agenda', path: '/dashboard/agenda', icon: 'Calendar', enabled: true, position: 3 },
   { id: 'banking', label: 'Banking', path: '/dashboard/banking', icon: 'DollarSign', enabled: true, position: 4 },
-  { id: 'news', label: 'Nieuws', path: '/dashboard/news', icon: 'Globe', enabled: true, position: 5 },
-  { id: 'social', label: 'Social', path: '/dashboard/social', icon: 'Users', enabled: true, position: 6 },
-  { id: 'weather', label: 'Weather', path: '/dashboard/weather', icon: 'Cloud', enabled: true, position: 7 },
-  { id: 'settings', label: 'Instellingen', path: '/dashboard/settings', icon: 'Settings', enabled: true, position: 8 }
+  { id: 'blog', label: 'Blog', path: '/dashboard/blog', icon: 'FileText', enabled: true, position: 5 },
+  { id: 'news', label: 'Nieuws', path: '/dashboard/news', icon: 'Globe', enabled: true, position: 6 },
+  { id: 'social', label: 'Social', path: '/dashboard/social', icon: 'Users', enabled: true, position: 7 },
+  { id: 'weather', label: 'Weather', path: '/dashboard/weather', icon: 'Cloud', enabled: true, position: 8 },
+  { id: 'announcements', label: 'Aankondigingen', path: '/dashboard/announcements', icon: 'Bell', enabled: true, position: 9 },
+  { id: 'tasks', label: 'Taken', path: '/dashboard/tasks', icon: 'CheckSquare', enabled: true, position: 10 },
+  { id: 'settings', label: 'Instellingen', path: '/dashboard/settings', icon: 'Settings', enabled: true, position: 11 }
 ]
 
 export default function SettingsPage() {
@@ -206,15 +209,17 @@ export default function SettingsPage() {
         setHasOrgDefaults(data.hasDefaults || false)
       }
 
-      // Fetch global menu settings (if admin)
-      if (isAdmin) {
-        const menuRes = await fetch('/api/settings/menu')
+      // Fetch organization menu settings (if org admin)
+      if (isOwnerOrAdmin) {
+        const menuRes = await fetch('/api/organization/menu')
         if (menuRes.ok) {
           const data = await menuRes.json()
           setMenuItems(data.menuItems)
         }
+      }
 
-        // Fetch users list
+      // Fetch users list (if global admin)
+      if (isAdmin) {
         const usersRes = await fetch('/api/admin/users')
         if (usersRes.ok) {
           const data = await usersRes.json()
@@ -227,7 +232,7 @@ export default function SettingsPage() {
     } finally {
       setLoading(false)
     }
-  }, [session, isAdmin])
+  }, [session, isAdmin, isOwnerOrAdmin])
 
   useEffect(() => {
     fetchSettings()
@@ -567,9 +572,9 @@ export default function SettingsPage() {
 
       if (!widgetRes.ok) throw new Error('Failed to save widget settings')
 
-      // FiSave menu settings (if admin)
-      if (isAdmin) {
-        const menuRes = await fetch('/api/settings/menu', {
+      // Save organization menu settings (if org admin)
+      if (isOwnerOrAdmin) {
+        const menuRes = await fetch('/api/organization/menu', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ menuItems })
@@ -634,9 +639,9 @@ export default function SettingsPage() {
             <FiDroplet className="h-4 w-4" />
             Branding
           </TabsTrigger>
-          <TabsTrigger value="menu" disabled={!isAdmin} className="flex items-center gap-2">
+          <TabsTrigger value="menu" disabled={!isOwnerOrAdmin} className="flex items-center gap-2">
             <FiMenu className="h-4 w-4" />
-            Menu {!isAdmin && <Badge variant="secondary" className="ml-2">Admin</Badge>}
+            Menu {!isOwnerOrAdmin && <Badge variant="secondary" className="ml-2">Beheerder</Badge>}
           </TabsTrigger>
           <TabsTrigger value="roles" disabled={!isAdmin} className="flex items-center gap-2">
             <FiShield className="h-4 w-4" />
@@ -1150,9 +1155,9 @@ export default function SettingsPage() {
         <TabsContent value="menu" className="space-y-4">
           <Card className="backdrop-blur-md bg-white/80 dark:bg-gray-900/80 border-white/20 dark:border-gray-700/30 shadow-xl shadow-black/5">
             <CardHeader>
-              <CardTitle>FiMenu Items</CardTitle>
+              <CardTitle>Team Menu</CardTitle>
               <CardDescription>
-                Beheer welke items zichtbaar zijn in het menu voor alle gebruikers
+                Beheer welke menu items zichtbaar zijn voor je team. Google-gerelateerde items (Mail, Agenda) worden automatisch verborgen voor teamleden zonder Google-koppeling.
               </CardDescription>
             </CardHeader>
             <CardContent>

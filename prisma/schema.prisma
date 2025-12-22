@@ -33,6 +33,7 @@ model Organization {
   transactions      Transaction[]
   widgetPreferences UserWidgetPreference[]
   widgetDefaults    OrganizationWidgetDefault[]
+  menuDefaults      OrganizationMenuDefault[]
   blogPosts         BlogPost[]
   announcements     Announcement[]
   mediaFiles        MediaFile[]
@@ -314,6 +315,22 @@ model GlobalMenuSetting {
   label     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// Organization-level menu configuration
+// Admins can configure the menu for all team members
+model OrganizationMenuDefault {
+  id             String       @id @default(cuid())
+  organizationId String
+  menuItemId     String
+  enabled        Boolean      @default(true)
+  position       Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, menuItemId])
+  @@index([organizationId])
 }
 
 model BlogPost {

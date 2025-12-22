@@ -303,43 +303,6 @@ export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                 </Link>
               </li>
 
-              {/* Organization section */}
-              <li className="mt-6 mb-2">
-                <div className="px-4 text-xs font-semibold text-secondary-foreground/60 uppercase tracking-wider">
-                  Organisatie
-                </div>
-              </li>
-
-              <li>
-                <Link
-                  href="/dashboard/announcements"
-                  onClick={onClose}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                    pathname.startsWith('/dashboard/announcements')
-                      ? 'bg-accent text-accent-foreground font-medium'
-                      : 'text-secondary-foreground hover:bg-secondary'
-                  }`}
-                >
-                  <FiBell className="h-5 w-5" />
-                  <span>Aankondigingen</span>
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  href="/dashboard/tasks"
-                  onClick={onClose}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                    pathname.startsWith('/dashboard/tasks')
-                      ? 'bg-accent text-accent-foreground font-medium'
-                      : 'text-secondary-foreground hover:bg-secondary'
-                  }`}
-                >
-                  <FiCheckSquare className="h-5 w-5" />
-                  <span>Taken</span>
-                </Link>
-              </li>
-
               {/* Admin section */}
               {(isAuthor || isAdmin) && (
                 <>
